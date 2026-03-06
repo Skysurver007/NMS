@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script>try { var t = localStorage.getItem('nms_web_title'); if (t) document.title = t; } catch (e) { }</script>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="/static/css/all.min.css"
+        onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="/static/js/lang_dict.js"></script>
+    <script>initAntiFlicker();</script>
+</head>
+
+<body data-page-key="sb_h_mon">
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <div id="loginBranding" style="text-align:center; margin-bottom:20px;">
+                <h2 id="loginTitle" style="margin:0;"></h2>
+            </div>
+            <input type="password" id="passInput" data-lang="ph_password" data-lang-target="placeholder"
+                onkeyup="if(event.key==='Enter') doLogin()">
+            <button class="btn btn-primary" onclick="doLogin()" data-lang="btn_login"></button>
+            <div id="loginMsg" data-lang="msg_pwd_wrong"></div>
+        </div>
+    </div>
+
+
+    <div class="sidebar">
+        <div class="brand-wrapper"
+            style="display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; margin-bottom: 20px;">
+            <button class="btn-sidebar-toggle desktop-only" onclick="toggleMiniSidebar()"
+                style="background:none; border:none; color:white; font-size:20px; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:1001;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="brand-text" id="brandText"
+                style="font-weight:800; color:#3b82f6; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:8px; flex:1; transition: all 0.3s ease;"></span>
+        </div>
+
+        <div class="menu-label" data-lang="sb_h_main"></div>
+
+        <a href="/" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-home me-2"></i> <span data-lang="sb_dash"></span>
+        </a>
+
+        <a href="/maps" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-map-marked-alt me-2"></i> <span data-lang="sb_map"></span>
+        </a>
+
+        <a href="/client" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-users me-2"></i> <span data-lang="sb_client"></span>
+        </a>
+
+        <a href="/pppoe" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_pppoe"></span>
+        </a>
+
+        <a href="/hotspot" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wifi me-2"></i> <span data-lang="sb_hotspot"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_admin"></div>
+
+        <a href="/network" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-boxes me-2"></i> <span data-lang="sb_inv"></span>
+        </a>
+
+        <a href="/network?tab=infra" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_infra"></span>
+        </a>
+
+        <a href="/billing" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-file-invoice-dollar me-2"></i> <span data-lang="sb_bill"></span>
+        </a>
+
+        <a href="/finance" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wallet me-2"></i> <span data-lang="sb_fin"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_mon"></div>
+
+        <div id="sb-traffic-link" class="menu-item active" onclick="setPageTab('traffic')">
+            <i class="fas fa-chart-line me-2"></i> <span data-lang="sb_traffic"></span>
+        </div>
+
+        <div id="sb-logs-link" class="menu-item" onclick="setPageTab('logs')">
+            <i class="fas fa-history me-2"></i> <span data-lang="sb_logs"></span>
+        </div>
+
+        <a href="/settings" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-cog me-2"></i> <span data-lang="sb_set"></span>
+        </a>
+
+        <a href="/about" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-info-circle me-2"></i> <span data-lang="sb_about"></span>
+        </a>
+
+        <div class="menu-item menu-danger" onclick="doLogout()">
+            <i class="fas fa-sign-out-alt me-2"></i> <span data-lang="sb_logout"></span>
+        </div>
+    </div>
+
+    <div class="overlay-bg" onclick="toggleSidebar()"></div>
+
+
+    <div class="main-content">
+        <!-- HEADER MOBILE -->
+        <div class="mobile-head">
+            <button id="btnToggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-brand" id="mobileBrandText"></div>
+        </div>
+
+
+
+
+        <div class="row space" style="margin-bottom:20px; min-height: 40px;">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <div>
+                    <h2 id="pageTitleText" class="header" style="margin:0; border-left:none; padding-left:0;"></h2>
+                    <div id="pageSubText" class="text-xs muted" style="margin-top:2px;"
+                        data-lang="pg_mon_logs_subtitle"></div>
+                </div>
+            </div>
+            <div style="display:flex; gap:15px; align-items:center;">
+
+
+                <div style="display:flex; gap:15px; align-items:center;">
+                    <div
+                        style="border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; font-size: 11px; color: #94a3b8; background: rgba(15, 23, 42, 0.6);">
+                        <span data-lang="lbl_lang_prefix">LANG: </span><span id="currentLangDisplay"
+                            style="color: #38bdf8; font-weight: bold;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="pg-traffic" class="hidden">
+            <div class="grid grid-1">
+                <div class="card">
+                    <div class="card-title">
+                        <h3 data-lang="lbl_traffic_mon"></h3>
+                        <select id="trafficSource" class="select"
+                            style="padding: 2px 8px; font-size: 11px; width: auto; background: rgba(0,0,0,0.3);"
+                            onchange="changeTrafficSource()">
+                            <option value="server_utama" data-lang="lbl_server_main"></option>
+                        </select>
+                    </div>
+                    <div style="font-size:11px; color:#94a3b8; margin-top:-8px; margin-bottom:12px;"><span
+                            data-lang="lbl_wan"></span> <b id="trafficWan"></b></div>
+                    <div class="stat-row" style="display:flex; gap:10px;">
+                        <div class="card-item" style="flex:1">
+                            <div class="card-head"><b data-lang="lbl_dl"></b></div>
+                            <h2 style="color:#4ade80; margin-top:5px;" id="dlNow">0</h2>
+                        </div>
+                        <div class="card-item" style="flex:1">
+                            <div class="card-head"><b data-lang="lbl_ul"></b></div>
+                            <h2 style="color:#60a5fa; margin-top:5px;" id="ulNow">0</h2>
+                        </div>
+                        <div class="card-item" style="flex:1">
+                            <div class="card-head"><b data-lang="lbl_ping_ext"></b> <span class="pill"
+                                    id="extPing"></span></div>
+                            <div class="card-sub"><span data-lang="lbl_target"></span> <span id="extTarget"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-top:20px">
+                    <div class="card-title">
+                        <h3 data-lang="card_traffic_graph"></h3>
+                    </div>
+                    <canvas id="trafficCanvas" width="980" height="300"
+                        style="width:100%; height:300px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.10); border-radius: 10px;"></canvas>
+                    <div class="hint" style="margin-top:10px" data-lang="hint_traffic_color"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="pg-logs" class="hidden">
+            <div class="card">
+                <div class="row space" style="margin-bottom: 12px;">
+                    <div style="flex:1; min-width: 240px;">
+                        <input id="logsSearch" class="input" onkeyup="renderLogsTable()" data-lang="ph_log_search"
+                            data-lang-target="placeholder">
+                    </div>
+                    <div>
+                        <button class="btn-sm btn-danger" onclick="resetLogs()" data-lang="btn_clear_log"></button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="width:120px" data-lang="th_time"></th>
+                                <th data-lang="th_device"></th>
+                                <th data-lang="th_desc"></th>
+                                <th style="width:120px" data-lang="th_status"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="logsTbody"></tbody>
+                    </table>
+                </div>
+                <div class="muted" style="margin-top:10px"><span data-lang="lbl_showing"></span> <span
+                        id="logsShown">0</span> <span data-lang="sb_logs"></span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.overlay-bg');
+            if (sidebar) sidebar.classList.toggle('active');
+            if (overlay) overlay.classList.toggle('active');
+        }
+
+        var APP = {
+            topology: null,
+            settings: null,
+            mikrotik: {},
+            lastLogs: [],
+            trafficSource: 'server_utama',
+            trafficHist: [],
+            page: 'traffic'
+        };
+
+        function getAuthHeaders() {
+            return { 'X-Auth-Token': localStorage.getItem('nms_auth_session') || '' };
+        }
+
+        function safeText(v) {
+            if (v === undefined || v === null) return '';
+            var s = String(v);
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function setPageTab(p) {
+            APP.page = p;
+            document.getElementById('pg-traffic').classList.toggle('hidden', p !== 'traffic');
+            document.getElementById('pg-logs').classList.toggle('hidden', p !== 'logs');
+
+            document.getElementById('sb-traffic-link').classList.toggle('active', p === 'traffic');
+            document.getElementById('sb-logs-link').classList.toggle('active', p === 'logs');
+
+            var title = (p === 'traffic') ? t('sb_traffic') : t('sb_logs');
+            document.getElementById('pageTitleText').innerText = title;
+            document.getElementById('mobileBrandText').innerText = title;
+
+            if (p === 'traffic') renderTraffic();
+            if (p === 'logs') loadLogs();
+        }
+
+        // --- TRAFFIC MONITOR ---
+        function changeTrafficSource() {
+            var val = document.getElementById('trafficSource').value;
+            if (APP.trafficSource !== val) {
+                APP.trafficSource = val;
+                APP.trafficHist = [];
+                renderTraffic();
+            }
+        }
+
+        function parseSpeedToMbps(s) {
+            var v = safeText(s).trim();
+            if (!v) return 0;
+            var m = v.match(/^([0-9.]+)\s*([gmk])?$/i);
+            if (!m) return 0;
+            var n = parseFloat(m[1]);
+            if (!isFinite(n)) return 0;
+            var u = (m[2] || '').toLowerCase();
+            if (u === 'g') return n * 1000;
+            if (u === 'm') return n;
+            if (u === 'k') return n / 1000;
+            return n / 1000000;
+        }
+
+        function renderTraffic() {
+            if (!APP.topology) return;
+            var srcId = APP.trafficSource || 'server_utama';
+            var res = (APP.mikrotik || {})[srcId] || null;
+
+            if (!res) {
+                document.getElementById('trafficWan').innerText = t('msg_no_data');
+                return;
+            }
+
+            document.getElementById('trafficWan').innerText = t('lbl_wan') + ' ' + safeText(res.wan_name || '-');
+            document.getElementById('extTarget').innerText = safeText(res.ping_target || '-');
+            document.getElementById('extPing').innerText = safeText(res.ext_ping || '-');
+
+            var dl = safeText(res.wan_rx || '0');
+            var ul = safeText(res.wan_tx || '0');
+            document.getElementById('dlNow').innerText = dl;
+            document.getElementById('ulNow').innerText = ul;
+
+            var dlM = parseSpeedToMbps(dl);
+            var ulM = parseSpeedToMbps(ul);
+            var now = Date.now();
+            APP.trafficHist.push({ t: now, dl: dlM, ul: ulM });
+            var cutoff = now - (30 * 60 * 1000);
+            APP.trafficHist = APP.trafficHist.filter(p => p.t >= cutoff);
+            drawTrafficCanvas();
+        }
+
+        function drawTrafficCanvas() {
+            var c = document.getElementById('trafficCanvas');
+            if (!c) return;
+            var dpr = window.devicePixelRatio || 1;
+            var rect = c.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            c.width = rect.width * dpr;
+            c.height = rect.height * dpr;
+            var ctx = c.getContext('2d');
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+            var w = rect.width;
+            var h = rect.height;
+
+            ctx.clearRect(0, 0, w, h);
+            var pts = APP.trafficHist || [];
+            if (!pts.length) {
+                ctx.fillStyle = "#666";
+                ctx.font = "12px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(t('msg_waiting_data'), w / 2, h / 2);
+                return;
+            }
+
+            var padLeft = 60, padBottom = 30;
+            var gW = w - padLeft, gH = h - padBottom;
+            var maxV = 1; pts.forEach(p => maxV = Math.max(maxV, p.dl, p.ul));
+            maxV = Math.max(1, maxV * 1.1);
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+            ctx.fillStyle = "#94a3b8"; ctx.font = "10px sans-serif"; ctx.textAlign = "right";
+            for (var i = 0; i <= 5; i++) {
+                var val = maxV * (i / 5);
+                var y = Math.round(gH - (gH * (val / maxV)));
+                ctx.beginPath(); ctx.moveTo(padLeft, y); ctx.lineTo(w, y); ctx.stroke();
+                var lbl = val >= 1000 ? (val / 1000).toFixed(1) + 'G' : val.toFixed(1) + 'M';
+                ctx.fillText(lbl, padLeft - 10, y + 3);
+            }
+
+            var t0 = pts[0].t, t1 = pts[pts.length - 1].t, span = Math.max(1, t1 - t0);
+            ctx.textAlign = "center";
+            for (var i = 0; i <= 4; i++) {
+                var tx = t0 + (span * (i / 4));
+                var date = new Date(tx);
+                var lbl = date.getHours() + ":" + (date.getMinutes() < 10 ? '0' : '') + date.getMinutes();
+                ctx.fillText(lbl, padLeft + (gW * (i / 4)), h - 10);
+            }
+
+            var xOf = t => Math.round(padLeft + (gW * ((t - t0) / span)));
+            var yOf = v => Math.round(gH - (gH * (v / maxV)));
+
+            var line = function (key, color) {
+                ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.beginPath();
+                pts.forEach((p, idx) => {
+                    var x = xOf(p.t), y = yOf(p[key]);
+                    if (idx === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                });
+                ctx.stroke();
+            };
+            line('dl', '#22c55e'); line('ul', '#3b82f6');
+        }
+
+        // --- LOG GANGGUAN ---
+        function loadLogs() {
+            fetch('/api/logs', { headers: getAuthHeaders() })
+                .then(r => {
+                    if (r.status === 401) {
+                        document.getElementById('login-overlay').style.display = 'flex';
+                        return [];
+                    }
+                    return r.json();
+                })
+                .then(l => {
+                    APP.lastLogs = l;
+                    renderLogsTable();
+                })
+                .catch(e => console.error("Logs Error:", e));
+        }
+
+        function renderLogsTable() {
+            var logs = APP.lastLogs || [];
+            var q = safeText(document.getElementById('logsSearch').value).trim().toLowerCase();
+            var list = Array.isArray(logs) ? logs.slice() : [];
+            if (q) list = list.filter(l => safeText(l.name).toLowerCase().includes(q) || safeText(l.msg).toLowerCase().includes(q));
+
+            var tbody = document.getElementById('logsTbody');
+            tbody.innerHTML = '';
+            list.slice(0, 200).forEach(l => {
+                var time = l.time || '-';
+                var st = safeText(l.status).toLowerCase();
+                var pill = (st === 'online') ? '<span class="pill green">' + t('lbl_online_pill') + '</span>' : (st === 'isolir') ? '<span class="pill purple">' + t('lbl_isolir_pill') + '</span>' : (st === 'system') ? '<span class="pill" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);">SISTEM</span>' : (st === 'error') ? '<span class="pill red">ERROR</span>' : '<span class="pill red">' + t('lbl_offline_pill') + '</span>';
+                var tr = document.createElement('tr');
+                tr.innerHTML = '<td>' + safeText(time) + '</td>' +
+                    '<td><b>' + safeText(l.name || '-') + '</b></td>' +
+                    '<td>' + safeText(l.msg || '-') + '</td>' +
+                    '<td>' + pill + '</td>';
+                tbody.appendChild(tr);
+            });
+            document.getElementById('logsShown').innerText = Math.min(200, list.length);
+        }
+
+        function resetLogs() {
+            if (!confirm(t('conf_clear_logs'))) return;
+            fetch('/api/logs/reset', { method: 'POST', headers: getAuthHeaders() })
+                .then(r => { if (r.ok) loadLogs(); else alert(t('err_reset_logs')); })
+                .catch(e => alert(t('msg_error') || "Gagal mereset log"));
+        }
+
+        // --- CORE ---
+        function loadData() {
+            fetch('/api/data', { headers: getAuthHeaders() })
+                .then(r => {
+                    if (r.status === 401) { document.getElementById('login-overlay').style.display = 'flex'; return null; }
+                    return r.json();
+                })
+                .then(d => {
+                    if (!d) return;
+                    APP.topology = d.topology;
+                    APP.settings = d.settings;
+                    APP.mikrotik = d.mikrotik_data || {};
+
+                    // Update Traffic Source Dropdown
+                    var sel = document.getElementById('trafficSource');
+                    var currentVal = sel.value;
+                    sel.innerHTML = '';
+                    if (d.topology.server) {
+                        var rid = 'server_utama';
+                        var res = d.mikrotik_data ? d.mikrotik_data[rid] : null;
+                        var name = (res && res.identity) ? res.identity : (d.topology.server.name || 'MikroTik');
+                        sel.add(new Option(name, rid));
+                    }
+                    (d.topology.extra_routers || []).forEach(r => {
+                        var res = d.mikrotik_data ? d.mikrotik_data[r.id] : null;
+                        var name = (res && res.identity) ? res.identity : (r.name || r.id);
+                        sel.add(new Option(name, r.id));
+                    });
+                    if (Array.from(sel.options).some(o => o.value === currentVal)) sel.value = currentVal;
+
+                    if (APP.page === 'traffic') renderTraffic();
+                    else renderLogsTable();
+
+                    if (d.settings && d.settings.web_title) {
+                        localStorage.setItem('nms_web_title', d.settings.web_title);
+                        document.querySelectorAll('.brand-text, #brandText, .mobile-brand').forEach(e => {
+                            e.innerText = d.settings.web_title;
+                            e.removeAttribute('data-lang');
+                        });
+                        if (document.getElementById('loginTitle')) document.getElementById('loginTitle').innerText = d.settings.web_title;
+                        document.title = (t('sb_h_mon') || "MONITOR").toUpperCase() + " - " + d.settings.web_title.toUpperCase();
+                    }
+                    applyLanguage();
+                }).catch(e => console.error("Monitor Data Error:", e));
+        }
+
+        function doLogin() {
+            var p = document.getElementById('passInput').value;
+            fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: p })
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok') {
+                    localStorage.setItem('nms_auth_session', p);
+                    location.reload();
+                } else {
+                    document.getElementById('loginMsg').style.display = 'block';
+                }
+            }).catch(e => {
+                console.error(e);
+                document.getElementById('loginMsg').style.display = 'block';
+            });
+        }
+
+        function doLogout() {
+            if (!confirm(t('conf_logout'))) return;
+            localStorage.removeItem('nms_auth_session');
+            location.reload();
+        }
+
+
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            var pass = localStorage.getItem('nms_auth_session');
+            if (pass) {
+                applyLanguage();
+                document.getElementById('login-overlay').style.display = 'none';
+                loadData();
+                setInterval(loadData, 10000);
+            } else {
+                document.getElementById('login-overlay').style.display = 'flex';
+            }
+
+            var params = new URLSearchParams(window.location.search);
+            var tab = params.get('tab') || 'traffic';
+            setPageTab(tab);
+
+            // Lang Display
+            var lang = localStorage.getItem('nms_lang') || 'id';
+            var disp = document.getElementById('currentLangDisplay');
+            if (disp) disp.innerText = lang.toUpperCase();
+
+            var ls = document.getElementById('langSelect');
+            if (ls) ls.style.display = 'none';
+        });
+    </script>
+</body>
+
+</html>

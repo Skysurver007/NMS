@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script>try { var t = localStorage.getItem('nms_web_title'); if (t) document.title = t; } catch (e) { }</script>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="/static/css/all.min.css"
+        onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/finance.css?v=3.3.7">
+    <script src="/static/js/lang_dict.js"></script>
+    <script>initAntiFlicker();</script>
+
+</head>
+
+<body data-page-key="sb_fin">
+
+
+    <div class="sidebar">
+        <div class="brand-wrapper"
+            style="display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; margin-bottom: 20px;">
+            <button class="btn-sidebar-toggle desktop-only" onclick="toggleMiniSidebar()"
+                style="background:none; border:none; color:white; font-size:20px; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:1001;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="brand-text" id="brandText"
+                style="font-weight:800; color:#3b82f6; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:8px; flex:1; transition: all 0.3s ease;"></span>
+        </div>
+
+        <div class="menu-label" data-lang="sb_h_main"></div>
+        <a href="/" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-home me-2"></i> <span data-lang="sb_dash"></span>
+        </a>
+        <a href="/maps" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-map-marked-alt me-2"></i> <span data-lang="sb_map"></span>
+        </a>
+        <a href="/client" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-users me-2"></i> <span data-lang="sb_client"></span>
+        </a>
+
+        <a href="/pppoe" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_pppoe"></span>
+        </a>
+
+        <a href="/hotspot" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wifi me-2"></i> <span data-lang="sb_hotspot"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_admin"></div>
+        <a href="/network" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-boxes me-2"></i> <span data-lang="sb_inv"></span>
+        </a>
+        <a href="/network?tab=infra" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_infra"></span>
+        </a>
+        <a href="/billing" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-file-invoice-dollar me-2"></i> <span data-lang="sb_bill"></span>
+        </a>
+
+
+        <div class="menu-item active">
+            <i class="fas fa-wallet me-2"></i> <span data-lang="sb_fin"></span>
+        </div>
+
+        <div class="menu-label" data-lang="sb_h_mon"></div>
+        <a href="/monitor?tab=traffic" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-chart-line me-2"></i> <span data-lang="sb_traffic"></span>
+        </a>
+        <a href="/monitor?tab=logs" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-history me-2"></i> <span data-lang="sb_logs"></span>
+        </a>
+        <a href="/settings" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-cog me-2"></i> <span data-lang="sb_set"></span>
+        </a>
+
+        <a href="/about" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-info-circle me-2"></i> <span data-lang="sb_about"></span>
+        </a>
+
+        <div class="menu-item menu-danger" onclick="doLogout()">
+            <i class="fas fa-sign-out-alt me-2"></i> <span data-lang="sb_logout"></span>
+        </div>
+    </div>
+
+    <div class="overlay-bg" onclick="toggleSidebar()"></div>
+
+
+    <div class="main-content">
+        <!-- HEADER MOBILE -->
+        <div class="mobile-head">
+            <button id="btnToggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-brand" id="mobileBrandText"></div>
+        </div>
+
+
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px; min-height: 40px;">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <div>
+                    <h2 data-lang="fin_title_page" class="header" style="margin:0; border-left:none; padding-left:0;">
+                    </h2>
+                    <div class="text-xs muted" style="margin-top:2px;" data-lang="fin_desc_page"></div>
+                </div>
+            </div>
+
+
+            <div
+                style="border: 1px solid rgba(255,255,255,0.1); padding: 3px 8px; border-radius: 4px; font-size: 9px; color: #94a3b8; background: rgba(15, 23, 42, 0.6);">
+                <span data-lang="lbl_lang_prefix">LANG: </span><span id="currentLangDisplay"
+                    style="color: #38bdf8; font-weight: bold;"></span>
+            </div>
+        </div>
+
+
+        <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-calendar-alt" style="color: var(--accent);"></i>
+            <h4 id="fin-month-title" style="margin: 0; font-size: 14px; color: var(--text-main); font-weight: 700;">
+                <span data-lang="fin_month_heading"></span> <span id="curr-month-name">...</span>:
+            </h4>
+        </div>
+
+        <div class="grid-4" style="gap: 15px; margin-bottom: 25px;">
+            <div class="stat-card card-income">
+                <div class="stat-label" data-lang="fin_income_label"></div>
+                <div class="stat-val text-green" id="fin-income">Rp 0</div>
+            </div>
+            <div class="stat-card card-expense">
+                <div class="stat-label" data-lang="fin_expense_label"></div>
+                <div class="stat-val text-red" id="fin-expense">Rp 0</div>
+            </div>
+            <div class="stat-card card-balance">
+                <div class="stat-label" data-lang="fin_balance_month_label"></div>
+                <div class="stat-val text-blue" id="fin-balance">Rp 0</div>
+            </div>
+            <div class="stat-card card-total">
+                <div class="stat-label" data-lang="fin_balance_total_label"></div>
+                <div class="stat-val" style="color: #a78bfa;" id="fin-total-balance">Rp 0</div>
+            </div>
+        </div>
+
+        <!-- Controls & Filter (Action Integrated) -->
+        <div class="filter-bar" style="padding: 8px 12px; margin-bottom: 15px;">
+            <div
+                style="display:flex; justify-content:space-between; align-items:flex-end; gap:10px; flex-wrap:wrap; width:100%;">
+                <div style="display:flex; gap:12px; align-items:flex-end;">
+                    <div>
+                        <label style="font-size:9px;color:#94a3b8;font-weight:bold;display:block;margin-bottom:2px;"
+                            data-lang="lbl_filter_date"></label>
+                        <div style="display:flex; gap:5px; align-items:center;">
+                            <input type="date" id="finStartDate" class="input"
+                                style="max-width:120px; padding: 4px 8px; font-size: 11px;">
+                            <span style="color:#64748b; font-size: 10px;">-</span>
+                            <input type="date" id="finEndDate" class="input"
+                                style="max-width:120px; padding: 4px 8px; font-size: 11px;">
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn-sm" onclick="renderFinanceTable(true)" data-lang="fin_btn_filter"
+                            style="padding: 5px 10px; font-size:10px;">
+                            <i class="fas fa-filter"></i> <span data-lang="fin_btn_filter"></span></button>
+                        <button class="btn-sm" onclick="resetFinanceFilter()" data-lang="fin_btn_reset"
+                            style="padding: 5px 10px; font-size:10px;">
+                            <i class="fas fa-sync"></i> <span data-lang="fin_btn_reset"></span></button>
+
+                        <!-- INTEGRATED ACTIONS -->
+                        <button class="btn-sm btn-accent" onclick="openTransactionModal()" data-lang="fin_btn_add_tx"
+                            style="padding: 5px 12px; font-size:10px; border-radius: 6px;">
+                            <i class="fas fa-plus"></i> <span data-lang="fin_btn_add_tx"></span></button>
+
+                        <button class="btn-sm"
+                            style="background:rgba(59, 130, 246, 0.1); border-color:#3b82f6; color:#3b82f6; padding: 5px 12px; font-size: 10px;"
+                            onclick="downloadFinanceExcel()" data-lang="fin_btn_excel">
+                            <i class="fas fa-file-excel"></i> <span data-lang="fin_btn_excel"></span></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT STACK -->
+        <div style="display:flex; flex-direction:column; gap:30px;">
+
+            <!-- 1. TABLE SECTION -->
+            <div class="table-container" style="border: none;">
+                <table style="min-width: auto !important;">
+                    <thead>
+                        <tr>
+                            <th onclick="sortFinance('date')" style="width:120px; cursor:pointer;">
+                                <span data-lang="fin_th_date"></span> <i id="icon-date" class="fas fa-sort"
+                                    style="opacity:0.3"></i>
+                            </th>
+                            <th onclick="sortFinance('type')" style="width:100px; cursor:pointer;">
+                                <span data-lang="fin_th_type"></span> <i id="icon-type" class="fas fa-sort"
+                                    style="opacity:0.3"></i>
+                            </th>
+                            <th onclick="sortFinance('category')" style="cursor:pointer;">
+                                <span data-lang="fin_th_category"></span> <i id="icon-category" class="fas fa-sort"
+                                    style="opacity:0.3"></i>
+                            </th>
+                            <th class="desktop-desc" onclick="sortFinance('note')" style="cursor:pointer;">
+                                <span data-lang="fin_th_notes"></span> <i id="icon-note" class="fas fa-sort"
+                                    style="opacity:0.3"></i>
+                            </th>
+                            <th onclick="sortFinance('amount')" style="text-align:right; cursor:pointer;">
+                                <span data-lang="fin_th_amount"></span> <i id="icon-amount" class="fas fa-sort"
+                                    style="opacity:0.3"></i>
+                            </th>
+                            <th style="text-align:center; width:80px;" data-lang="fin_th_action"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="finTbody">
+                        <tr>
+                            <td colspan="7" style="text-align:center; padding:30px; color:#64748b;"
+                                data-lang="fin_txt_loading"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div id="finPagination" style="display:flex; justify-content:center; align-items:center; gap:10px;"></div>
+
+            <!-- 2. MONTHLY REPORTS (Horizontal Cards/Grid) -->
+            <div>
+                <h4
+                    style="margin-bottom:15px; color:var(--text-muted); font-size:12px; text-transform:uppercase; letter-spacing:0.5px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:10px;">
+                    <i class="fas fa-folder-open me-2"></i> <span data-lang="fin_h_archive"></span>
+                </h4>
+                <div id="finMonthList" style="display:flex; flex-wrap:wrap; gap:10px;">
+                    <!-- JS will populate generic buttons -->
+                    <div
+                        style="width:100%; text-align:center; padding:20px; background:rgba(255,255,255,0.02); border-radius:8px; color:#64748b; font-size:13px;">
+                        <span data-lang="fin_txt_no_archive"></span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Transaction Modal -->
+    <div class="modal" id="transactionModal">
+        <div class="modal-box">
+            <h3 id="modalTxTitle" style="margin-bottom:20px; font-size:18px; color:var(--text-main);"
+                data-lang="modal_tx_title"></h3>
+            <input type="hidden" id="txId">
+
+            <div class="form-group">
+                <label data-lang="lbl_tx_type"></label>
+                <select id="txType" class="input" onchange="updateTxCat()">
+                    <option value="income" data-lang="opt_income"></option>
+                    <option value="expense" data-lang="opt_expense"></option>
+                </select>
+            </div>
+
+            <!-- Client Input Group -->
+            <div id="clientInputGroup" class="form-group" style="margin-top:10px; display:none;">
+                <label data-lang="lbl_tx_client"></label>
+                <select id="txClient" class="input" onchange="onClientChange()">
+                    <option value="" data-lang="opt_loading"></option>
+                </select>
+                <div id="arrearsInfo" style="margin-top:5px; font-size:11px; font-weight:bold; display:none;"></div>
+                <div style="font-size:10px; color:#fbbf24; margin-top:2px;" data-lang="hint_tx_client">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top:10px;">
+                <label data-lang="lbl_tx_cat"></label>
+                <select id="txCat" class="input" onchange="onCatChange()">
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+
+            <!-- Billing Details (Only for WiFi Payment) -->
+            <div id="billingDetails"
+                style="display:none; margin-top:10px; border:1px solid #334155; padding:10px; border-radius:4px; background:#1e293b;">
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 2;">
+                        <label data-lang="lbl_duration" style="font-size:11px;"></label>
+                        <input type="number" id="txDuration" class="input" value="1" min="1">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="color:#ef4444; font-weight:bold; font-size:11px;"
+                            data-lang="lbl_arrears_months"></label>
+                        <input type="number" id="txArrearsMonths" class="input" value="0" min="0"
+                            style="border-color:#ef4444;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label data-lang="lbl_tx_amount"></label>
+                <input type="number" id="txAmount" class="input" data-lang="ph_amount" data-lang-target="placeholder">
+            </div>
+
+            <div class="form-group">
+                <label data-lang="lbl_tx_note"></label>
+                <textarea id="txNote" class="input" rows="3" data-lang="ph_tx_note"
+                    data-lang-target="placeholder"></textarea>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:25px;">
+                <button class="btn btn-sm" onclick="closeModal('transactionModal')"
+                    style="background:transparent; border:1px solid #475569;" data-lang="btn_cancel"></button>
+                <button class="btn btn-primary" onclick="saveTransaction()" data-lang="btn_save"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lang & Logic -->
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.overlay-bg');
+            if (sidebar) sidebar.classList.toggle('active');
+            if (overlay) overlay.classList.toggle('active');
+        }
+
+        // --- BOILERPLATE & HELPERS ---
+        var APP = { settings: {}, financePage: 1, sort: { col: 'date', dir: 'desc' } };
+        var financeRawData = [];
+        var financeFilteredData = [];
+
+        function sortFinance(col) {
+            if (APP.sort.col === col) {
+                // Toggle direction
+                APP.sort.dir = (APP.sort.dir === 'asc') ? 'desc' : 'asc';
+            } else {
+                // New column, default desc for most, maybe asc for text?
+                APP.sort.col = col;
+                APP.sort.dir = 'desc';
+            }
+            renderFinanceTable(true); // Re-render with sort
+        }
+
+        function getAuthHeaders() {
+            return { 'X-Auth-Token': localStorage.getItem('nms_auth_session') };
+        }
+
+        // t() is loaded from lang_dict.js
+
+
+        function safeText(v) {
+            if (v === undefined || v === null) return '';
+            var s = String(v);
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function formatRupiah(num) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+        }
+
+        function formatDate(dateStr, isMobile) {
+            if (!dateStr || dateStr.length < 10) return dateStr;
+            // Input YYYY-MM-DD
+            var parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+
+            if (isMobile) {
+                // Mobile: M/D (e.g. 1/20 for Jan 20)
+                // Remove leading zeros
+                return parseInt(parts[1]) + '/' + parseInt(parts[2]);
+            } else {
+                // Desktop: DD-MM-YYYY
+                return parts[2] + '-' + parts[1] + '-' + parts[0];
+            }
+        }
+
+
+
+
+        function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+        function logout() { fetch('/api/logout', { method: 'POST' }).then(() => window.location.href = '/').catch(() => window.location.href = '/'); }
+
+        // --- AUTH CHECK ---
+        (function () {
+            if (!localStorage.getItem('nms_auth_session')) {
+                window.location.href = '/'; // Go to login
+            }
+        })();
+
+        // --- FINANCE LOGIC (Ported) ---
+
+        function renderFinanceTable(isFilterAction) {
+            fetch('/api/finance/history', { headers: getAuthHeaders() }).then(r => r.json()).then(d => {
+                if (d.error) return;
+                financeRawData = d || [];
+
+                renderMonthlyReports(financeRawData);
+
+                // Filter Logic
+                var startStr = document.getElementById('finStartDate').value;
+                var endStr = document.getElementById('finEndDate').value;
+                var showData = financeRawData;
+                var isFiltered = false;
+
+                if (startStr || endStr) {
+                    isFiltered = true;
+                    showData = financeRawData.filter(t => {
+                        var date = t.date;
+                        if (startStr && date < startStr) return false;
+                        if (endStr && date > endStr) return false;
+                        return true;
+                    });
+                }
+                if (APP.sort) {
+                    showData.sort((a, b) => {
+                        var valA = a[APP.sort.col];
+                        var valB = b[APP.sort.col];
+
+                        if (APP.sort.col === 'amount') {
+                            valA = parseInt(valA) || 0;
+                            valB = parseInt(valB) || 0;
+                        } else {
+                            // Date is string YYYY-MM-DD, so safe to compare as string
+                            valA = (valA || '').toString().toLowerCase();
+                            valB = (valB || '').toString().toLowerCase();
+                        }
+
+                        if (valA < valB) return APP.sort.dir === 'asc' ? -1 : 1;
+                        if (valA > valB) return APP.sort.dir === 'asc' ? 1 : -1;
+                        return 0;
+                    });
+                }
+
+                financeFilteredData = showData;
+
+                // Update Header Icons
+                ['date', 'type', 'category', 'note', 'amount'].forEach(k => {
+                    var icon = document.getElementById('icon-' + k);
+                    if (icon) {
+                        icon.className = 'fas ' + (APP.sort.col === k ? (APP.sort.dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down') : 'fa-sort');
+                        icon.style.opacity = (APP.sort.col === k) ? '1' : '0.3';
+                    }
+                });
+
+                // Update Summary Stats
+                if (isFiltered) {
+                    var inc = 0, exp = 0;
+                    showData.forEach(t => {
+                        if (t.type === 'income') {
+                            if (t.category !== 'balance_carryover') inc += parseInt(t.amount || 0);
+                        } else exp += parseInt(t.amount || 0);
+                    });
+                    document.getElementById('fin-income').innerText = formatRupiah(inc);
+                    document.getElementById('fin-expense').innerText = formatRupiah(exp);
+                    document.getElementById('fin-balance').innerText = formatRupiah(inc - exp);
+                    // Total balance remains as it is (global) or we can fetch summary again for global context
+                } else {
+                    // Default API Summary
+                    fetch('/api/finance/summary', { headers: getAuthHeaders() }).then(r => r.json()).then(s => {
+                        if (!s.error) {
+                            document.getElementById('fin-income').innerText = formatRupiah(s.income);
+                            document.getElementById('fin-expense').innerText = formatRupiah(s.expense);
+                            document.getElementById('fin-balance').innerText = formatRupiah(s.balance);
+                            const totalEl = document.getElementById('fin-total-balance');
+                            if (totalEl) totalEl.innerText = formatRupiah(s.total_balance);
+
+                            // Month Label
+                            const months = t('months');
+                            document.getElementById('curr-month-name').innerText = months[new Date().getMonth()];
+                        }
+                    }).catch(e => console.error("Summary error:", e));
+                }
+
+                // Pagination
+                var perPage = 10;
+                var totalItems = showData.length;
+                var totalPages = Math.ceil(totalItems / perPage);
+                var curPage = APP.financePage || 1;
+                if (curPage > totalPages) curPage = (totalPages > 0 ? totalPages : 1);
+                APP.financePage = curPage;
+
+                var startIdx = (curPage - 1) * perPage;
+                var pageData = showData.slice(startIdx, startIdx + perPage);
+
+                var tbody = document.getElementById('finTbody');
+                tbody.innerHTML = '';
+
+                if (pageData.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#666;padding:20px;">${t('fin_no_data')}</td></tr>`;
+                } else {
+                    pageData.forEach(tx => {
+                        var tr = document.createElement('tr');
+                        var color = tx.type === 'income' ? '#4ade80' : '#f43f5e';
+                        var sign = tx.type === 'income' ? '+' : '-';
+
+                        var catDisplay = tx.category;
+                        if (tx.category === 'wifi_payment') catDisplay = t('cat_wifi');
+                        else if (tx.category === 'balance_carryover') catDisplay = t('cat_carryover');
+
+                        // Mobile Type Icon vs Desktop Text
+                        var typeHtml = '';
+                        if (tx.type === 'income') {
+                            // Desktop: MASUK pill, Mobile: Arrow Down (Green)
+                            typeHtml = `
+                                <span class="pill desktop-only" style="color:#4ade80; border:1px solid #4ade80; background:rgba(0,0,0,0.2)">${t('fin_in_pill')}</span>
+                                <i class="fas fa-arrow-down mobile-only" style="color:#4ade80; font-size:16px;"></i>
+                            `;
+                        } else {
+                            // Desktop: KELUAR pill, Mobile: Arrow Up (Red)
+                            typeHtml = `
+                                <span class="pill desktop-only" style="color:#f43f5e; border:1px solid #f43f5e; background:rgba(0,0,0,0.2)">${t('fin_out_pill')}</span>
+                                <i class="fas fa-arrow-up mobile-only" style="color:#f43f5e; font-size:16px;"></i>
+                            `;
+                        }
+
+                        // Responsive Date
+                        // We generate two spans and toggle via CSS is safest if we want raw server-side render, 
+                        // but here we are in JS. We can check window.innerWidth, BUT table shouldn't re-render on resize usually?
+                        // Better to put both in HTML and hide via CSS.
+
+                        var dateHtml = `
+                            <span class="desktop-only">${formatDate(tx.date, false)}</span>
+                            <span class="mobile-only">${formatDate(tx.date, true)}</span>
+                        `;
+
+                        tr.innerHTML = `
+                            <td>${dateHtml}</td>
+                            <td>${typeHtml}</td>
+                            <td>
+                                <div style="font-weight:bold;">${safeText(catDisplay)}</div>
+                                <div class="mobile-desc">${safeText(tx.note)}</div>
+                            </td>
+                            <td class="td-desc desktop-desc">${safeText(tx.note)}</td>
+                            <td style="text-align:right; font-weight:bold; color:${color}">${sign} ${formatRupiah(tx.amount)}</td>
+                            <td style="text-align:center;">
+                                <div style="display:flex; justify-content:center; gap:10px;">
+                                    <i class="fas fa-edit" 
+                                       style="cursor:pointer; color:#fbbf24; font-size:14px;" 
+                                       onclick="editTransaction('${tx.id}')" 
+                                       title="Edit"></i>
+                                    <i class="fas fa-trash-alt" 
+                                       style="cursor:pointer; color:#ef4444; font-size:14px;" 
+                                       onclick="deleteTransaction('${tx.id}')" 
+                                       title="Hapus"></i>
+                                </div>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                // Pagination Buttons
+                var box = document.getElementById('finPagination');
+                box.innerHTML = '';
+                if (totalPages > 1) {
+                    box.innerHTML = `
+                        <button class="btn-sm" onclick="changePage(-1)" ${curPage === 1 ? 'disabled' : ''}>❮</button>
+                        <span style="font-size:12px; color:#aaa;">${t('lbl_hal')} ${curPage} / ${totalPages}</span>
+                        <button class="btn-sm" onclick="changePage(1)" ${curPage === totalPages ? 'disabled' : ''}>❯</button>
+                    `;
+                }
+
+            }).catch(e => {
+                console.error("History error:", e);
+                var tbody = document.getElementById('finTbody');
+                if (tbody) tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ef4444;padding:20px;">${t('msg_error') || 'Gagal memuat data'}</td></tr>`;
+            });
+        }
+
+        function changePage(delta) {
+            APP.financePage += delta;
+            renderFinanceTable(true);
+        }
+
+        function resetFinanceFilter() {
+            document.getElementById('finStartDate').value = '';
+            document.getElementById('finEndDate').value = '';
+            renderFinanceTable(true);
+        }
+
+        function renderMonthlyReports(allData) {
+            var box = document.getElementById('finMonthList');
+            var months = new Set();
+            allData.forEach(t => { if (t.date && t.date.length >= 7) months.add(t.date.slice(0, 7)); });
+            var sorted = Array.from(months).sort().reverse();
+            var now = new Date();
+            var nowStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            // Hide current month in reports list? Usually yes, to avoid confusion vs live data
+            // Keep last 12 months
+            var previous = sorted.filter(m => m !== nowStr).slice(0, 12);
+
+            box.innerHTML = '';
+            if (previous.length === 0) {
+                box.innerHTML = `<div style="flex:1; text-align:center; color:#475569; font-size:13px; background:rgba(255,255,255,0.02); padding:20px; border-radius:8px;">${t('fin_txt_no_data')}</div>`;
+                return;
+            }
+
+            previous.forEach(m => {
+                var btn = document.createElement('button');
+                btn.className = 'btn-sm';
+                btn.style.display = 'flex';
+                btn.style.alignItems = 'center';
+                btn.style.gap = '8px';
+                btn.style.padding = '8px 16px';
+                btn.style.minWidth = '160px';
+                btn.innerHTML = `<i class="fas fa-file-invoice" style="color:#60a5fa;"></i> ${t('fin_report_btn')} ${m}`;
+                btn.onclick = function () { downloadFinanceReport(m); };
+                box.appendChild(btn);
+            });
+        }
+
+        function openTransactionModal() {
+            document.getElementById('modalTxTitle').innerText = t('modal_tx_title');
+            document.getElementById('transactionModal').classList.add('show');
+            document.getElementById('txId').value = ''; // Clear ID for new
+            document.getElementById('txAmount').value = '';
+            document.getElementById('txNote').value = '';
+            document.getElementById('txDuration').value = '1';
+            document.getElementById('txArrearsMonths').value = '0';
+            document.getElementById('billingDetails').style.display = 'none';
+            updateTxCat();
+        }
+
+        function updateTxCat() {
+            var tType = document.getElementById('txType').value;
+            var cat = document.getElementById('txCat');
+            cat.innerHTML = '';
+
+            var opts = [];
+            if (tType === 'income') {
+                // Special handling for WiFi Payment to ensure it uses the key 'wifi_payment'
+                opts.push({ val: 'wifi_payment', text: t('cat_wifi') }); // Pembayaran WiFi
+                opts.push({ val: 'balance_carryover', text: t('cat_carryover') }); // Saldo Pindahan
+                opts.push({ val: t('cat_invest'), text: t('cat_invest') });
+                opts.push({ val: t('cat_grant'), text: t('cat_grant') });
+                opts.push({ val: t('cat_others'), text: t('cat_others') });
+            } else {
+                [t('cat_tools'), t('cat_maint'), t('cat_ops'), t('cat_salary'), t('cat_others')].forEach(x => {
+                    opts.push({ val: x, text: x });
+                });
+            }
+
+            // Toggle Client Input Visibility
+            var clientGroup = document.getElementById('clientInputGroup');
+            if (clientGroup) {
+                if (tType === 'income') {
+                    clientGroup.style.display = 'block';
+                } else {
+                    clientGroup.style.display = 'none';
+                    document.getElementById('txClient').value = '';
+                }
+            }
+
+            opts.forEach(optData => {
+                var o = document.createElement('option');
+                o.value = optData.val;
+                o.innerText = optData.text;
+                cat.appendChild(o);
+            });
+            onCatChange(); // Trigger visibility update
+        }
+
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.querySelector('.overlay-bg').classList.toggle('active');
+        }
+
+        function onCatChange() {
+            var cat = document.getElementById('txCat').value;
+            var billGroup = document.getElementById('billingDetails');
+            if (billGroup) {
+                billGroup.style.display = (cat === 'wifi_payment') ? 'block' : 'none';
+            }
+        }
+
+        function onClientChange() {
+            var clientVal = document.getElementById('txClient').value;
+            var infoBox = document.getElementById('arrearsInfo');
+            if (infoBox) { infoBox.style.display = 'none'; infoBox.innerHTML = ''; }
+
+            if (clientVal) {
+                // Auto select WiFi Payment
+                document.getElementById('txCat').value = 'wifi_payment';
+                onCatChange();
+
+                // Check Arrears (Debt Info)
+                fetch('/api/data', { headers: getAuthHeaders() }).then(r => r.json()).then(d => {
+                    var clients = (d.topology && d.topology.clients) ? d.topology.clients : [];
+                    var c = clients.find(x => x.id === clientVal);
+                    if (c && c.paid_until && infoBox) {
+                        var expiry = new Date(c.paid_until);
+                        var today = new Date();
+                        // Reset to first day of month for month-diff comparison
+                        var expMonth = new Date(expiry.getFullYear(), expiry.getMonth(), 1);
+                        var currMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+                        if (expiry < today) {
+                            var diffMonths = (today.getFullYear() - expiry.getFullYear()) * 12 + (today.getMonth() - expiry.getMonth());
+                            if (diffMonths <= 0) diffMonths = 1;
+
+                            infoBox.style.display = 'block';
+                            infoBox.style.color = '#ef4444'; // Red-ish
+                            infoBox.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${t('lbl_arrears_warning')}: ${diffMonths} ${t('lbl_arrears_suffix')} (${t('lbl_paid_until_short')} ${formatDate(c.paid_until, false)})`;
+
+                            // Auto-fill arrears counts
+                            document.getElementById('txArrearsMonths').value = diffMonths;
+                        } else {
+                            infoBox.style.display = 'block';
+                            infoBox.style.color = '#4ade80'; // Green-ish
+                            infoBox.innerHTML = `<i class="fas fa-check-circle"></i> ${t('lbl_active_success')} (${t('lbl_paid_until_short')} ${formatDate(c.paid_until, false)})`;
+                            document.getElementById('txArrearsMonths').value = '0';
+                        }
+                    }
+                }).catch(e => console.error("Arrears check error:", e));
+            } else {
+                document.getElementById('txArrearsMonths').value = '0';
+            }
+        }
+
+        // --- CLIENT SELECT LOGIC ---
+        function loadClientOptions() {
+            var sel = document.getElementById('txClient');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">' + t('opt_choose_client') + '</option>';
+
+            fetch('/api/data', { headers: getAuthHeaders() }).then(r => r.json()).then(d => {
+                if (d.topology && d.topology.clients) {
+                    // Filter only PPPoE Clients
+                    var pppoeOnly = d.topology.clients.filter(c => c.credentials && c.credentials.pppoe_user);
+                    var sorted = pppoeOnly.sort((a, b) => a.name.localeCompare(b.name));
+
+                    sorted.forEach(c => {
+                        var opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.innerText = c.name + (c.status === 'isolir' ? ' (ISOLIR)' : '');
+                        sel.appendChild(opt);
+                    });
+                }
+            }).catch(e => {
+                console.error(e);
+                sel.innerHTML = '<option value="">' + (t('msg_error') || 'Error') + '</option>';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', loadClientOptions);
+
+        function saveTransaction() {
+            var payload = {
+                id: document.getElementById('txId').value,
+                type: document.getElementById('txType').value,
+                category: document.getElementById('txCat').value,
+                amount: parseInt(document.getElementById('txAmount').value) || 0,
+                note: document.getElementById('txNote').value,
+                client_id: document.getElementById('txClient').value,
+                duration: parseInt(document.getElementById('txDuration').value) || 1,
+                arrears_months: parseInt(document.getElementById('txArrearsMonths').value) || 0
+            };
+            if (payload.amount <= 0) return alert(t('fin_alert_nominal'));
+
+            fetch('/api/finance/transaction', {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                body: JSON.stringify(payload)
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok') {
+                    closeModal('transactionModal');
+                    renderFinanceTable();
+                } else {
+                    alert(`${t('fin_err_save')} ${d.msg}`);
+                }
+            }).catch(e => alert(e));
+        }
+
+        function editTransaction(id) {
+            // Use loose comparison or string conversion to handle numeric/string IDs
+            var tx = financeRawData.find(x => String(x.id) === String(id));
+            if (!tx) return;
+
+            document.getElementById('modalTxTitle').innerText = t('modal_tx_edit_title');
+            document.getElementById('txId').value = tx.id;
+            document.getElementById('txType').value = tx.type;
+
+            // Re-populate categories based on type
+            updateTxCat();
+
+            // Populate Client if exists
+            var clientEl = document.getElementById('txClient');
+            if (clientEl) {
+                clientEl.value = tx.client_id || '';
+            }
+
+            // Set category after updateTxCat populated the list
+            document.getElementById('txCat').value = tx.category;
+            document.getElementById('txAmount').value = tx.amount;
+            document.getElementById('txNote').value = tx.note;
+            document.getElementById('transactionModal').classList.add('show');
+        }
+
+        function deleteTransaction(id) {
+            if (!confirm(t('fin_confirm_del'))) return;
+            fetch('/api/finance/transaction/' + id, { method: 'DELETE', headers: getAuthHeaders() })
+                .then(r => r.json()).then(d => {
+                    if (d.status === 'ok') renderFinanceTable();
+                    else alert(t('msg_error'));
+                }).catch(e => alert(t('msg_error') || 'Gagal menghapus'));
+        }
+
+        function csvWrap(val) {
+            if (val === null || val === undefined) return '""';
+            var s = String(val).replace(/"/g, '""');
+            if (s.includes(',') || s.includes('\n') || s.includes('"')) return '"' + s + '"';
+            return '"' + s + '"'; // Always wrap to be safe
+        }
+
+        function downloadFinanceExcel() {
+            if (!financeFilteredData.length) return alert(t('fin_export_empty'));
+            var headerKey = 'fin_csv_header';
+            var headerStr = t(headerKey) === headerKey ? 'TANGGAL,TIPE,KATEGORI,CATATAN,NOMINAL,USER' : t(headerKey);
+
+            var rows = ['sep=,', headerStr];
+            var totalIncome = 0;
+            var totalExpense = 0;
+
+            financeFilteredData.forEach(t => {
+                var amount = parseInt(t.amount) || 0;
+                if (t.type === 'income') totalIncome += amount;
+                else totalExpense += amount;
+
+                var val = (t.type === 'expense' ? '-' : '') + t.amount;
+                rows.push([
+                    csvWrap(t.date),
+                    csvWrap(t.type.toUpperCase()),
+                    csvWrap(t.category),
+                    csvWrap(t.note || ''),
+                    csvWrap(val),
+                    csvWrap(t.user)
+                ].join(','));
+            });
+
+            rows.push('');
+            rows.push([
+                csvWrap(t('lbl_total') === 'lbl_total' ? 'TOTAL' : t('lbl_total')),
+                '', '',
+                csvWrap(`${t('fin_in_pill')}: ${totalIncome}`),
+                csvWrap(`${t('fin_out_pill')}: ${totalExpense}`),
+                csvWrap(`${t('sb_balance') === 'sb_balance' ? 'Saldo' : t('sb_balance')}: ${totalIncome - totalExpense}`)
+            ].join(','));
+
+            var blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'Finance_Export.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        function downloadFinanceReport(monthStr) {
+            var filtered = financeRawData.filter(t => t.date.startsWith(monthStr));
+            if (!filtered.length) return alert(t('fin_no_data'));
+
+            filtered.sort((a, b) => a.date.localeCompare(b.date));
+            var headerStr = t('fin_csv_report_header') === 'fin_csv_report_header' ? 'NO,TANGGAL,DESKRIPSI,MASUK,KELUAR,SALDO' : t('fin_csv_report_header');
+            var rows = ['sep=,', headerStr];
+            var bal = 0;
+            var totInc = 0;
+            var totExp = 0;
+            filtered.forEach((t, i) => {
+                var inc = t.type === 'income' ? parseInt(t.amount || 0) : 0;
+                var exp = t.type === 'expense' ? parseInt(t.amount || 0) : 0;
+                totInc += inc;
+                totExp += exp;
+                bal += (inc - exp);
+                rows.push([
+                    i + 1,
+                    csvWrap(t.date),
+                    csvWrap(t.note || t.category),
+                    csvWrap(inc),
+                    csvWrap(exp),
+                    csvWrap(bal)
+                ].join(','));
+            });
+            // Total Summary Row
+            rows.push('');
+            rows.push([
+                csvWrap(t('lbl_total') === 'lbl_total' ? 'TOTAL' : t('lbl_total')),
+                '',
+                '',
+                csvWrap(totInc),
+                csvWrap(totExp),
+                csvWrap(bal)
+            ].join(','));
+            var blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = `Laporan_${monthStr}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyLanguage();
+            syncSettings();
+            renderFinanceTable();
+        });
+
+        function syncSettings() {
+            fetch('/api/settings', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(s => {
+                    if (s) {
+                        if (s.web_title) {
+                            localStorage.setItem('nms_web_title', s.web_title);
+                            document.querySelectorAll('.brand-text, #brandText, .mobile-brand').forEach(e => {
+                                e.innerText = s.web_title;
+                                e.removeAttribute('data-lang');
+                            });
+                            document.title = (t('sb_fin') || "FINANCE").toUpperCase() + " - " + s.web_title.toUpperCase();
+                        }
+                        if (s.is_licensed) {
+                            localStorage.setItem('nms_is_licensed', 'true');
+                            var b = document.getElementById('licBadge');
+                            if (b) {
+                                b.innerHTML = '<i class="fas fa-check-circle me-1"></i> LICENSED (PRO)';
+                                b.style.background = 'rgba(16, 185, 129, 0.1)';
+                                b.style.color = '#10b981';
+                                b.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                                b.href = '/license';
+                                b.style.cursor = 'pointer';
+                            }
+                        } else {
+                            localStorage.removeItem('nms_is_licensed');
+                        }
+                    }
+                }).catch(() => { });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script>try { var t = localStorage.getItem('nms_web_title'); if (t) document.title = t; } catch (e) { }</script>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="/static/css/all.min.css"
+        onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script>window.NMS_WAIT_FOR_AUTH = true;</script>
+    <script src="/static/js/lang_dict.js"></script>
+    <script>initAntiFlicker();</script>
+    <!-- Modern Toast Notification Styles -->
+    <style>
+        /* --- PREMIUM TOAST NOTIFICATION --- */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast-msg {
+            min-width: 250px;
+            background: #1e293b;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border-left: 5px solid #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            animation: toast-slide-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .toast-msg.success {
+            border-left-color: #10b981;
+        }
+
+        .toast-msg.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast-msg.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .toast-msg.info {
+            border-left-color: #3b82f6;
+        }
+
+        @keyframes toast-slide-in {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-fade-out {
+            animation: toast-fade-out 0.4s ease-in forwards !important;
+        }
+
+        @keyframes toast-fade-out {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(40px);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+
+
+<body data-page-key="dash_title">
+
+    <div id="login-overlay">
+        <div class="login-box">
+
+            <div id="loginBranding" class="login-branding">
+                <h2 id="loginTitle" class="login-title"></h2>
+            </div>
+            <input type="password" id="passInput" onkeyup="if(event.key==='Enter') doLogin()" data-lang="ph_pass"
+                data-lang-target="placeholder">
+            <button class="btn btn-primary" onclick="doLogin()" data-lang="btn_login"></button>
+            <div id="loginMsg" data-lang="msg_pwd_wrong"></div>
+        </div>
+    </div>
+
+    <div class="overlay-bg" onclick="toggleSidebar()"></div>
+
+
+
+    <div class="sidebar">
+        <div class="brand-wrapper"
+            style="display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; margin-bottom: 20px;">
+            <button class="btn-sidebar-toggle desktop-only" onclick="toggleMiniSidebar()"
+                style="background:none; border:none; color:white; font-size:20px; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:1001;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="brand-text" id="brandText"
+                style="font-weight:800; color:#3b82f6; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:8px; flex:1; transition: all 0.3s ease;"></span>
+        </div>
+        <a href="/license" id="licBadge" class="lic-badge" data-lang="sb_unlicensed"></a>
+
+        <div class="menu-label" data-lang="sb_h_main"></div>
+
+        <a href="/" class="menu-item active no-underline">
+            <i class="fas fa-home me-2"></i> <span data-lang="sb_dash"></span>
+        </a>
+
+        <a href="/maps" class="menu-item no-underline">
+            <i class="fas fa-map-marked-alt me-2"></i> <span data-lang="sb_map"></span>
+        </a>
+
+        <a href="/client" class="menu-item no-underline">
+            <i class="fas fa-users me-2"></i> <span data-lang="sb_client"></span>
+        </a>
+
+
+        <a href="/pppoe" class="menu-item no-underline">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_pppoe"></span>
+        </a>
+
+        <a href="/hotspot" class="menu-item no-underline">
+            <i class="fas fa-wifi me-2"></i> <span data-lang="sb_hotspot"></span>
+        </a>
+
+
+
+        <div class="menu-label" data-lang="sb_h_admin"></div>
+
+        <a href="/network" class="menu-item no-underline">
+            <i class="fas fa-boxes me-2"></i> <span data-lang="sb_inv"></span>
+        </a>
+
+        <a href="/network?tab=infra" class="menu-item no-underline">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_infra"></span>
+        </a>
+
+        <a href="/billing" class="menu-item no-underline">
+            <i class="fas fa-file-invoice-dollar me-2"></i> <span data-lang="sb_bill"></span>
+        </a>
+
+        <a href="/finance" class="menu-item no-underline d-block">
+            <i class="fas fa-wallet me-2"></i> <span data-lang="sb_fin"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_mon"></div>
+
+        <a href="/monitor?tab=traffic" class="menu-item no-underline">
+            <i class="fas fa-chart-line me-2"></i> <span data-lang="sb_traffic"></span>
+        </a>
+
+        <a href="/monitor?tab=logs" class="menu-item no-underline">
+            <i class="fas fa-history me-2"></i> <span data-lang="sb_logs"></span>
+        </a>
+
+        <a href="/settings" class="menu-item no-underline d-block">
+            <i class="fas fa-cog me-2"></i> <span data-lang="sb_set"></span>
+        </a>
+
+        <a href="/about" class="menu-item no-underline d-block">
+            <i class="fas fa-info-circle me-2"></i> <span data-lang="sb_about"></span>
+        </a>
+
+        <div class="menu-item menu-danger cursor-pointer" onclick="doLogout()">
+            <i class="fas fa-sign-out-alt me-2"></i> <span data-lang="sb_logout"></span>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="mobile-head">
+            <button id="btnToggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="mobile-brand" id="mobileBrandText"></span>
+
+            <span style="flex:1"></span>
+
+        </div>
+        <div class="flex-between-center mb-20" style="min-height: 40px;">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <h2 id="page-title" class="header" data-lang="dash_title"
+                    style="margin:0; border-left:none; padding-left:0;"></h2>
+            </div>
+
+
+
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+                <div class="flex-center-gap-10">
+                    <div id="roleBadge" class="muted role-badge">-</div>
+                    <div id="updateAlert" onclick="location.href='/settings?tab=upd'" class="update-alert">
+                        <i class="fas fa-gift me-1"></i> <span data-lang="msg_update_avail"></span>
+                    </div>
+                    <div class="lang-badge">
+                        <span data-lang="lbl_lang_prefix">LANG: </span><span id="currentLangDisplay"
+                            class="lang-disp"></span>
+                    </div>
+                </div>
+
+                <!-- Billing Heartbeat & Manual Trigger -->
+                <div id="billing-heartbeat-container"
+                    style="font-size: 11px; color: #94a3b8; display: flex; align-items: center; gap: 10px; background: rgba(0,0,0,0.1); padding: 4px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05);">
+                    <button onclick="runManualBillingPatrol()" title="Jalankan Patroli Langsung"
+                        style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 6px; font-weight: 600; font-size: 11px; display: flex; align-items: center; gap: 4px; padding: 3px 8px; transition: all 0.2s; cursor: pointer;"
+                        onmouseover="this.style.background='rgba(59, 130, 246, 0.25)'"
+                        onmouseout="this.style.background='rgba(59, 130, 246, 0.15)'">
+                        <i class="fas fa-bolt text-warning"></i> <span data-lang="btn_patrol_now">Jalankan
+                            Patroli</span>
+                    </button>
+                    <span style="opacity: 0.3;">|</span>
+                    <span title="Last Patroli Check">
+                        <i class="fas fa-history me-1"></i> <span data-lang="lbl_last_check"></span>
+                        <strong id="billing-heartbeat-text" style="color:#cbd5e1;">...</strong>
+                    </span>
+                    <span id="billing-cooldown-box" style="display: none; align-items: center; gap: 6px;">
+                        <span style="opacity: 0.3;">|</span>
+                        <i class="fas fa-hourglass-half" style="font-size: 10px;"></i>
+                        <span data-lang="lbl_cooldown"></span>
+                        <strong id="billing-cooldown-text" style="color:var(--accent);">--:--</strong>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div id="pg-dash">
+            <div class="grid grid-1">
+
+                <div class="dash-row">
+
+                    <div class="dash-col">
+                        <div class="stat-card-premium">
+                            <!-- Header Statistik -->
+                            <div class="scp-header" data-lang="card_stat_client"></div>
+
+                            <!-- Online/Offline Section -->
+                            <div class="scp-client-grid">
+                                <div class="scp-status-row text-xs-bold"
+                                    style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                                    <div class="scp-status-item">
+                                        <div class="scp-dot scp-dot-live bg-online"></div>
+                                        <span data-lang="lbl_online"></span>&nbsp;<span id="d-online"
+                                            class="scp-val-online">0</span>
+                                    </div>
+
+                                    <div class="scp-status-item">
+                                        <div class="scp-dot bg-purple"></div>
+                                        <span data-lang="lbl_isolir_pill"></span>&nbsp;<span id="d-isolir"
+                                            class="text-purple font-bold">0</span>
+                                    </div>
+
+                                    <div class="scp-status-item">
+                                        <div class="scp-dot bg-offline"></div>
+                                        <span data-lang="lbl_offline"></span>&nbsp;<span id="d-offline"
+                                            class="scp-val-offline">0</span>
+                                    </div>
+
+                                    <div class="scp-total-text" style="margin:0;">
+                                        <span data-lang="lbl_total"></span>: <span id="d-total">0</span>
+                                    </div>
+                                </div>
+
+                                <div class="scp-progress-bar">
+                                    <div id="d-online-bar-p" class="scp-progress-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="scp-divider"></div>
+
+                            <!-- Inventaris Section -->
+                            <div class="scp-header mt-10" data-lang="card_inv"></div>
+
+                            <div class="scp-inv-container">
+                                <!-- Donut Side -->
+                                <div id="d-inv-donut" class="scp-donut-side scp-donut-segmented">
+                                    <div class="scp-donut-inner">
+                                        <div id="d-total-donut" class="scp-donut-val">0</div>
+                                        <div class="scp-donut-lbl" data-lang="lbl_client_count_donut"></div>
+                                    </div>
+                                </div>
+
+                                <!-- List Side -->
+                                <div class="scp-inv-list">
+                                    <!-- Mikrotik -->
+                                    <div class="scp-inv-item">
+                                        <div class="scp-inv-label">
+                                            <div class="scp-icon-box bg-blue"></div>
+                                            <span data-lang="lbl_mikrotik"></span>
+                                        </div>
+                                        <div id="d-router" class="scp-inv-val">0</div>
+                                    </div>
+                                    <!-- OLT -->
+                                    <div class="scp-inv-item">
+                                        <div class="scp-inv-label">
+                                            <div class="scp-icon-box bg-online"></div>
+                                            <span data-lang="lbl_olt"></span>
+                                        </div>
+                                        <div id="d-olt" class="scp-inv-val">0</div>
+                                    </div>
+                                    <!-- ODP -->
+                                    <div class="scp-inv-item">
+                                        <div class="scp-inv-label">
+                                            <div class="scp-icon-box bg-purple"></div>
+                                            <span data-lang="lbl_odp"></span>
+                                        </div>
+                                        <div id="d-odp" class="scp-inv-val">0</div>
+                                    </div>
+                                    <!-- TIANG -->
+                                    <div class="scp-inv-item">
+                                        <div class="scp-inv-label">
+                                            <div class="scp-icon-box bg-orange"></div>
+                                            <span data-lang="lbl_tiang"></span>
+                                        </div>
+                                        <div id="d-tiang" class="scp-inv-val">0</div>
+                                    </div>
+                                    <!-- HTB -->
+                                    <div class="scp-inv-item">
+                                        <div class="scp-inv-label">
+                                            <div class="scp-icon-box bg-cyan"></div>
+                                            <span data-lang="lbl_client_htb"></span>
+                                        </div>
+                                        <div id="d-client-htb" class="scp-inv-val">0</div>
+                                    </div>
+                                    <!-- Client OLT -->
+                                    <div class="scp-inv-item">
+                                        <div class="scp-inv-label">
+                                            <div class="scp-icon-box bg-online"></div>
+                                            <span data-lang="lbl_client_olt"></span>
+                                        </div>
+                                        <div id="d-client-olt" class="scp-inv-val">0</div>
+                                    </div>
+                                    <!-- Router ONT -->
+                                    <div class="scp-inv-item">
+                                        <div class="scp-inv-label">
+                                            <div class="scp-icon-box bg-indigo"></div>
+                                            <span data-lang="lbl_ont"></span>
+                                        </div>
+                                        <div id="d-ont-count" class="scp-inv-val">0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cable Row -->
+                            <div class="scp-cable-bar">
+                                <div class="scp-cable-lbl">
+                                    <i class="fas fa-project-diagram text-purple"></i>
+                                    <span data-lang="lbl_total_kabel"></span>
+                                </div>
+                                <div id="d-cable" class="scp-cable-val">0 KM</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="dash-col">
+                        <div class="stat-card">
+                            <div class="card-title">
+                                <h3 data-lang="card_port"></h3>
+                            </div>
+
+                            <!-- Statistik Port Atas (Seragam dengan Client) -->
+                            <div class="scp-client-grid">
+                                <div class="scp-status-row">
+                                    <div class="scp-status-item">
+                                        <div class="scp-dot bg-purple"></div>
+                                        <span data-lang="lbl_used"></span>&nbsp;<span id="d-odp-used"
+                                            class="text-purple font-bold">0 / 0</span>
+                                    </div>
+                                    <div class="scp-status-item">
+                                        <span id="d-odp-rem" class="text-slate font-bold">0</span>&nbsp;<span
+                                            data-lang="lbl_rem"></span>
+                                        <div class="scp-dot bg-slate"></div>
+                                    </div>
+                                </div>
+                                <div class="scp-progress-bar">
+                                    <div id="d-odp-bar-p" class="scp-progress-fill bg-purple" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="scp-divider"></div>
+
+                            <div class="scp-odp-container">
+                                <!-- Donut Side -->
+                                <div class="scp-donut-side">
+                                    <svg class="scp-donut-svg" width="100%" height="100%" viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="41" fill="transparent" class="stroke-bg-faint"
+                                            stroke-width="18"></circle>
+                                        <circle id="d-odp-circle" cx="50" cy="50" r="41" fill="transparent"
+                                            class="stroke-dash-indigo" stroke-width="18" stroke-dasharray="257.61"
+                                            stroke-dashoffset="257.61"></circle>
+                                    </svg>
+                                    <div class="scp-donut-inner">
+                                        <div id="d-odp-pct" class="scp-donut-val">0%</div>
+                                        <div class="scp-donut-lbl" data-lang="lbl_used"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Critical List Side -->
+                                <div class="scp-odp-list">
+                                    <div class="scp-odp-kritis-header" data-lang="lbl_odp_critical"></div>
+                                    <div id="d-odp-kritis-box">
+                                        <!-- Filled by JS -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Standardized Footer (Matches Client & Finance) -->
+                            <div class="scp-cable-bar">
+                                <div class="scp-cable-lbl">
+                                    <i class="fas fa-network-wired text-purple"></i>
+                                    <span data-lang="lbl_total_port"></span>
+                                </div>
+                                <div id="d-odp-total-txt" class="scp-cable-val">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="dash-col">
+                        <div class="stat-card">
+                            <div class="card-title">
+                                <h3 data-lang="card_fin"></h3>
+                                <span class="badge bg-blue text-white text-xs-bold" data-lang="bdg_month"></span>
+                            </div>
+
+                            <!-- Statistik Keuangan Atas (Seragam dengan Port) -->
+                            <div class="scp-client-grid">
+                                <div class="scp-status-row">
+                                    <div class="scp-status-item">
+                                        <div class="scp-dot bg-blue"></div>
+                                        <span data-lang="lbl_profit"></span>&nbsp;<span id="d-fin-bal-txt"
+                                            class="text-blue font-bold">Rp 0</span>
+                                    </div>
+                                    <div class="scp-status-item">
+                                        <span id="d-fin-ratio-txt" class="text-green font-bold">0%</span>&nbsp;<span
+                                            data-lang="lbl_ratio"></span>
+                                        <div class="scp-dot bg-green"></div>
+                                    </div>
+                                </div>
+                                <div class="scp-progress-bar">
+                                    <div id="d-fin-bar-p" class="scp-progress-fill bg-blue" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="scp-divider"></div>
+                            <div class="scp-inv-container">
+                                <!-- Donut Side (Left) -->
+                                <div id="d-fin-donut-box" class="scp-donut-side scp-donut-segmented">
+                                    <div class="scp-donut-inner">
+                                        <div id="d-fin-ratio-pct" class="scp-donut-val">0%</div>
+                                        <div class="scp-donut-lbl" data-lang="lbl_ratio"></div>
+                                    </div>
+                                </div>
+
+                                <!-- List Side (Right) -->
+                                <div class="scp-fin-list">
+                                    <div class="scp-fin-item">
+                                        <div class="scp-fin-label">
+                                            <div class="scp-icon-box bg-tosca"></div>
+                                            <span data-lang="lbl_in"></span>
+                                        </div>
+                                        <div id="d-fin-in" class="scp-fin-val">Rp 0</div>
+                                    </div>
+                                    <div class="scp-fin-item">
+                                        <div class="scp-fin-label">
+                                            <div class="scp-icon-box bg-rose"></div>
+                                            <span data-lang="lbl_out"></span>
+                                        </div>
+                                        <div id="d-fin-out" class="scp-fin-val">Rp 0</div>
+                                    </div>
+                                    <div class="scp-divider"></div>
+                                    <div class="scp-fin-item">
+                                        <div class="scp-fin-label">
+                                            <div class="scp-icon-box bg-blue"></div>
+                                            <span data-lang="lbl_profit"></span>
+                                        </div>
+                                        <div id="d-fin-bal" class="scp-fin-val">Rp 0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer Month Bar -->
+                            <!-- Footer Month Bar (Sejajar dengan Token Kabel & Uptime) -->
+                            <div class="scp-cable-bar">
+                                <div class="scp-cable-lbl">
+                                    <i class="fas fa-calendar-alt text-blue"></i>
+                                    <span data-lang="bdg_month"></span>
+                                </div>
+                                <div id="d-fin-month-name" class="scp-cable-val">JANUARI</div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="dash-col">
+                        <div class="stat-card">
+                            <div class="card-title">
+                                <h3 data-lang="card_server"></h3>
+                            </div>
+
+                            <!-- Statistik CPU Atas (Seragam dengan Client/Port/Fin) -->
+                            <div class="scp-client-grid">
+                                <div class="scp-status-row">
+                                    <div class="scp-status-item">
+                                        <div class="scp-dot bg-rose"></div>
+                                        <span data-lang="lbl_cpu"></span>&nbsp;<span id="d-cpu-text"
+                                            class="text-rose font-bold">0%</span>
+                                    </div>
+                                    <div class="scp-status-item">
+                                        <!-- Placeholder for symmetry if needed -->
+                                    </div>
+                                </div>
+                                <div class="scp-progress-bar">
+                                    <div id="d-cpu-bar-p" class="scp-progress-fill bg-rose" style="width: 0%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="scp-divider"></div>
+
+                            <div class="scp-inv-container">
+                                <!-- Donut Side (Left) -->
+                                <div id="d-server-donut-box" class="scp-donut-side scp-donut-segmented">
+                                    <div class="scp-donut-inner">
+                                        <div id="d-sys-cpu-val" class="scp-donut-val">0%</div>
+                                        <div class="scp-donut-lbl" data-lang="lbl_cpu"></div>
+                                    </div>
+                                </div>
+
+                                <!-- List Side (Right) -->
+                                <div class="scp-server-list">
+                                    <div class="scp-server-item">
+                                        <div class="scp-server-label">
+                                            <div class="scp-icon-box bg-purple"></div>
+                                            <span data-lang="lbl_ram"></span>
+                                        </div>
+                                        <div id="d-sys-ram-val" class="scp-server-val">0%</div>
+                                    </div>
+                                    <div class="scp-server-item">
+                                        <div class="scp-server-label">
+                                            <div class="scp-icon-box bg-orange"></div>
+                                            <span data-lang="lbl_disk"></span>
+                                        </div>
+                                        <div id="d-sys-disk-val" class="scp-server-val">0%</div>
+                                    </div>
+                                    <div class="scp-server-item">
+                                        <div class="scp-server-label">
+                                            <div class="scp-icon-box bg-rose"></div>
+                                            <span data-lang="lbl_temp"></span>
+                                        </div>
+                                        <div id="d-sys-temp-val" class="scp-server-val">0°C</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Symmetrically Align with other Cards -->
+                            <div id="uptime-footer" class="scp-cable-bar">
+                                <div class="scp-cable-lbl">
+                                    <i class="fas fa-clock text-online"></i>
+                                    <span data-lang="lbl_uptime_server"></span>
+                                </div>
+                                <div id="sys-uptime-footer" class="scp-cable-val">0d 0h 0m</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mikrotik & Logs (Flexible Grid 50:50) -->
+                <div class="dash-row split-2 mt-20">
+                    <div class="dash-col">
+                        <div class="stat-card">
+                            <div class="card-title">
+                                <h3 data-lang="card_mikrotik"></h3>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="scp-mikrotik-table">
+                                    <thead>
+                                        <tr>
+                                            <th data-lang="th_identity"></th>
+                                            <th data-lang="th_status"></th>
+                                            <th data-lang="th_traffic"></th>
+                                            <th data-lang="th_ping"></th>
+                                            <th data-lang="th_host"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="mikrotikTableBody">
+                                        <!-- Rendered via JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dash-col">
+                        <div class="stat-card">
+                            <div class="card-title">
+                                <h3 data-lang="card_act"></h3>
+                            </div>
+                            <div id="logsBox" class="logs"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.overlay-bg');
+            if (sidebar) sidebar.classList.toggle('active');
+            if (overlay) overlay.classList.toggle('active');
+        }
+
+        // Ensure LANG_DICT is available
+        if (typeof LANG_DICT === 'undefined') {
+            window.LANG_DICT = {
+                "id": { "alert_saved": "Tersimpan", "alert_admin_only": "Hanya admin." },
+                "en": { "alert_saved": "Saved", "alert_admin_only": "Admin only." }
+            };
+        }
+
+        // Translation helper
+        function t(key) {
+            const lang = localStorage.getItem('nms_lang') || 'id';
+            const dict = (window.LANG_DICT || LANG_DICT);
+            return (dict[lang] && dict[lang][key]) || key;
+        }
+
+
+
+
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            var saved = localStorage.getItem('nms_active_tab');
+            if (saved === 'client') {
+                saved = 'dash';
+                localStorage.setItem('nms_active_tab', 'dash');
+            }
+
+            if (saved) {
+                var menus = document.querySelectorAll('.menu-item');
+                var targetMenu = null;
+                if (saved === 'dash') targetMenu = menus[0]; // Dashboard
+                else if (saved === 'maps') return; // Live Maps is direct link
+                else if (saved === 'infra') targetMenu = menus[3];
+
+                if (!targetMenu) {
+                    menus.forEach(m => {
+                        if (m.getAttribute('onclick') && m.getAttribute('onclick').includes("'" + saved + "'")) targetMenu = m;
+                    });
+                }
+
+                if (targetMenu) nav(saved, targetMenu);
+            }
+        });
+
+
+
+
+
+
+
+        // --- HOTSPOT LOGIC ---
+        var currentHsTab = 'gen';
+
+        function initHotspotUI() {
+            var sel = document.getElementById('hsRouter');
+            var oldVal = sel.value;
+
+
+            var hasPlaceholder = sel.querySelector('option[value=""]');
+            var hasMain = sel.querySelector('option[value="server_utama"]') || (APP.topology && APP.topology.server && sel.querySelector('option[value="' + APP.topology.server.id + '"]'));
+
+            if (!hasPlaceholder || !hasMain) {
+
+                sel.innerHTML = '<option value="">' + t('lbl_choose_server') + '</option>';
+
+
+                var showNameMain = (APP.topology && APP.topology.server) ? APP.topology.server.name : t('lbl_main_server');
+                if (APP.mikrotik && APP.mikrotik['server_utama'] && APP.mikrotik['server_utama'].identity) {
+                    showNameMain = APP.mikrotik['server_utama'].identity + " (Main)";
+                } else {
+                    showNameMain += " (Main)";
+                }
+                if (APP.topology && APP.topology.server) sel.add(new Option(showNameMain, APP.topology.server.id));
+
+
+                if (APP.topology && APP.topology.extra_routers) {
+                    APP.topology.extra_routers.forEach(r => {
+
+                        if (!sel.querySelector('option[value="' + r.id + '"]')) {
+
+                            var mkRes = (APP.mikrotik || {})[r.id];
+                            var dName = (mkRes && mkRes.identity) ? mkRes.identity : r.name;
+                            sel.add(new Option(dName, r.id));
+                        }
+                    });
+                }
+            } else {
+
+                if (APP.topology && APP.topology.extra_routers) {
+                    APP.topology.extra_routers.forEach(r => {
+                        if (!sel.querySelector('option[value="' + r.id + '"]')) {
+                            var mkRes = (APP.mikrotik || {})[r.id];
+                            var dName = (mkRes && mkRes.identity) ? mkRes.identity : r.name;
+                            sel.add(new Option(dName, r.id));
+                        }
+                    });
+                }
+            }
+
+
+            if (oldVal && sel.querySelector('option[value="' + oldVal + '"]')) {
+                sel.value = oldVal;
+            }
+
+
+            if (sel.value) {
+                var pSel = document.getElementById('hsProfile');
+                if (pSel && (pSel.innerHTML.includes('Pilih Server Dulu') || pSel.options.length <= 1)) {
+                    onHotspotRouterChange();
+                }
+            } else {
+                var pSel2 = document.getElementById('hsProfile');
+                if (pSel2) pSel2.innerHTML = '<option value="">' + t('lbl_choose_server_first') + '</option>';
+            }
+        }
+
+
+
+        // --- PAGE SPECIFIC ---
+        function loadBillingSettings() { /* Kept if needed by other pages, otherwise empty/remove */ }
+
+
+        function initLoginBranding() {
+            const branding = document.getElementById('loginBranding');
+            if (!branding) return;
+
+            const title = document.getElementById('loginTitle');
+            const img = new Image();
+            img.src = '/static/logo.png?t=' + new Date().getTime();
+            img.style.maxWidth = '200px';
+            img.style.maxHeight = '100px';
+            img.style.display = 'inline-block';
+
+            img.onload = function () {
+                branding.innerHTML = '';
+                branding.appendChild(img);
+            };
+
+            img.onerror = function () {
+                fetch('/api/settings').then(r => r.json()).then(s => {
+                    if (s && s.web_title && title) {
+                        title.innerText = s.web_title;
+                    }
+                }).catch(() => { });
+            };
+        }
+
+
+        initLoginBranding();
+
+        function getAuthHeaders() {
+            var pass = localStorage.getItem('nms_auth_session');
+            var h = {};
+            if (pass) h['X-Auth-Token'] = pass;
+            return h;
+        }
+
+        function doLogin() {
+            var p = document.getElementById('passInput').value;
+            fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: p })
+            }).then(r => {
+                if (r.ok) {
+                    return r.json().then(d => {
+                        localStorage.setItem('nms_auth_session', p);
+
+                        // SECURITY FIX: Redirect guest users immediately after login
+                        if (d.role === 'viewer' || d.role === 'tamu') {
+                            window.location.replace('/maps');
+                            return;
+                        }
+
+                        document.getElementById('login-overlay').style.display = 'none';
+                        loadAll();
+                    });
+                }
+                document.getElementById('loginMsg').style.display = 'block';
+            }).catch(() => { alert(t('msg_conn_fail')); });
+        }
+
+        function doLogout() {
+            if (!confirm(t('conf_logout'))) return;
+            localStorage.removeItem('nms_auth_session');
+            fetch('/api/logout', { method: 'POST' }).finally(() => location.reload());
+        }
+
+        function haversineKm(a, b) {
+            var toRad = x => x * Math.PI / 180;
+            var R = 6371;
+            var dLat = toRad(b[0] - a[0]);
+            var dLon = toRad(b[1] - a[1]);
+            var lat1 = toRad(a[0]);
+            var lat2 = toRad(b[0]);
+            var s = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+            var c = 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+            return R * c;
+        }
+
+        function calcCableKm(topology) {
+            if (!topology) return 0;
+            var byId = {};
+            if (topology.server && topology.server.id) byId[topology.server.id] = topology.server;
+            (topology.extra_routers || []).forEach(x => { if (x && x.id) byId[x.id] = x; });
+            (topology.odps || []).forEach(x => { if (x && x.id) byId[x.id] = x; });
+            (topology.clients || []).forEach(x => { if (x && x.id) byId[x.id] = x; });
+
+            var total = 0;
+            var addObj = function (obj) {
+                if (!obj || !obj.coordinates) return;
+
+                // Multi-Parent
+                if (Array.isArray(obj.parent) && Array.isArray(obj.cable_path) && Array.isArray(obj.cable_path[0])) {
+
+                    obj.parent.forEach((pid, idx) => {
+                        var parent = byId[pid] || (pid === 'server_utama' ? topology.server : null);
+                        if (!parent || !parent.coordinates) return;
+
+                        var path = obj.cable_path[idx];
+                        if (!path || !Array.isArray(path)) {
+                            total += haversineKm(parent.coordinates, obj.coordinates);
+                            return;
+                        }
+
+                        var pts = [parent.coordinates];
+                        path.forEach(p => { if (Array.isArray(p) && p.length === 2) pts.push(p); });
+                        pts.push(obj.coordinates);
+
+                        for (var i = 1; i < pts.length; i++) {
+                            total += haversineKm(pts[i - 1], pts[i]);
+                        }
+                    });
+                    return;
+                }
+
+                // Single Parent
+                var pid = obj.parent;
+                if (!pid) return;
+                var parent = byId[pid] || (pid === 'server_utama' ? topology.server : null);
+                if (!parent || !parent.coordinates) return;
+
+                var pts = [];
+                pts.push(parent.coordinates);
+                if (Array.isArray(obj.cable_path) && obj.cable_path.length > 0) {
+                    var firstEl = obj.cable_path[0];
+                    if (Array.isArray(firstEl) && Array.isArray(firstEl[0])) {
+                        firstEl.forEach(p => { if (Array.isArray(p)) pts.push(p); });
+                    } else {
+                        obj.cable_path.forEach(p => { if (Array.isArray(p) && p.length === 2) pts.push(p); });
+                    }
+                }
+                pts.push(obj.coordinates);
+
+                for (var i = 1; i < pts.length; i++) {
+                    total += haversineKm(pts[i - 1], pts[i]);
+                }
+            };
+
+            (topology.extra_routers || []).forEach(addObj);
+            (topology.odps || []).forEach(addObj);
+            (topology.clients || []).forEach(addObj);
+            return total;
+        }
+
+        function calcOdpCapacity(topology) {
+            var odps = topology.odps || [];
+            var clients = topology.clients || [];
+            var serverCoords = (topology.server && topology.server.coordinates) ? topology.server.coordinates : null;
+
+            var totalSlots = 0;
+            var usedSlots = 0;
+            var criticalList = [];
+
+            odps.forEach(o => {
+                if (!o || !o.id) return;
+                var pc = o.port_config || {};
+                var odpType = (o.odp_type || '').toLowerCase();
+
+                var total = 0;
+                if (odpType === 'real_olt') {
+                    total = parseInt(pc.pon_count || 0, 10) || 0;
+                } else if (odpType === 'olt') {
+                    total = parseInt(pc.olt_count || 0, 10) || 0;
+                } else if (odpType === 'jb') {
+                    total = parseInt(pc.jb_core || 0, 10) || 0;
+                } else {
+                    total += parseInt(pc.lan || 0, 10) || 0;
+                    total += parseInt(pc.fo_a || 0, 10) || 0;
+                    total += parseInt(pc.fo_b || 0, 10) || 0;
+                }
+
+                if (total <= 0) return;
+                totalSlots += total;
+
+                var used = clients.filter(c => c && c.parent === o.id).length;
+                var childOdps = odps.filter(child => child && child.parent === o.id).length;
+                used += childOdps;
+
+                if (o.input_port && o.input_port !== '') used += 1;
+
+                var cappedUsed = Math.min(used, total);
+                usedSlots += cappedUsed;
+
+                var remaining = total - cappedUsed;
+                if (remaining <= 1) {
+                    var dist = 0;
+                    if (serverCoords && o.coordinates) {
+                        dist = haversineKm(serverCoords, o.coordinates);
+                    }
+                    criticalList.push({
+                        name: o.name || o.id,
+                        remaining: remaining,
+                        dist: dist
+                    });
+                }
+            });
+
+            // Sort by distance (asc)
+            criticalList.sort((a, b) => a.dist - b.dist);
+
+            if (totalSlots <= 0) return { totalSlots: 0, usedSlots: 0, pct: 0, remaining: 0, critical: [] };
+            var pct = Math.max(0, Math.min(100, Math.round((usedSlots / totalSlots) * 100)));
+            return {
+                totalSlots, usedSlots, pct,
+                remaining: Math.max(0, totalSlots - usedSlots),
+                critical: criticalList.slice(0, 5)
+            };
+        }
+
+        function renderMikrotikStatus(mkData, topology) {
+            var box = document.getElementById('mikrotikTableBody');
+            if (!box) return;
+            box.innerHTML = '';
+
+            var list = [];
+            if (topology && topology.server && topology.server.login && topology.server.login.host) {
+                list.push({ id: 'server_utama', fallbackName: (topology.server.name || 'MikroTik Utama'), host: topology.server.login.host });
+            }
+            (topology.extra_routers || []).forEach(r => {
+                if (r && r.login && r.login.host) list.push({ id: r.id, fallbackName: (r.name || r.id), host: r.login.host });
+            });
+
+            if (list.length === 0) {
+                box.innerHTML = `<tr><td colspan="5" class="text-center text-slate">${t('msg_no_mk_configured')}</td></tr>`;
+                return;
+            }
+
+            list.forEach(r => {
+                var res = (mkData || {})[r.id];
+                var ok = res && !res.error;
+                var ident = ok ? safeText(res.identity || r.fallbackName) : safeText(r.fallbackName);
+
+                var row = document.createElement('tr');
+                row.className = 'scp-mikrotik-row';
+
+                var stBadge = ok ? `<span class="scp-status-badge bg-green text-green-700">${t('lbl_online_pill')}</span>` : `<span class="scp-status-badge bg-red text-red-700">${t('lbl_offline_pill')}</span>`;
+                var traffic = ok ? `
+                    <div class="scp-traffic-box">
+                        <span class="scp-traffic-in"><i class="fas fa-arrow-down"></i> ${res.wan_rx || '0'}</span>
+                        <span class="scp-traffic-out"><i class="fas fa-arrow-up"></i> ${res.wan_tx || '0'}</span>
+                    </div>
+                ` : '<span class="text-slate">-</span>';
+
+                var ping = ok ? `<div class="scp-ping-box"><i class="fas fa-globe"></i> ${res.ext_ping || '0ms'}</div>` : '<span class="text-slate">-</span>';
+
+                row.innerHTML = `
+                    <td>
+                        <div class="scp-ident-cell">
+                            <div class="scp-chip-icon"><i class="fas fa-microchip"></i></div>
+                            <div>${ident}</div>
+                        </div>
+                    </td>
+                    <td>${stBadge}</td>
+                    <td>${traffic}</td>
+                    <td>${ping}</td>
+                    <td><span class="text-host">${r.host}</span></td>
+                `;
+                box.appendChild(row);
+            });
+        }
+
+        function renderLogs(logs) {
+            var box = document.getElementById('logsBox');
+            box.innerHTML = '';
+
+            if (!Array.isArray(logs) || logs.length === 0) {
+                box.innerHTML = `<div class="muted">${t('msg_no_logs')}</div>`;
+                return;
+            }
+
+            logs.slice(0, 5).forEach(l => {
+                var it = document.createElement('div');
+                it.className = 'log-item';
+                var time = (l.time || '').split(' ')[1] || (l.time || '-');
+                it.innerHTML = '<div class="t">' + safeText(time) + '</div>' +
+                    '<div class="m">' + safeText(l.name || '-') + ' → ' + safeText(l.msg || '-') + '</div>' +
+                    '<div class="s">' + safeText(l.status || '').toUpperCase() + '</div>';
+                box.appendChild(it);
+            });
+        }
+
+        var currentTab = 'dash';
+
+        var APP = {
+            role: null,
+            topology: null,
+            mikrotik: null,
+            system: null,
+            settings: {
+                web_title: 'MAPS MONITORING WIFI',
+                refresh_rate: 10,
+                wa_template: 'Halo Kak *{name}*, tagihan internet bulan ini sudah terbit. Mohon pembayarannya ya. Terima kasih.',
+                map_animation: true,
+                inventory: { router: 0, switch: 0, hub: 0, mikrotik: 0, odp: 0, odc: 0 }
+            },
+            infraTab: 'routers',
+            trafficSource: 'server_utama',
+            trafficHist: [],
+            trafficSource: 'server_utama',
+            trafficHist: [],
+            paidClients: [],
+            clientPage: 1,
+            clientPerPage: 20
+        };
+
+        function safeText(v) {
+            if (v === undefined || v === null) return '';
+            var s = String(v);
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+        function normalizeWa(n) {
+            var s = safeText(n).replace(/\D/g, '');
+            if (!s) return '';
+            if (s.startsWith('0')) return '62' + s.slice(1);
+            return s;
+        }
+        function encodeCsvCell(v) {
+            var s = safeText(v);
+            if (s.includes('"')) s = s.replace(/"/g, '""');
+            if (s.includes(',') || s.includes('\n') || s.includes('"')) return '"' + s + '"';
+            return s;
+        }
+
+        function loadSettings() {
+            fetch('/api/settings', { headers: getAuthHeaders() }).then(r => {
+                if (!r.ok) return null;
+                return r.json();
+            }).then(s => {
+                if (!s) return;
+                APP.settings = Object.assign(APP.settings || {}, s);
+                if (APP.settings.web_title) {
+                    document.title = (t('sb_dash') || "DASHBOARD").toUpperCase() + " - " + APP.settings.web_title.toUpperCase();
+                    if (document.getElementById('brandText')) document.getElementById('brandText').innerText = APP.settings.web_title;
+                    if (document.getElementById('mobileBrandText')) document.getElementById('mobileBrandText').innerText = APP.settings.web_title;
+                }
+                if (typeof renderSettings === 'function') renderSettings();
+                syncInventoryInputs();
+            }).catch(() => { });
+        }
+
+        // Auto-Count Cache
+        var AUTO_COUNTS = {
+            'MIKROTIK': 0, 'OLT': 0, 'ODP': 0, 'TIANG': 0,
+            'CLIENT HTB/SWITCH': 0, 'CLIENT OLT': 0, 'ROUTER/ONT': 0, 'KABEL': 0
+        };
+
+        function byIdMap(topo) {
+            var m = {};
+            if (!topo) return m;
+            if (topo.server) m[topo.server.id] = topo.server;
+            (topo.extra_routers || []).forEach(x => { if (x && x.id) m[x.id] = x; });
+            (topo.odps || []).forEach(x => { if (x && x.id) m[x.id] = x; });
+            (topo.clients || []).forEach(x => { if (x && x.id) m[x.id] = x; });
+            return m;
+        }
+
+        function updateAutoCounts(topo) {
+            if (!topo) return;
+            var clients = topo.clients || [];
+            var odps = topo.odps || [];
+            var byId = byIdMap(topo);
+
+            AUTO_COUNTS['MIKROTIK'] = (topo.server ? 1 : 0) + (topo.extra_routers || []).length;
+            AUTO_COUNTS['ODP'] = odps.length;
+            AUTO_COUNTS['OLT'] = odps.filter(o => (o.odp_type || '').toLowerCase() === 'real_olt').length;
+            AUTO_COUNTS['TIANG'] = odps.filter(o => (o.odp_type || '').toLowerCase() === 'olt').length;
+            AUTO_COUNTS['ROUTER/ONT'] = clients.length;
+            AUTO_COUNTS['KABEL'] = parseFloat(calcCableKm(topo).toFixed(1));
+
+            var cHTB = 0;
+            var cOLT = 0;
+
+            var getClientTypeRecursive = function (node) {
+                if (!node || !node.parent) return 'htb';
+                var parent = byId[node.parent];
+                if (!parent) return 'htb';
+                if (parent.type === 'client') return 'htb'; // Client dari Client (Estafet) -> HTB
+
+                var curr = parent;
+                var visited = new Set();
+                var depth = 0;
+                while (curr && depth < 20) {
+                    if (visited.has(curr.id)) break;
+                    visited.add(curr.id);
+
+                    var type = (curr.odp_type || '').toLowerCase();
+                    if (type === 'htb') return 'htb'; // Jalur HTB
+                    if (type === 'real_olt') return 'olt'; // Jalur OLT Pusat
+
+                    var nextPid = curr.parent;
+                    if (!nextPid) break;
+                    var nextParent = byId[nextPid];
+                    if (!nextParent) break;
+                    if (nextParent.type === 'client') return 'htb'; // Estafet di tengah jalur
+                    curr = nextParent;
+                    depth++;
+                }
+                return 'htb';
+            };
+
+            clients.forEach(c => {
+                if (getClientTypeRecursive(c) === 'olt') cOLT++;
+                else cHTB++;
+            });
+
+            AUTO_COUNTS['CLIENT HTB/SWITCH'] = cHTB;
+            AUTO_COUNTS['CLIENT OLT'] = cOLT;
+        }
+
+        function syncInventoryDisplay() {
+            var inv = APP.settings.inventory || [];
+            if (!Array.isArray(inv)) inv = [];
+
+            var counts = {
+                mk: getVal('MIKROTIK', AUTO_COUNTS['MIKROTIK']),
+                olt: getVal('OLT', AUTO_COUNTS['OLT']),
+                odp: getVal('ODP', AUTO_COUNTS['ODP']),
+                tiang: getVal('TIANG', AUTO_COUNTS['TIANG']),
+                htb: getVal('CLIENT HTB/SWITCH', AUTO_COUNTS['CLIENT HTB/SWITCH']),
+                clOlt: getVal('CLIENT OLT', AUTO_COUNTS['CLIENT OLT']),
+                ont: getVal('ROUTER/ONT', AUTO_COUNTS['ROUTER/ONT'])
+            };
+
+            function getVal(name, autoVal) {
+                var nNorm = name.replace(/\s+/g, '').toUpperCase();
+                var manual = inv.find(x => x && x.is_auto === false && !x.hidden && (x.name || '').replace(/\s+/g, '').toUpperCase() === nNorm);
+                return manual ? manual.qty : autoVal;
+            }
+
+            var setEl = (id, val) => { var el = document.getElementById(id); if (el) el.innerText = val; };
+
+            setEl('d-router', counts.mk);
+            setEl('d-olt', counts.olt);
+            setEl('d-odp', counts.odp);
+            setEl('d-tiang', counts.tiang);
+            setEl('d-client-htb', counts.htb);
+            setEl('d-client-olt', counts.clOlt);
+            setEl('d-ont-count', counts.ont);
+
+            var cableVal = getVal('KABEL', AUTO_COUNTS['KABEL']);
+            setEl('d-cable', cableVal + ' ' + t('lbl_km'));
+
+            // Segmented Donut Logic
+            var total = counts.mk + counts.olt + counts.odp + counts.tiang + counts.htb + counts.clOlt + counts.ont;
+            var chart = document.getElementById('d-inv-donut');
+            var dTotal = document.getElementById('d-total-donut');
+            if (dTotal) dTotal.innerText = counts.ont; // Middle shows total unique clients (Router/ONT)
+
+            if (chart && total > 0) {
+                var slices = [
+                    { qty: counts.mk, color: '#3b82f6' }, // Blue
+                    { qty: counts.olt, color: '#10b981' }, // Green
+                    { qty: counts.odp, color: '#8b5cf6' }, // Purple
+                    { qty: counts.tiang, color: '#f59e0b' }, // Orange
+                    { qty: counts.htb, color: '#06b6d4' }, // Cyan
+                    { qty: counts.clOlt, color: '#10b981' }, // Emerald/Green
+                    { qty: counts.ont, color: '#6366f1' }   // Indigo
+                ];
+
+                var current = 0;
+                var grad = slices.map(s => {
+                    var pct = (s.qty / total) * 100;
+                    var start = current;
+                    current += pct;
+                    return `${s.color} ${start}% ${current}%`;
+                }).join(', ');
+                chart.style.background = `conic-gradient(${grad})`;
+            } else if (chart) {
+                chart.style.background = '#1e293b';
+            }
+        }
+
+
+
+        // Sync Topologi
+        function updateTopologyData(newTopo) {
+            if (!APP.topology || !APP.topology.server) {
+                APP.topology = newTopo;
+                return;
+            }
+            if (!newTopo) return;
+
+            if (newTopo.server) Object.assign(APP.topology.server, newTopo.server);
+
+            function mergeArray(targetArr, sourceArr) {
+                if (!sourceArr) return;
+                var map = {};
+                targetArr.forEach(item => { if (item.id) map[item.id] = item; });
+
+                sourceArr.forEach(src => {
+                    var dst = map[src.id];
+                    if (dst) Object.assign(dst, src);
+                    else targetArr.push(src);
+                });
+            }
+
+            if (!APP.topology.clients) APP.topology.clients = [];
+            mergeArray(APP.topology.clients, newTopo.clients || []);
+
+            if (!APP.topology.odps) APP.topology.odps = [];
+            mergeArray(APP.topology.odps, newTopo.odps || []);
+
+            if (!APP.topology.extra_routers) APP.topology.extra_routers = [];
+            mergeArray(APP.topology.extra_routers, newTopo.extra_routers || []);
+        }
+
+        function loadDashboard() {
+            fetch('/api/data?t=' + new Date().getTime(), { headers: getAuthHeaders() }).then(r => {
+                if (r.status === 401) {
+                    document.getElementById('login-overlay').style.display = 'flex';
+                    return null;
+                }
+                document.getElementById('login-overlay').style.display = 'none';
+                return r.json();
+            }).then(d => {
+                if (!d) return;
+
+                var lb = document.getElementById('licBadge');
+                if (d.license && d.license.active) {
+                    document.body.classList.remove('unlicensed-mode');
+                    if (lb) {
+                        lb.style.display = 'block';
+                        lb.innerHTML = '<i class="fas fa-check-circle"></i> LICENSED (PRO)';
+                        lb.style.background = 'rgba(34,197,94,0.1)';
+                        lb.style.color = '#4ade80';
+                        lb.style.borderColor = 'rgba(34,197,94,0.2)';
+                    }
+                } else {
+                    document.body.classList.add('unlicensed-mode');
+                    if (lb) {
+                        lb.style.display = 'block';
+                        lb.innerText = 'UNLICENSED (DEMO)';
+                        lb.style.background = 'rgba(239, 68, 68, 0.1)';
+                        lb.style.color = '#ef4444';
+                        lb.style.borderColor = 'rgba(239, 68, 68, 0.2)';
+
+
+                    }
+                }
+
+                APP.role = d.role || null;
+                updateTopologyData(d.topology || {});
+                APP.mikrotik = d.mikrotik_data || {};
+                APP.system = d.system || {};
+
+                // NOTE: Access control moved to init() function to prevent dashboard flash
+                // Guest users are now redirected BEFORE loadAll() is called
+
+                // Authorized! reveal dashboard
+                removeAntiFlicker();
+
+                var topo = APP.topology || {};
+                var clients = topo.clients || [];
+
+                var total = clients.length;
+                var online = clients.filter(c => c && c.status === 'online').length;
+                var isolir = clients.filter(c => c && c.status === 'isolir').length;
+                var offline = clients.filter(c => c && c.status === 'offline').length;
+
+                document.getElementById('d-total').innerText = total;
+                document.getElementById('d-online').innerText = online;
+                document.getElementById('d-isolir').innerText = isolir;
+                document.getElementById('d-offline').innerText = offline;
+
+                // Update Premium Stats UI
+                var onlinePct = total > 0 ? (online / total * 100) : 0;
+                var setBarP = function (id, val) { var el = document.getElementById(id); if (el) el.style.width = val + '%'; };
+                setBarP('d-online-bar-p', onlinePct);
+
+                var dTotalDonut = document.getElementById('d-total-donut');
+                if (dTotalDonut) dTotalDonut.innerText = total;
+
+                updateAutoCounts(topo);
+                syncInventoryDisplay();
+
+                var cap = calcOdpCapacity(topo);
+                document.getElementById('d-odp-used').innerText = cap.usedSlots + ' / ' + cap.totalSlots;
+                document.getElementById('d-odp-pct').innerText = cap.pct + '%';
+                document.getElementById('d-odp-rem').innerText = cap.remaining;
+
+                var dOdpTotalTxt = document.getElementById('d-odp-total-txt');
+                if (dOdpTotalTxt) dOdpTotalTxt.innerText = cap.totalSlots;
+
+                var dOdpBarP = document.getElementById('d-odp-bar-p');
+                if (dOdpBarP) dOdpBarP.style.width = cap.pct + '%';
+
+                var dOdpCircle = document.getElementById('d-odp-circle');
+                if (dOdpCircle) {
+                    var dashArray = 257.61; // 2 * PI * 41
+                    var offset = dashArray - (cap.pct / 100 * dashArray);
+                    dOdpCircle.style.strokeDashoffset = offset;
+                }
+
+                var kBox = document.getElementById('d-odp-kritis-box');
+                if (kBox) {
+                    kBox.innerHTML = '';
+                    if (cap.critical.length === 0) {
+                        kBox.innerHTML = '<div class="text-xs-muted">' + (t('lbl_no_critical_odp') || 'Tidak ada ODP kritis') + '</div>';
+                    } else {
+                        cap.critical.forEach(o => {
+                            var it = document.createElement('div');
+                            it.className = 'scp-odp-kritis-item';
+                            it.innerHTML = '<div class="scp-inv-label">' +
+                                '<div class="scp-dot-orange"></div>' +
+                                '<span>' + safeText(o.name) + '</span>' +
+                                '</div>' +
+                                '<div class="scp-inv-val text-white">(' + safeText(o.remaining) + ')</div>';
+                            kBox.appendChild(it);
+                        });
+                    }
+                }
+
+                var sys = d.system || {};
+                var setTxt = function (id, val) { var el = document.getElementById(id); if (el) el.innerText = val; };
+
+                // Update Server Donut (CPU)
+                var cpuVal = (sys.cpu !== undefined) ? sys.cpu : 0;
+                setTxt('d-sys-cpu-val', cpuVal + '%');
+                var sChart = document.getElementById('d-server-donut-box');
+                if (sChart) {
+                    // Purple-Indigo gradient for CPU
+                    sChart.style.background = `conic-gradient(#8b5cf6 0% ${cpuVal}%, rgba(255,255,255,0.05) ${cpuVal}% 100%)`;
+                }
+
+                // Update Server Details Side
+                setTxt('d-sys-ram-val', (sys.ram !== undefined) ? (sys.ram + '%') : '0%');
+                setTxt('d-sys-disk-val', (sys.disk !== undefined) ? (sys.disk + '%') : '0%');
+                setTxt('d-sys-temp-val', (sys.temp !== undefined) ? (sys.temp + t('lbl_temp_unit')) : ('0' + t('lbl_temp_unit')));
+                let up = (sys.uptime || '-');
+                if (up !== '-') {
+                    const upMap = { 'd': t('lbl_days_short'), 'h': t('lbl_hours_short'), 'm': t('lbl_minutes_short') };
+                    up = up.replace(/[dhm]/g, m => upMap[m]);
+                }
+                setTxt('sys-uptime-footer', up);
+                setTxt('d-cpu-text', cpuVal + '%');
+                setBarP('d-cpu-bar-p', cpuVal);
+
+                fetchFinanceSummary();
+                renderMikrotikStatus(APP.mikrotik || {}, topo);
+
+
+
+                var sel = document.getElementById('trafficSource');
+
+                if (sel) {
+                    var optMain = sel.querySelector('option[value="server_utama"]');
+                    if (optMain) {
+                        var resMain = (APP.mikrotik || {})['server_utama'];
+                        var identMain = (resMain && resMain.identity) ? resMain.identity : '';
+                        var showName = (topo.server && topo.server.name && topo.server.name !== 'SERVER UTAMA') ? topo.server.name : (identMain || t('lbl_main_server'));
+                        optMain.text = showName;
+                    }
+                }
+
+                if (sel && sel.options.length <= 1) {
+                    (topo.extra_routers || []).forEach(r => {
+                        var opt = document.createElement('option');
+                        opt.value = r.id;
+                        var res = (APP.mikrotik || {})[r.id];
+                        var ident = (res && res.identity) ? res.identity : '';
+                        opt.text = r.name || ident || r.id;
+                        sel.appendChild(opt);
+                    });
+
+                    if (APP.trafficSource && Array.from(sel.options).some(o => o.value === APP.trafficSource)) {
+                        sel.value = APP.trafficSource;
+                    }
+                }
+
+                // HOTSPOT ROUTER
+                var hsSel = document.getElementById('hsRouter');
+                if (hsSel) {
+                    var hasPlaceholder = hsSel.querySelector('option[value=""]');
+                    var hasMain = hsSel.querySelector('option[value="server_utama"]') || (topo.server && hsSel.querySelector('option[value="' + topo.server.id + '"]'));
+
+                    if (!hasPlaceholder || !hasMain) {
+                        hsSel.innerHTML = '<option value="">' + t('lbl_choose_server') + '</option>';
+
+                        var showNameMain = (topo.server && topo.server.name) ? topo.server.name + " (Main)" : t('lbl_main_server') + " (Main)";
+                        if (APP.mikrotik && APP.mikrotik['server_utama'] && APP.mikrotik['server_utama'].identity) {
+                            showNameMain = APP.mikrotik['server_utama'].identity + " (Main)";
+                        } else {
+                            showNameMain += " (Main)";
+                        }
+                        hsSel.add(new Option(showNameMain, (topo.server ? topo.server.id : 'server_utama')));
+
+                        (topo.extra_routers || []).forEach(r => {
+                            if (!hsSel.querySelector('option[value="' + r.id + '"]')) {
+                                var res = (APP.mikrotik || {})[r.id];
+                                var dName = r.name || (res && res.identity) ? (res.identity) : r.id;
+                                hsSel.add(new Option(dName, r.id));
+                            }
+                        });
+                    } else {
+
+                        var optMain = hsSel.querySelector('option[value="server_utama"]');
+                        if (optMain) {
+                            var showNameMain = (topo.server && topo.server.name) ? topo.server.name + " (Main)" : t('lbl_main_server') + " (Main)";
+                            if (APP.mikrotik && APP.mikrotik['server_utama'] && APP.mikrotik['server_utama'].identity) {
+                                showNameMain = APP.mikrotik['server_utama'].identity + " (Main)";
+                            } else {
+                                showNameMain += " (Main)";
+                            }
+                            optMain.text = showNameMain;
+                        }
+
+
+                        (topo.extra_routers || []).forEach(r => {
+                            var opt = hsSel.querySelector('option[value="' + r.id + '"]');
+                            if (!opt) {
+
+                                var res = (APP.mikrotik || {})[r.id];
+                                var dName = r.name || (res && res.identity) ? (res.identity) : r.id;
+                                hsSel.add(new Option(dName, r.id));
+                            } else {
+
+                                var res = (APP.mikrotik || {})[r.id];
+                                if (res && res.identity) opt.text = res.identity;
+                            }
+                        });
+                    }
+
+                    // Force empty jika salah pilih
+                    if (hsSel.selectedIndex === -1) hsSel.selectedIndex = 0;
+                }
+            }).catch(() => { });
+        }
+
+        function statusPill(status) {
+            var st = safeText(status).toLowerCase();
+            if (st === 'online') return `<span class="pill green">${t('lbl_online_pill')}</span>`;
+            if (st === 'isolir') return `<span class="pill purple">${t('lbl_isolir_pill')}</span>`;
+            return `<span class="pill red">${t('lbl_offline_pill')}</span>`;
+        }
+
+        function fetchFinanceSummary() {
+            fetch('/api/finance/summary', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(d => {
+                    if (!d) return;
+                    APP.paidClients = d.paid_clients || [];
+
+                    var inc = d.income || 0;
+                    var exp = d.expense || 0;
+                    var bal = inc - exp;
+
+                    var setTxt = (id, val) => { var el = document.getElementById(id); if (el) el.innerText = val; };
+                    setTxt('d-fin-in', formatRupiah(inc));
+                    setTxt('d-fin-out', formatRupiah(exp));
+                    setTxt('d-fin-bal', formatRupiah(bal));
+                    setTxt('d-fin-bal-txt', formatRupiah(bal));
+
+                    var balEl = document.getElementById('d-fin-bal');
+                    if (balEl) balEl.style.color = (bal < 0) ? '#f43f5e' : '#f8fafc';
+
+                    // Update Donut Profit Ratio
+                    var totalVol = inc + exp;
+                    var ratioPct = 0;
+                    if (inc > 0) ratioPct = Math.round((inc / totalVol) * 100);
+                    setTxt('d-fin-ratio-pct', ratioPct + '%');
+                    setTxt('d-fin-ratio-txt', ratioPct + '%');
+
+                    var barP = document.getElementById('d-fin-bar-p');
+                    if (barP) barP.style.width = ratioPct + '%';
+
+                    var chart = document.getElementById('d-fin-donut-box');
+                    if (chart) {
+                        if (totalVol > 0) {
+                            var incPct = (inc / totalVol) * 100;
+                            // #14b8a6 = Tosca, #f43f5e = Rose
+                            chart.style.background = `conic-gradient(#14b8a6 0% ${incPct}%, #f43f5e ${incPct}% 100%)`;
+                        } else {
+                            chart.style.background = '#1e293b';
+                        }
+                    }
+
+                    // Update Footer Month
+                    var months = t('months') || ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGU", "SEP", "OKT", "NOV", "DES"];
+                    var curMonth = months[new Date().getMonth()];
+                    setTxt('d-fin-month-name', curMonth);
+                })
+                .catch(e => console.error("Finance fetch error:", e));
+        }
+
+        function openClientMap(id) {
+            if (!id) return;
+            window.location.href = '/maps?focus=' + encodeURIComponent(id);
+        }
+
+        function getClientById(id) {
+            var clients = (APP.topology && APP.topology.clients) ? APP.topology.clients : [];
+            return clients.find(c => c && c.id === id) || null;
+        }
+
+        function openWa(number, text) {
+            var wa = normalizeWa(number);
+            if (!wa) { alert('Nomor WA belum diisi.'); return; }
+            var url = 'https://wa.me/' + wa;
+            if (text) url += '?text=' + encodeURIComponent(text);
+            window.open(url, '_blank');
+        }
+
+        function chatWa(id) {
+            var c = getClientById(id);
+            if (!c) return;
+            openWa(c.wa_number, 'Halo Kak ' + safeText(c.name) + ',');
+        }
+
+        function billWa(id) {
+            var c = getClientById(id);
+            if (!c) return;
+            var tpl = safeText((APP.settings && APP.settings.wa_template) ? APP.settings.wa_template : 'Halo Kak {name}, tagihan internet bulan ini sudah terbit.');
+            var lang = localStorage.getItem('nms_lang') || 'id';
+            var months_id = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+            var months_en = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            var months = (lang === 'en') ? months_en : months_id;
+            var curr_month = months[new Date().getMonth()];
+            var msg = tpl.replace(/\{name\}/g, safeText(c.name))
+                .replace(/\{month\}/g, curr_month)
+                .replace(/\{x\}/g, "2");
+            openWa(c.wa_number, msg);
+        }
+
+
+
+
+
+        function loadLogs() {
+            fetch('/api/logs', { headers: getAuthHeaders() }).then(r => {
+                if (r.status === 401) return [];
+                return r.json();
+            }).then(l => {
+                renderLogs(l);
+                APP.lastLogs = l;
+            }).catch(() => { });
+        }
+
+
+
+
+
+
+        function loadAll() {
+            loadSettings();
+
+            // Ambil Ringkasan Keuangan & Status Bayar
+            fetch('/api/finance/summary', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(d => {
+                    fetch('/api/finance/history', { headers: getAuthHeaders() }).then(r => r.json()).then(hData => {
+                        if (hData && Array.isArray(hData)) {
+                            financeRawData = hData;
+                        }
+                    }).catch(() => { });
+
+                    fetchFinanceSummary();
+                }).catch(() => { });
+
+            loadDashboard();
+            loadLogs();
+        }
+
+
+
+        (function init() {
+            var pass = localStorage.getItem('nms_auth_session');
+            if (pass) {
+                // SECURITY FIX: Verify role BEFORE hiding login overlay
+                // This prevents guest users from seeing dashboard flash during API call
+                fetch('/api/data?t=' + new Date().getTime(), { headers: getAuthHeaders() })
+                    .then(r => {
+                        if (r.status === 401) {
+                            // Invalid token, show login
+                            document.getElementById('login-overlay').style.display = 'flex';
+                            localStorage.removeItem('nms_auth_session');
+                            return null;
+                        }
+                        return r.json();
+                    })
+                    .then(d => {
+                        if (!d) return;
+
+                        // Check role BEFORE revealing dashboard
+                        if (d.role === 'viewer' || d.role === 'tamu') {
+                            // Redirect guest users immediately WITHOUT showing dashboard
+                            window.location.replace('/maps');
+                            return;
+                        }
+
+                        // Authorized admin/user → NOW safe to hide overlay and show dashboard
+                        document.getElementById('login-overlay').style.display = 'none';
+                        loadAll();
+                    })
+                    .catch(() => {
+                        // Network error, show login
+                        document.getElementById('login-overlay').style.display = 'flex';
+                    });
+            } else {
+                // No auth token, show login
+                document.getElementById('login-overlay').style.display = 'flex';
+            }
+            var _dashSyncTimer = null;
+            function reinitDashSync(rate) {
+                if (_dashSyncTimer) clearInterval(_dashSyncTimer);
+                var r = parseInt(rate || 10);
+                if (r < 3) r = 3;
+                _dashSyncTimer = setInterval(loadAll, r * 1000);
+            }
+
+            // Initial timer (fallback)
+            reinitDashSync(10);
+
+            // Hook into loadDashboard to update timer whenever settings change
+            var oldLoadDashboard = loadDashboard;
+            loadDashboard = function () {
+                oldLoadDashboard();
+                if (APP.settings && APP.settings.refresh_rate) {
+                    var newRate = parseInt(APP.settings.refresh_rate);
+                    // Only re-init if rate changed to avoid flicker/reset
+                    if (window._currentDashRate !== newRate) {
+                        window._currentDashRate = newRate;
+                        reinitDashSync(newRate);
+                    }
+                }
+            };
+        })();
+
+
+        // --- FINANCE MODULE JS ---
+        function formatRupiah(num) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+        }
+
+
+
+
+
+
+
+        function backupToTelegram() {
+            var btn = event.target;
+            // Handle icon click vs button click
+            if (btn.tagName === 'I') btn = btn.parentElement;
+
+            var oldText = btn.innerHTML;
+            btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${t('msg_sending')}`;
+            btn.disabled = true;
+
+            var pass = localStorage.getItem('nms_auth_session');
+            fetch('/api/backup/telegram', {
+                method: 'POST',
+                headers: { 'X-Auth-Token': pass }
+            })
+                .then(r => r.json())
+                .then(d => {
+                    btn.innerHTML = oldText; btn.disabled = false;
+                    if (d.status === 'ok') alert(t('msg_tele_success'));
+                    else alert(t('msg_tele_fail') + (d.msg || 'Unknown error'));
+                }).catch(e => {
+                    btn.innerHTML = oldText; btn.disabled = false;
+                    alert('Error: ' + e);
+                });
+        }
+
+        // Billing Settings Functions
+
+
+
+
+
+
+
+
+
+        // AUTOMATION LOGIC
+        function loadAutomationSettings() {
+            var s = APP.settings.automation || {};
+            var bk = s.backup || {};
+            var tg = s.telegram || {};
+
+
+            if (document.getElementById('bk-enabled')) document.getElementById('bk-enabled').checked = !!bk.enabled;
+            if (document.getElementById('bk-time')) document.getElementById('bk-time').value = bk.schedule_time || '02:00';
+            if (document.getElementById('bk-days')) document.getElementById('bk-days').value = bk.keep_days || 7;
+
+
+            var files = bk.include_files || ['topology.db', 'settings.json', 'finance.json', 'config.json', 'license.key'];
+            document.querySelectorAll('.bk-file').forEach(el => {
+                el.checked = files.includes(el.value);
+            });
+
+
+            if (document.getElementById('tg-enabled')) document.getElementById('tg-enabled').checked = !!tg.enabled;
+            if (document.getElementById('tg-token')) document.getElementById('tg-token').value = tg.bot_token || '';
+            if (document.getElementById('tg-chatid')) document.getElementById('tg-chatid').value = tg.chat_id || '';
+
+            var notif = tg.notifications || {};
+            if (document.getElementById('nt-offline')) document.getElementById('nt-offline').checked = !!notif.offline;
+            if (document.getElementById('nt-online')) document.getElementById('nt-online').checked = !!notif.online;
+            if (document.getElementById('nt-backup')) document.getElementById('nt-backup').checked = !!notif.backup_report;
+            if (document.getElementById('nt-startup')) document.getElementById('nt-startup').checked = !!notif.startup_report;
+
+
+            loadBackupHistory();
+        }
+
+        function loadBackupHistory() {
+            var list = document.getElementById('bk-list');
+            if (!list) return;
+
+            list.innerHTML = '<div class="muted">Loading...</div>';
+
+            fetch('/api/backup/list', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(d => {
+                    list.innerHTML = '';
+                    if (!d.files || d.files.length === 0) {
+                        list.innerHTML = `<div class="muted" style="padding:10px;">${t('msg_no_backup_files')}</div>`;
+                        return;
+                    }
+                    d.files.forEach(f => {
+                        var div = document.createElement('div');
+                        div.className = 'backup-item';
+
+                        div.innerHTML = `
+                        <div>
+                            <div class="backup-name">${f.name}</div>
+                            <div class="backup-sub">${f.date} &bull; ${f.size}</div>
+                        </div>
+                        <a href="/api/backup/download/${f.name}" target="_blank" class="btn-xs btn-accent no-underline">
+                            <i class="fas fa-download"></i> <span data-lang="btn_download">UNDUH</span>
+                        </a>
+                    `;
+                        list.appendChild(div);
+                    });
+                }).catch(e => {
+                    list.innerHTML = `<div class="muted">${t('msg_fail_load_list')}</div>`;
+                });
+        }
+
+
+        function saveAutomationSettings() {
+            var files = [];
+            document.querySelectorAll('.bk-file:checked').forEach(el => files.push(el.value));
+
+            var payload = {
+                automation: {
+                    backup: {
+                        enabled: document.getElementById('bk-enabled').checked,
+                        schedule_time: document.getElementById('bk-time').value,
+                        keep_days: parseInt(document.getElementById('bk-days').value) || 7,
+                        include_files: files
+                    },
+                    telegram: {
+                        enabled: document.getElementById('tg-enabled').checked,
+                        bot_token: document.getElementById('tg-token').value.trim(),
+                        chat_id: document.getElementById('tg-chatid').value.trim(),
+                        notifications: {
+                            offline: document.getElementById('nt-offline').checked,
+                            online: document.getElementById('nt-online').checked,
+                            backup_report: document.getElementById('nt-backup').checked,
+                            startup_report: document.getElementById('nt-startup').checked,
+                            daily_report: false // Disabled for now
+                        }
+                    }
+                }
+            };
+
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                body: JSON.stringify(payload)
+            }).then(r => r.json()).then(d => {
+                if (d.settings) APP.settings = Object.assign(APP.settings || {}, d.settings);
+                alert(t('alert_saved') || 'Saved');
+                loadAutomationSettings();
+            }).catch(e => alert("Error: " + e));
+        }
+
+        function triggerManualBackup() {
+            if (!confirm(t('conf_send_telegram') || 'Backup now?')) return;
+            fetch('/api/backup/trigger', { method: 'POST', headers: getAuthHeaders() })
+                .then(r => r.json()).then(d => {
+                    alert(d.msg);
+                }).catch(e => alert("Backup error: " + e));
+        }
+
+        function testTelegramBot() {
+            var token = document.getElementById('tg-token').value.trim();
+            var chat = document.getElementById('tg-chatid').value.trim();
+            if (!token || !chat) { alert('Token/ChatID Empty'); return; }
+
+            fetch('/api/telegram/test', {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                body: JSON.stringify({ token: token, chat_id: chat })
+            }).then(r => r.json()).then(d => alert(d.msg))
+                .catch(e => alert("Telegram Test error: " + e));
+        }
+
+        function togglePass(id) {
+            var x = document.getElementById(id);
+            if (x.type === "password") x.type = "text";
+            else x.type = "password";
+        }
+
+        function setCompTab(cat, el) {
+            document.getElementById('tab-backup').classList.add('hidden');
+            document.getElementById('tab-telegram').classList.add('hidden');
+
+            document.getElementById('tab-' + cat).classList.remove('hidden');
+
+            el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        // Inisialisasi Otomatis
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(loadAutomationSettings, 2000);
+        });
+    </script>
+
+    <script>
+        function showToast(msg, type = 'success') {
+            let container = document.getElementById('toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toast-container';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast-msg ${type}`;
+            const icon = type === 'success' ? 'check-circle' : (type === 'error' ? 'exclamation-circle' : 'info-circle');
+            toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-fade-out');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // OTA Update Checker
+        function checkUpdates() {
+            var rb = document.getElementById('roleBadge');
+            if (rb) rb.innerText = 'Checking Version...';
+
+
+            fetch('/api/version')
+                .then(r => r.json())
+                .then(vData => {
+                    const installedVer = vData.version || "3.1.0";
+
+
+                    fetch('/api/update/check')
+                        .then(r => r.json())
+                        .then(data => {
+                            const latestVer = data.new_version || installedVer;
+                            if (rb) {
+                                const isLatest = (installedVer === latestVer);
+                                rb.className = 'muted role-badge ver-status ' + (isLatest ? 'ver-ok' : 'ver-update');
+                                rb.innerHTML = `${t('lbl_ver_installed')} ${installedVer} / ${t('lbl_ver_latest')} ${latestVer}`;
+                            }
+
+                            if (data.update_available) {
+                                var alertEl = document.getElementById('updateAlert');
+                                if (alertEl) {
+                                    alertEl.style.display = 'inline-flex';
+                                    var txtEl = alertEl.querySelector('span');
+                                    if (txtEl) txtEl.innerText = (t('msg_update_avail') || 'UPDATE TERSEDIA') + ' (v' + data.new_version + ')';
+                                }
+                            }
+                        })
+                        .catch(e => {
+                            if (rb) rb.innerText = `${t('lbl_ver_installed')}: ${installedVer} (${t('msg_ver_offline')})`;
+                        });
+                })
+                .catch(e => {
+                    if (rb) rb.innerText = t('msg_ver_unknown');
+                });
+        }
+
+        // PENGATURAN BAHASA (LANG SWITCHER)
+        document.addEventListener('DOMContentLoaded', function () {
+
+            var lang = localStorage.getItem('nms_lang') || 'id';
+            var disp = document.getElementById('currentLangDisplay');
+            if (disp) disp.innerText = lang.toUpperCase();
+
+
+            checkUpdates();
+
+
+            var langSel = document.getElementById('langSelect');
+            if (langSel) langSel.style.display = 'none';
+        });
+    </script>
+    <script>
+        // SINKRONISASI PENGATURAN & LISENSI
+        document.addEventListener('DOMContentLoaded', () => {
+            applyLanguage();
+
+            fetch('/api/settings', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(settings => {
+                    if (settings) {
+                        if (settings.web_title) {
+                            localStorage.setItem('nms_web_title', settings.web_title);
+                            document.querySelectorAll('.brand-text, #brandText, .mobile-brand').forEach(e => {
+                                e.innerText = settings.web_title;
+                                e.removeAttribute('data-lang');
+                            });
+                            if (loginTitle) loginTitle.innerText = settings.web_title;
+                            document.title = (t('sb_dash') || "DASHBOARD").toUpperCase() + " - " + settings.web_title.toUpperCase();
+                        }
+
+
+                        if (settings.is_licensed) {
+                            localStorage.setItem('nms_is_licensed', 'true');
+                            var b = document.getElementById('licBadge');
+                            if (b) {
+                                b.innerHTML = '<i class="fas fa-check-circle me-1"></i> LICENSED (PRO)';
+                                b.style.background = 'rgba(16, 185, 129, 0.1)';
+                                b.style.color = '#10b981';
+                                b.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                                b.href = '/license';
+                                b.style.cursor = 'pointer';
+                            }
+                        } else {
+                            localStorage.removeItem('nms_is_licensed');
+                        }
+
+                        // Mode Demo (Kunci Sidebar)
+                        if (settings.is_licensed === false) {
+                            var locks = [
+                                { s: '[data-lang="sb_fin"]' },
+                                { s: '[data-lang="sb_set"]' },
+                                { s: '[data-lang="sb_bill"]' },
+                                { s: '[data-lang="sb_inv"]' },
+                                { s: '[data-lang="sb_infra"]' },
+                                { s: '[data-lang="sb_auto"]' },
+                                { s: '[data-lang="sb_hotspot"]' }
+                            ];
+                            locks.forEach(l => {
+                                document.querySelectorAll(l.s).forEach(e => {
+                                    if (e.querySelector('i')) e.querySelector('i').className = 'fas fa-lock me-2';
+                                    e.style.opacity = '0.6';
+                                    e.style.cursor = 'not-allowed';
+                                    if (e.tagName === 'A') e.removeAttribute('href');
+
+
+                                    e.onclick = function (ev) {
+                                        ev.preventDefault();
+                                        ev.stopPropagation();
+                                        alert(t('alert_pro_locked'));
+                                    };
+                                });
+                            });
+                        }
+                    }
+                })
+                .catch(console.error);
+
+            // Fetch Billing Heartbeat Initial & Start interval
+            updateBillingHeartbeat();
+            setInterval(updateBillingHeartbeat, 60000);
+        });
+
+        let billingStatus = null;
+        let cooldownTimer = null;
+
+        function updateBillingHeartbeat() {
+            fetch('/api/settings', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(d => {
+                    const hbEl = document.getElementById('billing-heartbeat-text');
+                    const cdBox = document.getElementById('billing-cooldown-box');
+
+                    billingStatus = d.billing_status;
+
+                    if (hbEl) {
+                        if (billingStatus && billingStatus.enabled === false) {
+                            hbEl.innerHTML = `<span style="color:#f87171">${t('lbl_disabled') || 'DISABLED'}</span>`;
+                            if (cdBox) cdBox.style.display = 'none';
+                        } else {
+                            if (d.billing_heartbeat) hbEl.innerHTML = safeText(d.billing_heartbeat);
+                            if (cdBox) cdBox.style.display = 'inline-flex';
+                        }
+                    }
+                    startCountdown();
+                }).catch(() => { });
+        }
+
+        function startCountdown() {
+            if (cooldownTimer) clearInterval(cooldownTimer);
+            if (!billingStatus || !billingStatus.enabled) return;
+
+            const updateTimer = () => {
+                const cdText = document.getElementById('billing-cooldown-text');
+                if (!cdText) return;
+
+                const nowLocal = Math.floor(Date.now() / 1000);
+                const serverOffset = nowLocal - (billingStatus.server_time_ts || nowLocal);
+                const nowSrv = nowLocal - serverOffset;
+
+                const intervalSec = (billingStatus.interval_hours || 24) * 3600;
+                const nextInterval = (billingStatus.last_check_ts || 0) + intervalSec;
+
+                let nextWa = 0;
+                try {
+                    const [h, m] = billingStatus.wa_time.split(':').map(Number);
+                    const d = new Date();
+                    d.setHours(h, m, 0, 0);
+                    if (d.getTime() / 1000 < nowSrv) d.setDate(d.getDate() + 1);
+                    nextWa = Math.floor(d.getTime() / 1000);
+                } catch (e) { }
+
+                const nextRunTs = Math.min(nextInterval, nextWa || Infinity);
+                const diff = nextRunTs - nowSrv;
+
+                if (diff <= 0) {
+                    cdText.innerText = "...";
+                    return;
+                }
+
+                const hr = Math.floor(diff / 3600);
+                const mn = Math.floor((diff % 3600) / 60);
+                const sc = diff % 60;
+
+                cdText.innerText = (hr > 0 ? hr + "h " : "") + (mn < 10 ? "0" + mn : mn) + "m" + (hr === 0 && mn < 5 ? ":" + (sc < 10 ? "0" + sc : sc) : "");
+            };
+
+            updateTimer();
+            cooldownTimer = setInterval(updateTimer, 1000);
+        }
+
+        function runManualBillingPatrol() {
+            var pass = localStorage.getItem('nms_auth_session');
+            if (!pass) return;
+
+            executePatrol();
+
+            function executePatrol() {
+                showToast("Patroli berjalan...", "info");
+                fetch('/api/debug/run_billing', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass },
+                    body: JSON.stringify({ force: true, notify_only: false })
+                }).then(r => r.json()).then(res => {
+                    if (res.status === 'ok') {
+                        showToast(t('msg_billing_check_done') || "Check Done", "success");
+                    } else {
+                        showToast(res.msg || "Error", "error");
+                    }
+                    updateBillingHeartbeat();
+                }).catch(e => showToast("Patrol error: " + e, "error"));
+            }
+        }
+
+    </script>
+    <script>
+        (function () {
+            var _0xV = ["\x6C\x69\x63\x42\x61\x64\x67\x65", "\x62\x6F\x64\x79", "\x69\x6E\x6E\x65\x72\x48\x54\x4D\x4C", "\x3C\x64\x69\x76\x20\x73\x74\x79\x6C\x65\x3D\x27\x70\x6F\x73\x69\x74\x69\x6F\x6E\x3A\x66\x69\x78\x65\x64\x3B\x74\x6F\x3A\x30\x3B\x6C\x65\x66\x74\x3A\x30\x3B\x77\x69\x64\x74\x68\x3A\x31\x30\x30\x25\x3B\x68\x65\x69\x67\x68\x74\x3A\x31\x30\x30\x76\x68\x3B\x62\x61\x63\x6B\x67\x72\x6F\x75\x6E\x64\x3A\x62\x6C\x61\x63\x6B\x3B\x63\x6F\x6C\x6F\x72\x3A\x72\x65\x64\x3B\x7A\x2D\x69\x6E\x64\x65\x78\x3A\x39\x39\x39\x39\x39\x3B\x64\x69\x73\x70\x6C\x61\x79\x3A\x66\x6C\x65\x78\x3B\x66\x6C\x65\x78\x2D\x64\x69\x72\x65\x63\x74\x69\x6F\x6E\x3A\x63\x6F\x6C\x75\x6D\x6E\x3B\x6A\x75\x73\x74\x69\x66\x79\x2D\x63\x6F\x6E\x74\x65\x6E\x74\x3A\x63\x65\x6E\x74\x65\x72\x3B\x61\x6C\x69\x67\x6E\x2D\x69\x74\x65\x6D\x73\x3A\x63\x65\x6E\x74\x65\x72\x3B\x74\x65\x78\x74\x2D\x61\x6C\x69\x67\x6E\x3A\x63\x65\x6E\x74\x65\x72\x3B\x66\x6F\x6E\x74\x2D\x66\x61\x6D\x69\x6C\x79\x3A\x73\x61\x6E\x73\x2D\x73\x65\x72\x69\x66\x3B\x27\x3E\x3C\x68\x31\x3E\x53\x59\x53\x54\x45\x4D\x20\x43\x52\x41\x53\x48\x3C\x2F\x68\x31\x3E\x3C\x68\x33\x3E\x49\x4E\x54\x45\x47\x52\x49\x54\x59\x20\x45\x52\x52\x4F\x52\x3C\x2F\x68\x33\x3E\x3C\x70\x3E\x43\x6F\x6D\x70\x6F\x6E\x65\x6E\x74\x20\x6F\x72\x69\x67\x69\x6E\x61\x6C\x20\x28\x4C\x69\x63\x65\x6E\x73\x65\x29\x20\x74\x65\x6C\x61\x68\x20\x64\x69\x68\x61\x70\x75\x73\x20\x28\x50\x45\x59\x43\x45\x4C\x4C\x2E\x43\x4F\x4D\x29\x3C\x2F\x70\x3E\x3C\x2F\x64\x69\x76\x3E"];
+            function _v_sys_chk() {
+                try {
+                    var x = document.getElementById(_0xV[0]);
+                    if (!x || x.offsetParent === null) { document[_0xV[1]][_0xV[2]] = _0xV[3]; window.stop(); }
+                } catch (e) { }
+            }
+            setInterval(_v_sys_chk, 3000);
+        })();
+    </script>
+</body>
+
+</html>

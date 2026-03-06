@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script>try { var t = localStorage.getItem('nms_web_title'); if (t) document.title = t; } catch (e) { }</script>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="/static/js/lang_dict.js"></script>
+    <script>initAntiFlicker();</script>
+
+    <style>
+        /* CSS KHUSUS BIAR FLEXIBLE PERSIS FINANCE */
+        .table-container {
+            background: #151b2b;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px !important;
+            /* Sama dengan finance.css */
+        }
+
+        th,
+        td {
+            white-space: nowrap;
+        }
+
+        /* Kolom Aksi Global */
+        th[data-lang="th_action"] {
+            width: 170px !important;
+            min-width: 170px !important;
+        }
+
+        .td-actions {
+            display: flex !important;
+            gap: 6px !important;
+            flex-wrap: nowrap !important;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        /* Responsivitas Layar Kecil */
+        @media (max-width: 768px) {
+
+            .main,
+            .main-content {
+                padding: 15px !important;
+            }
+
+            table {
+                min-width: auto !important;
+                /* Jadikan benar-benar fleksibel */
+            }
+
+            th,
+            td {
+                padding: 8px 6px !important;
+                font-size: 11px !important;
+                width: auto !important;
+            }
+
+            th[data-lang="th_action"] {
+                width: 130px !important;
+                min-width: 130px !important;
+            }
+
+            /* Optimasi Ukuran Tombol Aksi di Mobile */
+            .btn-xs {
+                padding: 2px 5px !important;
+                font-size: 9px !important;
+                border-radius: 4px !important;
+            }
+
+            .btn-done {
+                padding: 2px 4px !important;
+                font-size: 8px !important;
+            }
+
+            .td-actions {
+                gap: 3px !important;
+            }
+
+            .pill {
+                padding: 2px 6px !important;
+                font-size: 9px !important;
+            }
+
+            .desktop-only {
+                display: none !important;
+            }
+
+            .mobile-only {
+                display: block !important;
+            }
+
+            /* Sesuaikan lebar kolom aksi - dibikin lebih lebar buat tombol horizontal */
+        }
+
+        @media (min-width: 769px) {
+            .mobile-only {
+                display: none !important;
+            }
+
+            .desktop-only {
+                display: table-cell !important;
+            }
+        }
+
+        /* --- PREMIUM TOAST NOTIFICATION --- */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast-msg {
+            min-width: 250px;
+            background: #1e293b;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border-left: 5px solid #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            animation: toast-slide-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .toast-msg.success {
+            border-left-color: #10b981;
+        }
+
+        .toast-msg.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast-msg.warning {
+            border-left-color: #f59e0b;
+        }
+
+        @keyframes toast-slide-in {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-fade-out {
+            animation: toast-fade-out 0.4s ease-in forwards !important;
+        }
+
+        @keyframes toast-fade-out {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(40px);
+                opacity: 0;
+            }
+        }
+
+        /* --- MODAL STYLING --- */
+        .modal-box {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            width: 100%;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: modal-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes modal-pop {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-head {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-head b {
+            font-size: 16px;
+            color: white;
+        }
+
+        .modal-close {
+            cursor: pointer;
+            opacity: 0.5;
+            font-weight: bold;
+            transition: all 0.2s;
+            color: white;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.1);
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .pay-history-item {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+            padding-left: 10px;
+            position: relative;
+        }
+
+        .pay-history-item::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body data-page-key="sb_client">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="brand-wrapper"
+            style="display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; margin-bottom: 20px;">
+            <button class="btn-sidebar-toggle desktop-only" onclick="toggleMiniSidebar()"
+                style="background:none; border:none; color:white; font-size:20px; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:1001;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="brand-text" id="brandText"
+                style="font-weight:800; color:#3b82f6; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:8px; flex:1; transition: all 0.3s ease;"></span>
+        </div>
+
+        <div class="menu-label" data-lang="sb_h_main"></div>
+
+        <a href="/" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-home me-2"></i> <span data-lang="sb_dash"></span>
+        </a>
+
+        <a href="/maps" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-map-marked-alt me-2"></i> <span data-lang="sb_map"></span>
+        </a>
+
+        <div class="menu-item active">
+            <i class="fas fa-users me-2"></i> <span data-lang="sb_client"></span>
+        </div>
+
+        <a href="/pppoe" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_pppoe"></span>
+        </a>
+
+        <a href="/hotspot" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wifi me-2"></i> <span data-lang="sb_hotspot"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_admin"></div>
+
+        <a href="/network" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-boxes me-2"></i> <span data-lang="sb_inv"></span>
+        </a>
+
+        <a href="/network?tab=infra" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_infra"></span>
+        </a>
+
+        <a href="/billing" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-file-invoice-dollar me-2"></i> <span data-lang="sb_bill"></span>
+        </a>
+
+        <a href="/finance" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wallet me-2"></i> <span data-lang="sb_fin"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_mon"></div>
+
+        <a href="/monitor?tab=traffic" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-chart-line me-2"></i> <span data-lang="sb_traffic"></span>
+        </a>
+
+        <a href="/monitor?tab=logs" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-history me-2"></i> <span data-lang="sb_logs"></span>
+        </a>
+
+        <a href="/settings" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-cog me-2"></i> <span data-lang="sb_set"></span>
+        </a>
+
+        <a href="/about" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-info-circle me-2"></i> <span data-lang="sb_about"></span>
+        </a>
+
+        <div class="menu-item menu-danger" onclick="doLogout()">
+            <i class="fas fa-sign-out-alt me-2"></i> <span data-lang="sb_logout"></span>
+        </div>
+    </div>
+    <div class="overlay-bg" onclick="toggleSidebar()"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- HEADER MOBILE -->
+        <div class="mobile-head">
+            <button id="btnToggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-brand" id="mobileBrandText"></div>
+        </div>
+
+        <!-- PAGE TITLE -->
+        <div class="row space" style="margin-bottom:20px; min-height: 40px;">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <div>
+                    <h2 data-lang="pg_client_title" class="header" style="margin:0; border-left:none; padding-left:0;">
+                    </h2>
+                    <div class="text-xs muted" style="margin-top:2px;" data-lang="pg_client_subtitle"></div>
+                </div>
+            </div>
+            <div style="display:flex; gap:15px; align-items:center;">
+
+
+
+
+                <div
+                    style="border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; font-size: 11px; color: #94a3b8; background: rgba(15, 23, 42, 0.6);">
+                    <span data-lang="lbl_lang_prefix">LANG: </span><span id="currentLangDisplay"
+                        style="color: #38bdf8; font-weight: bold;"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLIENT CONTENT -->
+        <div id="pg-client">
+
+
+            <div class="card">
+                <div class="row space" style="margin-bottom: 12px;">
+                    <div style="flex:1; min-width: 240px;">
+                        <input id="clientSearch" class="input" data-lang="pg_client_search"
+                            data-lang-target="placeholder" onkeyup="renderClientTable()">
+                    </div>
+                    <div class="row">
+                        <!-- SYNC BUTTON: Manual trigger for lightweight performance -->
+                        <button class="btn-sm btn-primary" onclick="syncProfileWithMikrotik()"
+                            style="margin-right:10px;" data-lang="btn_sync">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                        <button class="btn-sm btn-accent" onclick="downloadClientExcel()"
+                            data-lang="btn_dl_excel"></button>
+                        <button class="btn-sm"
+                            style="background: #10b981; color: white; border: none; margin-left: 10px;"
+                            onclick="openImportModal()">
+                            <i class="fas fa-file-import"></i> <span data-lang="btn_import_bulk"></span>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container" style="border: none;">
+                    <table style="min-width: auto !important;">
+                        <thead>
+                            <tr>
+                                <th style="width:30px; font-size:11px; color:#64748b;">#</th>
+                                <th style="width:50px; cursor:pointer;" data-lang="th_status"
+                                    onclick="setClientSort('status')"><i class="fas fa-sort-down"
+                                        style="opacity:0.3; font-size:10px;"></i></th>
+                                <th style="cursor:pointer;" data-lang="th_name" onclick="setClientSort('name')"><i
+                                        class="fas fa-sort" style="opacity:0.3; font-size:10px;"></i></th>
+                                <th style="cursor:pointer;" data-lang="lbl_id_pelanggan" onclick="setClientSort('id')">
+                                    <i class="fas fa-sort" style="opacity:0.3; font-size:10px;"></i>
+                                </th>
+                                <th style="cursor:pointer;" data-lang="th_paket" onclick="setClientSort('packet_name')"
+                                    class="desktop-only"><i class="fas fa-sort"
+                                        style="opacity:0.3; font-size:10px;"></i></th>
+                                <th style="cursor:pointer;" data-lang="th_ip" onclick="setClientSort('ip')"
+                                    class="desktop-only"><i class="fas fa-sort"
+                                        style="opacity:0.3; font-size:10px;"></i></th>
+                                <th style="cursor:pointer;" data-lang="th_parent" onclick="setClientSort('parent')"
+                                    class="desktop-only"><i class="fas fa-sort"
+                                        style="opacity:0.3; font-size:10px;"></i></th>
+                                <th data-lang="th_wa" class="desktop-only"></th>
+                                <th style="cursor:pointer;" data-lang="th_paid_until"
+                                    onclick="setClientSort('paid_until')" class="desktop-only"><i class="fas fa-sort"
+                                        style="opacity:0.3; font-size:10px;"></i></th>
+                                <th style="width:120px; cursor:pointer;" data-lang="th_action"
+                                    onclick="setClientSort('payment')"><i class="fas fa-sort"
+                                        style="opacity:0.3; font-size:10px;"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientTbody"></tbody>
+                    </table>
+                </div>
+
+
+                <div id="clientPagination" style="margin-top:15px; display:flex; justify-content:center; gap:5px;">
+                </div>
+
+
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-sm" style="background: #38bdf8; color: #0f172a; border: none; font-weight: bold;"
+                        onclick="bulkToggleBilling(true)">
+                        <i class="fas fa-check-double"></i> <span data-lang="btn_billing_enable_all"></span>
+                    </button>
+                    <button class="btn-sm" style="background: #f59e0b; color: #0f172a; border: none; font-weight: bold;"
+                        onclick="bulkToggleBilling(false)">
+                        <i class="fas fa-toggle-off"></i> <span data-lang="btn_billing_disable_all"></span>
+                    </button>
+                </div>
+
+
+
+                <div style="margin-top:25px; border-top:1px solid rgba(255,255,255,0.05); padding-top:20px;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch;">
+
+
+                        <div style="flex: 1; min-width: 300px;">
+                            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;"
+                                data-lang="leg_action">
+                            </div>
+                            <div
+                                style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; height: calc(100% - 30px);">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div
+                                        style="display: flex; align-items: center; gap: 10px; width: 110px; flex-shrink: 0;">
+                                        <i class="fas fa-check-double"
+                                            style="color: #38bdf8; font-size: 12px; width: 16px; text-align: center;"></i>
+                                        <span style="font-size: 11px; font-weight: 700; color: #38bdf8;"
+                                            data-lang="leg_billing_on"></span>
+                                    </div>
+                                    <span style="font-size: 10px; color: #94a3b8;"
+                                        data-lang="leg_billing_on_hint"></span>
+                                </div>
+
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div
+                                        style="display: flex; align-items: center; gap: 10px; width: 110px; flex-shrink: 0;">
+                                        <i class="fas fa-toggle-off"
+                                            style="color: #f59e0b; font-size: 12px; width: 16px; text-align: center;"></i>
+                                        <span style="font-size: 11px; font-weight: 700; color: #f59e0b;"
+                                            data-lang="leg_billing_off"></span>
+                                    </div>
+                                    <span style="font-size: 10px; color: #94a3b8;"
+                                        data-lang="leg_billing_off_hint"></span>
+                                </div>
+
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div
+                                        style="display: flex; align-items: center; gap: 10px; width: 110px; flex-shrink: 0;">
+                                        <i class="fas fa-shield-alt"
+                                            style="color: #3b82f6; font-size: 12px; width: 16px; text-align: center;"></i>
+                                        <span style="font-size: 11px; font-weight: 700; color: #3b82f6;"
+                                            data-lang="leg_free">FREE / BYPASS</span>
+                                    </div>
+                                    <span style="font-size: 10px; color: #94a3b8;" data-lang="leg_free_hint">(Tetap
+                                        Aktif - Janji Bayar)</span>
+                                </div>
+
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div
+                                        style="display: flex; align-items: center; gap: 10px; width: 110px; flex-shrink: 0;">
+                                        <i class="fab fa-whatsapp"
+                                            style="color: #25d366; font-size: 14px; width: 16px; text-align: center;"></i>
+                                        <span style="color: #e2e8f0; font-size: 11px; font-weight: 700;"
+                                            data-lang="leg_wa_rem">WHATSAPP</span>
+                                    </div>
+                                    <span style="color: #94a3b8; font-size: 10px;" data-lang="leg_wa_rem_hint">(Kirim
+                                        Tagihan Manual)</span>
+                                </div>
+
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div
+                                        style="display: flex; align-items: center; gap: 10px; width: 110px; flex-shrink: 0;">
+                                        <i class="fas fa-circle"
+                                            style="color: #ef4444; font-size: 10px; width: 16px; text-align: center;"></i>
+                                        <span style="color: #e2e8f0; font-size: 11px; font-weight: 700;"
+                                            data-lang="leg_isolir">ISOLIR</span>
+                                    </div>
+                                    <span style="color: #94a3b8; font-size: 10px;" data-lang="leg_isolir_hint">(Koneksi
+                                        Terputus)</span>
+                                </div>
+
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <div
+                                        style="display: flex; align-items: center; gap: 10px; width: 110px; flex-shrink: 0;">
+                                        <span class="btn-xs btn-accent"
+                                            style="width: 50px; text-align: center; font-size: 8px; border-radius: 4px; pointer-events: none;"
+                                            data-lang="btn_pay">BAYAR</span>
+                                    </div>
+                                    <span style="color: #94a3b8; font-size: 10px;" data-lang="leg_pay_hint">(Input
+                                        Pembayaran - Bisa bayar double untuk perpanjang masa aktif otomatis)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Column 2: Terminal -->
+                        <div style="flex: 1; min-width: 300px;">
+                            <div style="font-size:11px; font-weight:700; color:#64748b; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px;"
+                                data-lang="info_isolate_title">🛡️ INFO ISOLIR (PPPoE & STATIK IP):</div>
+                            <div
+                                style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 18px; height: calc(100% - 30px); display: flex; flex-direction: column;">
+                                <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px;">
+                                    <div
+                                        style="background:rgba(56, 189, 248, 0.05); width:28px; height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                        <i class="fas fa-terminal" style="color:#38bdf8; font-size:12px;"></i>
+                                    </div>
+                                    <div style="font-size:11px; color:#94a3b8; line-height:1.4;"
+                                        data-lang="info_isolate_desc">Status ISOLIR memutus internet sementara...</div>
+                                </div>
+
+                                <div style="font-size:10px; color:#64748b; font-style:italic; margin-bottom:8px;"
+                                    data-lang="leg_terminal_hint">Salin & Tempel ke Terminal MikroTik</div>
+
+                                <div style="position:relative; flex:1;">
+                                    <div id="cmdBox"
+                                        style="background:#020617; padding:12px 40px 12px 12px; border-radius:8px; font-family:'Consolas', 'Monaco', monospace; font-size:10px; color:#7dd3fc; border:1px solid #1e293b; line-height:1.5; height:100%; min-height:60px; overflow:hidden;">
+                                        <span id="mkCommandText" data-lang="info_isolate_cmd">Wajib pasang perintah ini
+                                            di Terminal MikroTik...</span>
+                                        <button onclick="copyCmd()"
+                                            style="position:absolute; right:8px; top:8px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:#94a3b8; width:28px; height:28px; border-radius:6px; cursor:pointer;"
+                                            title="Salin Perintah">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                    <div id="copyToast"
+                                        style="position:absolute; top:-25px; right:0; background:#38bdf8; color:#0f172a; padding:3px 8px; border-radius:4px; font-size:9px; font-weight:bold; opacity:0; transition:opacity 0.3s; pointer-events:none; z-index:10;">
+                                        COPIED!</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PAYMENT -->
+    <div id="paymentModal" class="modal">
+        <div class="modal-box" style="max-width: 400px;">
+            <div class="modal-head">
+                <b data-lang="modal_pay_title">Bayar Tagihan Client</b>
+                <div class="modal-close" onclick="closeModal('paymentModal')">X</div>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="payClientId">
+                <div class="form-group">
+                    <label data-lang="lbl_client_name">Nama Client</label>
+                    <input id="payClientName" class="input" readonly style="opacity:0.6">
+                    <div id="payArrearsInfo" style="margin-top:5px; font-size:12px; font-weight:bold; display:none;">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:10px; display:none;">
+                    <label data-lang="lbl_pppoe_user">PPPoE User</label>
+                    <input id="payPppoeUser" class="input" readonly style="opacity:0.6">
+                </div>
+                <div class="form-group" style="margin-top:10px; display:none;">
+                    <label data-lang="lbl_router_src">Sumber Mikrotik</label>
+                    <input id="payRouterSource" class="input" readonly style="opacity:0.6">
+                </div>
+                <div class="form-group" style="margin-top:10px; display:none;">
+                    <label data-lang="lbl_prof_packet">Profil Paket <span style="color:#f59e0b; font-size:10px;"
+                            data-lang="hint_prof_suggest">(Ketik
+                            atau pilih dari suggestions)</span></label>
+                    <input id="payProfileInput" class="input" list="profileSuggestions"
+                        placeholder="Contoh: Paket_10Mbps">
+                    <datalist id="profileSuggestions">
+                        <!-- Filled by JS -->
+                    </datalist>
+                </div>
+                <div class="form-group" style="margin-top:10px;">
+                    <label data-lang="lbl_pay_amount">Nominal Pembayaran (Rp)</label>
+                    <input id="payAmount" type="number" class="input" placeholder="Contoh: 150000"
+                        oninput="recalcTotal()">
+                </div>
+                <div class="form-group" style="margin-top:10px;">
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 2;">
+                            <label data-lang="lbl_duration">Durasi (Bulan) - <small style="color:#aaa;"
+                                    data-lang="hint_pay_duration">Bayar berapa bulan sekaligus?</small></label>
+                            <input id="payDuration" type="number" class="input" value="1" min="1"
+                                onchange="recalcTotal()" onkeyup="recalcTotal()">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="color:#ef4444; font-weight:bold;" data-lang="lbl_arrears_months"></label>
+                            <input id="payArrearsMonths" type="number" class="input" value="0" min="0"
+                                style="border-color:#ef4444;" onchange="recalcTotal()" onkeyup="recalcTotal()">
+                        </div>
+                    </div>
+                    <div id="payTotalDisplay"
+                        style="margin-top: 8px; font-size: 1.1em; font-weight:bold; color:#22c55e;"
+                        data-lang="lbl_pay_total">Total: Rp 0</div>
+                </div>
+                <div class="form-group" style="margin-top:10px;">
+                    <label data-lang="lbl_pay_note">Catatan (Opsional)</label>
+                    <input id="payNote" class="input" placeholder="Pembayaran bulan ...">
+                </div>
+                <div class="form-group" style="margin-top:10px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px;">
+                        <input type="checkbox" id="payPrintReceipt"> <span data-lang="lbl_print_receipt"></span>
+                    </label>
+                </div>
+
+                <div id="payHistorySection"
+                    style="margin-top:15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top:10px; display:none;">
+                    <div style="font-size:12px; font-weight:bold; color:#7dd3fc; margin-bottom:5px;"
+                        data-lang="lbl_pay_history_last3">3 Riwayat Pembayaran Terakhir</div>
+                    <div id="payHistoryList" style="display: flex; flex-direction: column; gap: 4px;"></div>
+                </div>
+                <button class="btn btn-primary" onclick="savePayment()" style="margin-top:20px;"
+                    data-lang="btn_save_pay"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL IMPORT -->
+    <div id="importModal" class="modal">
+        <div class="modal-box" style="max-width: 500px;">
+            <div class="modal-head">
+                <b data-lang="modal_import_title">Import Client dari Excel</b>
+                <div class="modal-close" onclick="closeModal('importModal')">X</div>
+            </div>
+            <div class="modal-body">
+                <div
+                    style="background: rgba(56, 189, 248, 0.1); border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 11px; line-height: 1.5; color: #7dd3fc;">
+                    <b>💡 PETUNJUK IMPORT (10 KOLOM):</b><br>
+                    1. <b>Tipe Koneksi:</b> Isi `PPPoE`, `PPPoE Radius`, atau `Statik`.<br>
+                    2. <b>Username PPPoE:</b> Wajib diisi jika tipe PPPoE/Radius.<br>
+                    3. <b>IP Address:</b> Wajib diisi jika tipe Statik.<br>
+                    4. <b>Nama Paket:</b> Isi profil kecepatan (manual).<br>
+                    5. <b>Koordinat:</b> Format `lat, lng` (Wajib untuk Maps).<br>
+                    <div
+                        style="border-top:1px solid rgba(125, 211, 252, 0.2); margin-top:8px; padding-top:8px; color: #facc15;">
+                        <b data-lang="lbl_import_dependency"></b><br>
+                        <code data-lang="lbl_import_folder_hint"></code><br>
+                        <code data-lang="lbl_import_venv"></code><br>
+                        <code data-lang="lbl_import_pip"></code><br>
+                        <code data-lang="lbl_import_deactivate"></code>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label data-lang="lbl_select_xlsx">Pilih File Excel</label>
+                    <input type="file" id="importFile" class="input" accept=".xlsx" style="padding: 8px;">
+                </div>
+
+                <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn btn-primary" onclick="doImportClient()" data-lang="btn_start_import"></button>
+                    <button class="btn-sm"
+                        style="background: rgba(255,255,255,0.05); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1);"
+                        onclick="downloadTemplate()" data-lang="btn_dl_template"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var DEFAULT_HTML_TPL = `<div style="text-align:center; font-family:monospace;">\n    <p style="margin:0; font-weight:bold; font-size:16px;">STRUK PEMBAYARAN</p>\n    <p style="margin:5px 0;">{header}</p>\n    <hr style="border-top:1px dashed #000;">\n    <table style="width:100%; font-size:14px;">\n        <tr><td style="text-align:left;">Tgl</td><td style="text-align:right;">{date}</td></tr>\n        <tr><td style="text-align:left;">ID</td><td style="text-align:right;">{id}</td></tr>\n        <tr><td style="text-align:left;">Nama</td><td style="text-align:right;">{name}</td></tr>\n        <tr><td style="text-align:left;">Paket</td><td style="text-align:right;">{packet}</td></tr>\n        <tr><td style="text-align:left; font-weight:bold;">TOTAL</td><td style="text-align:right; font-weight:bold;">Rp {amount}</td></tr>\n    </table>\n    <hr style="border-top:1px dashed #000;">\n    <p style="margin:5px 0;">Berlaku S/D: <b>{expired}</b></p>\n    <hr style="border-top:1px dashed #000;">\n    <p style="margin:5px 0; font-size:12px;">{footer}</p>\n</div>`;
+        var DEFAULT_TEXT_TPL = `{store_name}\n--------------------------------\nTanggal : {date}\nNama    : {name}\nPaket   : {packet}\nHarga   : {amount}\n--------------------------------\nTerima Kasih\n\n{footer}`;
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.overlay-bg');
+            if (sidebar) sidebar.classList.toggle('active');
+            if (overlay) overlay.classList.toggle('active');
+        }
+
+        // APP STATE
+        var APP = {
+            role: null,
+            topology: null,
+            settings: {},
+            paidClients: [],
+            clientPage: 1,
+            clientPerPage: 20,
+            clientSort: { key: 'status', dir: 'asc' }
+        };
+
+        // --- AUTH & INIT ---
+        function getAuthHeaders() {
+            var pass = localStorage.getItem('nms_auth_session');
+            return pass ? { 'X-Auth-Token': pass } : {};
+        }
+
+        function doLogout() {
+            if (!confirm(t('conf_logout'))) return;
+            localStorage.removeItem('nms_auth_session');
+            window.location.href = '/';
+        }
+
+        function syncSettings() {
+            fetch('/api/settings', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(s => {
+                    if (s) {
+                        if (s.web_title) {
+                            localStorage.setItem('nms_web_title', s.web_title);
+                            document.querySelectorAll('.brand-text, #brandText, .mobile-brand').forEach(e => {
+                                e.innerText = s.web_title;
+                                e.removeAttribute('data-lang');
+                            });
+                            document.title = (t('sb_client') || "CLIENT").toUpperCase() + " - " + s.web_title.toUpperCase();
+                        }
+                        if (s.is_licensed) {
+                            localStorage.setItem('nms_is_licensed', 'true');
+                            var b = document.getElementById('licBadge');
+                            if (b) {
+                                b.innerHTML = '<i class="fas fa-check-circle me-1"></i> LICENSED (PRO)';
+                                b.style.background = 'rgba(16, 185, 129, 0.1)';
+                                b.style.color = '#10b981';
+                                b.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                                b.href = '/license';
+                                b.style.cursor = 'pointer';
+                            }
+                        } else {
+                            localStorage.removeItem('nms_is_licensed');
+                        }
+                        // V3.4.1 FIX: Always populate APP.settings
+                        APP.settings = s || {};
+                    }
+                }).catch(() => { });
+        }
+
+        function loadData() {
+            // V3.4.1 FIX: Load Settings First to ensure APP.settings is available
+            fetch('/api/settings', { headers: getAuthHeaders() }).then(r => r.json()).then(s => {
+                APP.settings = s || {};
+                if (s && s.web_title) {
+                    document.title = (t('sb_client') || "CLIENT").toUpperCase() + " - " + s.web_title.toUpperCase();
+                    if (document.getElementById('brandText')) document.getElementById('brandText').innerText = s.web_title;
+                }
+            });
+
+            // Load Topology & Data
+            fetch('/api/data', { headers: getAuthHeaders() }).then(r => r.json()).then(d => {
+                if (d.error) {
+                    alert(t('err_session'));
+                    window.location.href = '/';
+                    return;
+                }
+                APP.topology = d.topology || {};
+                APP.role = d.role;
+
+                // Fetch Finance Summary for Paid Clients
+                fetch('/api/finance/summary', { headers: getAuthHeaders() }).then(r => r.json()).then(f => {
+                    APP.paidClients = f.paid_clients || [];
+                    renderClientTable();
+                });
+            });
+        }
+
+        // --- UI UTILS ---
+        function showToast(msg, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) {
+                const div = document.createElement('div');
+                div.id = 'toast-container';
+                document.body.appendChild(div);
+            }
+            const toast = document.createElement('div');
+            toast.className = `toast-msg ${type}`;
+            const icon = type === 'success' ? 'check-circle' : (type === 'error' ? 'exclamation-circle' : 'exclamation-triangle');
+            toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${msg}</span>`;
+            document.getElementById('toast-container').appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('toast-fade-out');
+                setTimeout(() => toast.remove(), 400);
+            }, 3000);
+        }
+
+        // --- HELPER FUNCTIONS ---
+        function safeText(v) {
+            if (v === undefined || v === null) return '';
+            var s = String(v);
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+        function normalizeWa(n) {
+            var s = safeText(n).replace(/\D/g, '');
+            if (!s) return '';
+            if (s.startsWith('0')) return '62' + s.slice(1);
+            return s;
+        }
+        function statusPill(status) {
+            var st = safeText(status).toLowerCase();
+            if (st === 'online') return '<span class="pill green">' + t('lbl_online_pill') + '</span>';
+            if (st === 'isolir') return '<span class="pill purple">' + t('lbl_isolir_pill') + '</span>';
+            return '<span class="pill red">' + t('lbl_offline_pill') + '</span>';
+        }
+        function encodeCsvCell(v) {
+            var s = safeText(v);
+            if (s.includes('"')) s = s.replace(/"/g, '""');
+            if (s.includes(',') || s.includes('\n') || s.includes('"')) return '"' + s + '"';
+            return s;
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        // --- IMPORT BULK FUNCTIONS ---
+        function openImportModal() {
+            document.getElementById('importModal').classList.add('show');
+        }
+
+        function downloadTemplate() {
+            var token = localStorage.getItem('nms_auth_session') || '';
+            window.location.href = '/api/clients/import/template?token=' + encodeURIComponent(token);
+        }
+
+        function doImportClient() {
+            var fileInput = document.getElementById('importFile');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert(t('lbl_select_xlsx'));
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            var btn = document.querySelector('button[onclick="doImportClient()"]');
+            var oldText = btn.innerText;
+            btn.innerText = t('lbl_loading');
+            btn.disabled = true;
+
+            fetch('/api/clients/import', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: formData
+            }).then(r => r.json()).then(d => {
+                btn.innerText = oldText;
+                btn.disabled = false;
+
+                if (d.status === 'ok') {
+                    showToast(d.msg || 'Import Berhasil!');
+                    closeModal('importModal');
+                    loadData();
+                    fileInput.value = '';
+                } else {
+                    alert('Error: ' + (d.msg || d.error || 'Gagal import'));
+                }
+            }).catch(e => {
+                btn.innerText = oldText;
+                btn.disabled = false;
+                alert('Connection Error: ' + e);
+            });
+        }
+
+        function formatDate(dateStr, isMobile) {
+            if (!dateStr || dateStr.length < 10) return dateStr;
+            var parts = dateStr.split('-');
+            if (parts.length !== 3) return dateStr;
+            if (isMobile) return parseInt(parts[1]) + '/' + parseInt(parts[2]);
+            return parts[2] + '-' + parts[1] + '-' + parts[0];
+        }
+
+        // --- CLIENT LOGIC ---
+        function renderClientTable() {
+            if (!APP.topology) return;
+            var topo = APP.topology;
+            var clients = topo.clients || [];
+
+            // Rebuild map for parent names
+            var byId = {};
+            if (topo.server) byId[topo.server.id] = topo.server;
+            (topo.extra_routers || []).forEach(x => byId[x.id] = x);
+            (topo.odps || []).forEach(x => byId[x.id] = x);
+
+            var q = safeText(document.getElementById('clientSearch').value).trim().toLowerCase();
+            var list = clients.slice();
+
+            // Filter
+            if (q) {
+                list = list.filter(c => {
+                    var nm = safeText(c.name).toLowerCase();
+                    var ip = safeText(c.ip).toLowerCase();
+                    var cid = safeText(c.id).toLowerCase().replace('client_', '');
+                    return nm.includes(q) || ip.includes(q) || cid.includes(q);
+                });
+            }
+
+            // --- SORTING LOGIC ---
+            var sort = APP.clientSort || { key: 'status', dir: 'asc' };
+            list.sort((a, b) => {
+                var valA, valB;
+
+                if (sort.key === 'id') {
+                    // Numeric ID Sort (remove 'client_')
+                    valA = parseInt(safeText(a.id).replace('client_', '')) || 0;
+                    valB = parseInt(safeText(b.id).replace('client_', '')) || 0;
+                } else if (sort.key === 'payment') {
+                    // Custom Payment Sort: Paid vs Unpaid
+                    var isPaidA = false, isPaidB = false;
+                    var isoA = safeText(a.packet_name).toUpperCase().includes('ISOLIR');
+                    var isoB = safeText(b.packet_name).toUpperCase().includes('ISOLIR');
+
+                    if (!isoA) {
+                        if (a.paid_until && new Date(a.paid_until) > new Date()) isPaidA = true;
+                        else if (APP.paidClients && APP.paidClients.includes(String(a.id))) isPaidA = true;
+                    }
+                    if (!isoB) {
+                        if (b.paid_until && new Date(b.paid_until) > new Date()) isPaidB = true;
+                        else if (APP.paidClients && APP.paidClients.includes(String(b.id))) isPaidB = true;
+                    }
+                    valA = isPaidA ? 1 : 0;
+                    valB = isPaidB ? 1 : 0;
+                } else if (sort.key === 'ip') {
+                    // Numerically sort IP
+                    valA = safeText(a.ip).split('.').map(x => x.padStart(3, '0')).join('.');
+                    valB = safeText(b.ip).split('.').map(x => x.padStart(3, '0')).join('.');
+                } else if (sort.key === 'status') {
+                    // Custom Status Sort: Online (2) > Isolir (1) > Offline (0)
+                    var stMap = { 'online': 2, 'isolir': 1, 'offline': 0 };
+                    valA = stMap[safeText(a.status).toLowerCase()] || 0;
+                    valB = stMap[safeText(b.status).toLowerCase()] || 0;
+                } else if (sort.key === 'paid_until') {
+                    // Sort by Date (Paid Until)
+                    valA = a.paid_until ? new Date(a.paid_until).getTime() : 0;
+                    valB = b.paid_until ? new Date(b.paid_until).getTime() : 0;
+                } else if (sort.key === 'parent') {
+                    var pA = byId[a.parent], pB = byId[b.parent];
+                    valA = safeText(pA ? (pA.name || pA.id) : a.parent).toLowerCase();
+                    valB = safeText(pB ? (pB.name || pB.id) : b.parent).toLowerCase();
+                } else {
+                    valA = safeText(a[sort.key]).toLowerCase();
+                    valB = safeText(b[sort.key]).toLowerCase();
+                }
+
+                if (valA < valB) return sort.dir === 'asc' ? -1 : 1;
+                if (valA > valB) return sort.dir === 'asc' ? 1 : -1;
+
+                // Secondary Sort by Name (stable)
+                var nameA = safeText(a.name).toLowerCase();
+                var nameB = safeText(b.name).toLowerCase();
+                if (nameA < nameB) return -1;
+                if (nameA > nameB) return 1;
+                return 0;
+            });
+            updateSortIcons();
+
+            // Pagination
+            var totalItems = list.length;
+            var perPage = APP.clientPerPage || 20;
+            var totalPages = Math.ceil(totalItems / perPage);
+            if (APP.clientPage > totalPages) APP.clientPage = 1;
+            if (APP.clientPage < 1) APP.clientPage = 1;
+
+            var page = APP.clientPage;
+            var start = (page - 1) * perPage;
+            var end = start + perPage;
+
+            var pagedList = list.slice(start, end);
+
+            var tbody = document.getElementById('clientTbody');
+            tbody.innerHTML = '';
+
+            pagedList.forEach((c, i) => {
+                var rowNum = start + i + 1;
+                var parent = byId[c.parent] || null;
+                var parentName = parent ? (parent.name || parent.id) : (c.parent || '-');
+                parentName = safeText(parentName);
+                var wa = normalizeWa(c.wa_number || '');
+                var paket = safeText(c.packet_name || '-');
+                var ip = safeText(c.ip || '-');
+                var st = safeText(c.status || 'offline');
+
+                // Format Masa Aktif
+                var masaAktifHtml = '-';
+                if (c.paid_until) {
+                    var expDate = new Date(c.paid_until);
+                    var today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    var dateStr = formatDate(c.paid_until, false);
+                    if (expDate < today) {
+                        masaAktifHtml = '<span style="color:#ef4444; font-weight:bold;">' + dateStr + '</span>'; // Expired (Red)
+                    } else if (expDate.getTime() === today.getTime()) {
+                        masaAktifHtml = '<span style="color:#f59e0b; font-weight:bold;">' + dateStr + '</span>'; // Today (Warning)
+                    } else {
+                        masaAktifHtml = '<span style="color:#10b981;">' + dateStr + '</span>'; // Active (Green)
+                    }
+                }
+
+                var tr = document.createElement('tr');
+                var trHtml = '' +
+                    '<td style="font-size:11px; color:#64748b; font-weight:bold;">' + rowNum + '</td>' +
+                    '<td>' + statusPill(st) + '</td>' +
+                    '<td><b>' + safeText(c.name || '-') + '</b></td>' +
+                    '<td><code style="font-weight:bold; color:#7dd3fc;">' + safeText(c.id || '').replace('client_', '') + '</code></td>' +
+                    '<td class="desktop-only">' + paket + '</td>' +
+                    '<td class="desktop-only">' + ip + '</td>' +
+                    '<td class="desktop-only">' + safeText(parentName) + '</td>' +
+                    '<td class="desktop-only">' + (wa || '-') + '</td>' +
+                    '<td class="desktop-only">' + masaAktifHtml + '</td>' +
+                    '<td><div class="td-actions">';
+
+                // Conditional Buttons for Billing
+                var paketUpper = paket.toUpperCase();
+                var stLower = safeText(c.status).toLowerCase();
+                // Determine ISOLIR state: Either via profile (PPPoE) or via status field (Static IP)
+                var isIsolir = paketUpper.includes('ISOLIR') || stLower === 'isolir';
+
+                // Check Paid Status: (Manual List OR Paid Until > Now)
+                var isPaid = false;
+                if (!isIsolir) {
+                    // 1. Check Paid Until
+                    if (c.paid_until) {
+                        var expiry = new Date(c.paid_until);
+                        var now = new Date();
+                        // Normalisasi ke jam 00:00:00 agar perbandingan adil per HARI bukan per DETIK
+                        now.setHours(0, 0, 0, 0);
+                        if (expiry >= now) isPaid = true;
+                    }
+                    // 2. Check Monthly Paid List (Fallback for old data)
+                    if (!isPaid && APP.paidClients && APP.paidClients.includes(String(c.id))) {
+                        isPaid = true;
+                    }
+                }
+
+                var isPppoe = c.credentials && c.credentials.pppoe_user;
+
+                if (isIsolir) {
+                    trHtml += '<button class="btn-xs" style="background:#22c55e; color:white; border:none;" onclick="manualAktifkan(\'' + safeText(c.id) + '\')">' + t('btn_activate') + '</button>';
+                } else if (stLower === 'online' && !isPaid && !c.bypass_billing) {
+                    // Show Isolate button for PPPoE or Static IP with valid IP
+                    if (isPppoe || (c.ip && c.ip !== '-')) {
+                        trHtml += '<button class="btn-xs" style="background:#ef4444; color:white; border:none;" onclick="manualIsolir(\'' + safeText(c.id) + '\')">' + t('btn_isolate') + '</button>';
+                    }
+                }
+
+                if (!isIsolir) {
+                    if (isPaid) {
+                        trHtml += '<button class="btn-xs btn-done" onclick="openPaymentModal(\'' + safeText(c.id) + '\')" title="Tambah Bayar / Perpanjang"><i class="fas fa-plus-circle"></i> ' + t('btn_paid') + '</button>';
+                    } else {
+                        trHtml += '<button class="btn-xs btn-accent" style="background:#10b981; border-color:#059669;" onclick="openPaymentModal(\'' + safeText(c.id) + '\')">' + t('btn_pay') + '</button>';
+                    }
+                }
+
+                // WhatsApp Reminder
+                if (wa) {
+                    var totalBill = 0;
+                    var maList = (APP.settings && APP.settings.manual_arrears) ? APP.settings.manual_arrears : [];
+                    var mName = (c.name || "").trim().toUpperCase();
+                    var ma = maList.find(m => (m.client_name || "").trim().toUpperCase() === mName);
+                    if (ma) totalBill += parseFloat(ma.amount || 0);
+
+                    if (!isPaid) {
+                        var pkt = safeText(c.packet_name);
+                        var pktPrice = 0;
+                        if (APP.settings && APP.settings.billing_profiles && APP.settings.billing_profiles[pkt]) {
+                            pktPrice = APP.settings.billing_profiles[pkt];
+                        } else {
+                            var match = pkt.match(/(\d+)rb/i) || pkt.match(/(\d+)k/i);
+                            if (match) pktPrice = parseInt(match[1]) * 1000;
+                        }
+                        totalBill += pktPrice;
+                    }
+
+                    trHtml += '<button class="btn-xs" style="background:#25d366; color:white; border:none;" onclick="sendWaReminder(\'' + safeText(c.id) + '\', \'' + safeText(c.name).replace(/'/g, "\\'") + '\', \'' + wa + '\', ' + totalBill + ')" title="Kirim Tagihan WA"><i class="fab fa-whatsapp"></i></button>';
+                }
+
+                // Reprint Button
+                trHtml += '<button class="btn-xs" style="background:#0ea5e9; color:white; border:none;" onclick="reprintReceipt(\'' + safeText(c.id) + '\')" title="' + t('btn_reprint') + '"><i class="fas fa-print"></i></button>';
+
+                // Bypass Button
+                var isBypass = c.bypass_billing || false;
+                var bypassColor = isBypass ? '#3b82f6' : '#94a3b8';
+                var bypassBg = isBypass ? 'rgba(59, 130, 246, 0.2)' : 'transparent';
+                var bypassBorder = isBypass ? '#3b82f6' : '#475569';
+
+                trHtml += `<button class="btn-xs" style="background:${bypassBg}; color:${bypassColor}; border:1px solid ${bypassBorder};" onclick="toggleBypass('${safeText(c.id)}') " title="${isBypass ? t('tt_bypass_on') : t('tt_bypass_off')}">
+                    <i class="fas fa-shield-alt"></i> ${isBypass ? t('btn_free') : ''}
+                </button>`;
+
+                // NEW: Billing Toggle Button (Enable/Disable)
+                var billingEnabled = c.billing && c.billing.enabled === true;
+                var bToggleColor = billingEnabled ? '#38bdf8' : '#f59e0b';
+                var bToggleIcon = billingEnabled ? 'fa-check-double' : 'fa-toggle-off';
+                var bToggleTitle = billingEnabled ? t('btn_billing_disable') : t('btn_billing_enable');
+                var bToggleAction = billingEnabled ? `disableBilling('${c.id}')` : `enableBilling('${c.id}')`;
+
+                trHtml += `<button class="btn-xs" style="background:transparent; color:${bToggleColor}; border:1px solid ${bToggleColor};" onclick="${bToggleAction}" title="${bToggleTitle}">
+                    <i class="fas ${bToggleIcon}"></i>
+                </button>`;
+
+                trHtml += '</div></td>';
+                tr.innerHTML = trHtml;
+                tbody.appendChild(tr);
+            });
+
+            // Pagination Controls
+            var pagBox = document.getElementById('clientPagination');
+            pagBox.innerHTML = '';
+            if (totalPages > 1) {
+                var btnPrev = document.createElement('button');
+                btnPrev.className = 'btn-sm';
+                btnPrev.innerText = '❮';
+                btnPrev.disabled = (page === 1);
+                btnPrev.onclick = function () { APP.clientPage--; renderClientTable(); };
+                pagBox.appendChild(btnPrev);
+
+                var info = document.createElement('span');
+                info.style.fontSize = '12px';
+                info.style.color = '#aaa';
+                info.style.margin = '5px 10px';
+                info.innerText = t('lbl_page') + ' ' + page + ' / ' + totalPages;
+                pagBox.appendChild(info);
+
+                var btnNext = document.createElement('button');
+                btnNext.className = 'btn-sm';
+                btnNext.innerText = '❯';
+                btnNext.disabled = (page === totalPages);
+                btnNext.onclick = function () { APP.clientPage++; renderClientTable(); };
+                pagBox.appendChild(btnNext);
+            }
+        }
+
+        function getClientById(id) {
+            var clients = (APP.topology && APP.topology.clients) ? APP.topology.clients : [];
+            return clients.find(c => c && c.id === id) || null;
+        }
+
+        // --- ACTIONS ---
+        function manualIsolir(clientId) {
+            if (!confirm(t('conf_isolate'))) return;
+            fetch(`/api/billing/client/${clientId}/isolir`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok') {
+                    alert(t('msg_isolate_success'));
+                    loadData();
+                } else {
+                    alert(t('msg_error') + ': ' + (d.msg || d.error || 'Unknown'));
+                }
+            }).catch(e => alert(t('msg_error') + ': ' + e));
+        }
+
+        function manualAktifkan(clientId) {
+            openPaymentModal(clientId);
+        }
+
+        function toggleBypass(id) {
+            fetch('/api/client/' + id + '/bypass', {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                body: JSON.stringify({})
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok') {
+                    loadData(); // Reload all for safety
+                } else {
+                    alert(t('err_bypass') + (d.error || 'Error'));
+                }
+            }).catch(() => { alert(t('alert_conn_failed')); });
+        }
+
+        function enableBilling(id) {
+            fetch('/api/billing/client/' + id + '/enable', {
+                method: 'POST',
+                headers: getAuthHeaders()
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok') loadData();
+                else alert(t('msg_error') + ': ' + (d.error || t('err_failed')));
+            }).catch(e => alert(t('alert_conn_failed')));
+        }
+
+        function disableBilling(id) {
+            if (!confirm(t('btn_billing_disable') + "?")) return;
+            fetch('/api/billing/client/' + id + '/disable', {
+                method: 'POST',
+                headers: getAuthHeaders()
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok') loadData();
+                else alert(t('msg_error') + ': ' + (d.error || t('err_failed')));
+            }).catch(e => alert(t('alert_conn_failed')));
+        }
+
+        function bulkToggleBilling(enabled) {
+            var action = enabled ? t('btn_billing_enable') : t('btn_billing_disable');
+            if (!confirm(t('conf_bulk_billing'))) return;
+
+            fetch('/api/billing/bulk_toggle', {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                body: JSON.stringify({ enabled: enabled })
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok') {
+                    alert(t('msg_selesai'));
+                    loadData();
+                } else {
+                    alert(t('msg_error') + ': ' + (d.error || t('err_failed')));
+                }
+            }).catch(() => alert(t('alert_conn_failed')));
+        }
+
+        function openClientMap(id) {
+            if (!id) return;
+            window.location.href = '/maps?focus=' + encodeURIComponent(id);
+        }
+
+        function openWa(number, text) {
+            var wa = normalizeWa(number);
+            if (!wa) { alert(t('err_wa_empty')); return; }
+            var url = 'https://wa.me/' + wa;
+            if (text) url += '?text=' + encodeURIComponent(text);
+            window.open(url, '_blank');
+        }
+
+        function chatWa(id) {
+            var c = getClientById(id);
+            if (!c) return;
+            openWa(c.wa_number, t('msg_wa_greeting') + ' ' + safeText(c.name) + ',');
+        }
+
+        function billWa(id) {
+            var c = getClientById(id);
+            if (!c) return;
+            var tpl = safeText((APP.settings && APP.settings.wa_template) ? APP.settings.wa_template : t('ph_wa_bill_tpl_default'));
+            var months = t('lbl_month_list');
+            if (!Array.isArray(months)) {
+                // Fallback jika t() return key karena tidak ada di dict (harusnya tidak terjadi)
+                months = ["JAN", "FEB", "MAR", "APR", "MEI", "JUN", "JUL", "AGU", "SEP", "OKT", "NOV", "DES"];
+            }
+            var curr_month = months[new Date().getMonth()];
+            var msg = tpl.replace(/\{name\}/g, safeText(c.name))
+                .replace(/\{month\}/g, curr_month)
+                .replace(/\{x\}/g, "2");
+            openWa(c.wa_number, msg);
+        }
+
+        function sendWaReminder(id, name, phone, bill = 0) {
+            if (!phone) return alert(t('err_wa_not_found').replace('{name}', name));
+            var billStr = bill > 0 ? "Rp " + bill.toLocaleString('id-ID') : "";
+            var confirmMsg = t('conf_wa_reminder')
+                .replace('{bill}', billStr)
+                .replace('{name}', name)
+                .replace('{phone}', phone);
+
+            if (!confirm(confirmMsg)) return;
+
+            var pass = localStorage.getItem('nms_auth_session');
+            fetch('/api/whatsapp/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass },
+                body: JSON.stringify({ target: phone, name: name, bill: bill })
+            }).then(r => r.json()).then(d => {
+                alert(d.msg || t('msg_processing'));
+            }).catch(e => alert(t('err_failed') + ": " + e));
+        }
+
+        function downloadClientExcel() {
+            if (!APP.topology) return;
+            // Simplified helper to map ID to object
+            var byId = {};
+            if (APP.topology.server) byId[APP.topology.server.id] = APP.topology.server;
+            (APP.topology.extra_routers || []).forEach(x => byId[x.id] = x);
+            (APP.topology.odps || []).forEach(x => byId[x.id] = x);
+
+            var clients = APP.topology.clients || [];
+            var rows = [];
+            rows.push([
+                t('csv_client_name'),
+                t('csv_packet'),
+                t('csv_ip'),
+                t('csv_status'),
+                t('csv_parent'),
+                t('csv_wa')
+            ].map(encodeCsvCell).join(','));
+            clients.forEach(c => {
+                var parent = byId[c.parent] || null;
+                var parentName = parent ? (parent.name || parent.id) : (c.parent || '-');
+                rows.push([
+                    safeText(c.name),
+                    safeText(c.packet_name),
+                    safeText(c.ip),
+                    safeText(c.status),
+                    safeText(parentName),
+                    safeText(c.wa_number)
+                ].map(encodeCsvCell).join(','));
+            });
+            var blob = new Blob(['\ufeff' + rows.join('\n')], { type: 'text/csv;charset=utf-8' });
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'data_client.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        }
+
+        // --- PAYMENT MODAL ---
+        function openPaymentModal(id) {
+            var c = getClientById(id);
+            if (!c) return;
+            document.getElementById('payClientId').value = c.id;
+            document.getElementById('payClientName').value = c.name;
+
+            // NEW: Arrears Info
+            var aInfo = document.getElementById('payArrearsInfo');
+            if (aInfo) {
+                aInfo.style.display = 'none';
+                if (c.paid_until) {
+                    var expiry = new Date(c.paid_until);
+                    var today = new Date();
+                    var editBtn = `<button onclick="editExpiryManually('${c.id}')" style="background:transparent; border:none; color:#3b82f6; cursor:pointer; margin-left:5px;" title="Edit Masa Aktif Manual"><i class="fas fa-pencil-alt"></i></button>`;
+
+                    if (expiry < today) {
+                        var diffMonths = (today.getFullYear() - expiry.getFullYear()) * 12 + (today.getMonth() - expiry.getMonth());
+                        if (diffMonths <= 0) diffMonths = 1;
+                        aInfo.style.display = 'block';
+                        aInfo.style.color = '#ef4444';
+                        aInfo.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${t('lbl_arrears_warning')}: ${diffMonths} ${t('lbl_arrears_suffix')} (${t('lbl_paid_until_short')} ${formatDate(c.paid_until, false)})${editBtn}`;
+                    } else {
+                        aInfo.style.display = 'block';
+                        aInfo.style.color = '#22c55e';
+                        aInfo.innerHTML = `<i class="fas fa-check-circle"></i> ${t('lbl_active_success')} (${t('lbl_paid_until_short')} ${formatDate(c.paid_until, false)})${editBtn}`;
+                    }
+                }
+            }
+
+            // Reset fields
+            document.getElementById('payAmount').value = '';
+            document.getElementById('payDuration').value = '1';
+            document.getElementById('payArrearsMonths').value = '0';
+            document.getElementById('payNote').value = t('ph_pay_note_default').replace('{name}', c.name);
+
+            // NEW: Auto-fill arrears months
+            if (c.paid_until) {
+                var expiry = new Date(c.paid_until);
+                var today = new Date();
+                if (expiry < today) {
+                    var diffMonths = (today.getFullYear() - expiry.getFullYear()) * 12 + (today.getMonth() - expiry.getMonth());
+                    if (diffMonths <= 0) diffMonths = 1;
+                    document.getElementById('payArrearsMonths').value = diffMonths;
+                }
+            }
+
+            // SMART BILLING: Auto-Fill Price from Settings
+            var pkt = safeText(c.packet_name);
+            // V3.4.1 FIX: Fallback to original_profile if status is ISOLIR
+            if (pkt.toUpperCase() === 'ISOLIR' && c.billing && c.billing.original_profile) {
+                pkt = c.billing.original_profile;
+            }
+            var mappedPrice = 0;
+
+            // 1. Try Exact Match (Settings)
+            if (APP.settings && APP.settings.billing_profiles && APP.settings.billing_profiles[pkt]) {
+                mappedPrice = APP.settings.billing_profiles[pkt];
+            }
+            // 2. Try Regex Guess (Fallback: 100rb, 150k)
+            else {
+                var match = pkt.match(/(\d+)rb/i) || pkt.match(/(\d+)k/i);
+                if (match) mappedPrice = parseInt(match[1]) * 1000;
+            }
+
+            if (mappedPrice > 0) {
+                document.getElementById('payAmount').value = mappedPrice;
+            }
+
+            // FETCH LAST 3 PAYMENTS
+            var historySection = document.getElementById('payHistorySection');
+            var historyList = document.getElementById('payHistoryList');
+            if (historySection && historyList) {
+                historySection.style.display = 'none';
+                historyList.innerHTML = '';
+
+                fetch('/api/finance/history', { headers: getAuthHeaders() })
+                    .then(r => r.json())
+                    .then(data => {
+                        var clientTxs = (data || []).filter(tx => String(tx.client_id) === String(id));
+                        if (clientTxs.length > 0) {
+                            historySection.style.display = 'block';
+                            var months = t('lbl_month_list');
+                            if (!Array.isArray(months)) months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+
+                            clientTxs.slice(0, 3).forEach(tx => {
+                                var txDate = new Date(tx.date || tx.id.slice(0, 10));
+                                if (isNaN(txDate.getTime())) txDate = new Date();
+
+                                var day = txDate.getDate();
+                                var monthStr = months[txDate.getMonth()] || "";
+                                var amount = (parseInt(tx.amount) || 0).toLocaleString('id-ID').replace(/,/g, '.');
+
+                                var div = document.createElement('div');
+                                div.className = 'pay-history-item';
+                                div.style.display = 'flex';
+                                div.style.justifyContent = 'space-between';
+                                div.style.alignItems = 'center';
+
+                                var infoDiv = document.createElement('div');
+                                infoDiv.innerHTML = `${t('lbl_tanggal')} ${day} ${monthStr} ${t('lbl_sebesar')} Rp ${amount}`;
+
+                                var delBtn = document.createElement('button');
+                                delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                                delBtn.style = 'background:transparent; border:none; color:#ef4444; cursor:pointer; font-size:12px; opacity:0.6;';
+                                delBtn.title = 'Batalkan Pembayaran Ini';
+                                delBtn.onmouseover = function () { this.style.opacity = '1'; };
+                                delBtn.onmouseout = function () { this.style.opacity = '0.6'; };
+                                delBtn.onclick = function () { deleteTransaction(tx.id, id); };
+
+                                div.appendChild(infoDiv);
+                                div.appendChild(delBtn);
+                                historyList.appendChild(div);
+                            });
+                        }
+                    }).catch(e => console.error('Error fetching history:', e));
+            }
+
+            recalcTotal();
+            // Default checkbox from settings
+            var chkPrint = document.getElementById('payPrintReceipt');
+            if (chkPrint) chkPrint.checked = APP.settings.print_auto === true;
+
+            document.getElementById('paymentModal').classList.add('show');
+            document.getElementById('payAmount').focus();
+        }
+
+        function recalcTotal() {
+            var price = parseInt(document.getElementById('payAmount').value) || 0;
+            var dur = parseInt(document.getElementById('payDuration').value) || 1;
+            var total = price * dur;
+
+            // Format Rupiah
+            var fmt = total.toLocaleString('id-ID');
+            document.getElementById('payTotalDisplay').innerText = t('lbl_pay_total') + ": Rp " + fmt;
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('show');
+        }
+
+        function editExpiryManually(clientId) {
+            var c = getClientById(clientId);
+            if (!c) return;
+
+            // Format current YYYY-MM-DD to DD-MM-YYYY for the prompt
+            var current = c.paid_until || '';
+            var displayCurrent = '';
+            if (current && current.includes('-')) {
+                var p = current.split('-');
+                if (p.length === 3) displayCurrent = `${p[2]}-${p[1]}-${p[0]}`;
+            }
+
+            var promptVal = prompt(t('prompt_edit_expiry') || "Masukkan Tanggal Masa Aktif Baru (Format: DD-MM-YYYY):", displayCurrent);
+
+            if (promptVal === null || promptVal === '') return;
+
+            // Validate DD-MM-YYYY
+            if (!/^\d{2}-\d{2}-\d{4}$/.test(promptVal)) {
+                alert(t('err_date_format') || "Format tanggal salah! Gunakan DD-MM-YYYY (Contoh: 28-04-2026)");
+                return;
+            }
+
+            // Convert DD-MM-YYYY back to YYYY-MM-DD for backend
+            var dParts = promptVal.split('-');
+            var dbDate = `${dParts[2]}-${dParts[1]}-${dParts[0]}`;
+
+            var confirmText = (t('conf_edit_expiry') || "Ubah masa aktif {name} menjadi {date}?")
+                .replace('{name}', c.name)
+                .replace('{date}', promptVal);
+
+            if (!confirm(confirmText)) return;
+
+            fetch(`/api/billing/client/${clientId}/update_expiry`, {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                body: JSON.stringify({ paid_until: dbDate })
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok') {
+                    showToast(d.msg || t('msg_expiry_updated') || "Masa aktif diperbarui!");
+
+                    // V3.3.9 Instant UI Update
+                    if (d.paid_until && APP.topology && APP.topology.clients) {
+                        var cidx = APP.topology.clients.findIndex(c => String(c.id) === String(clientId));
+                        if (cidx !== -1) {
+                            APP.topology.clients[cidx].paid_until = d.paid_until;
+                            renderClientTable();
+                        }
+                    }
+                    loadData();
+                    var aInfo = document.getElementById('payArrearsInfo');
+                    if (aInfo) {
+                        aInfo.innerHTML = `<i class="fas fa-check-circle"></i> ${t('lbl_active_success')} (${t('lbl_paid_until_short')} ${formatDate(dbDate, false)})`;
+                        aInfo.style.color = '#22c55e';
+                    }
+                } else {
+                    alert(d.error || t('msg_error') || "Gagal memperbarui data");
+                }
+            }).catch(e => {
+                console.error(e);
+                alert("Error: " + e);
+            });
+        }
+
+        function deleteTransaction(txId, clientId) {
+            if (!confirm(t('conf_del_tx') || "Batalkan/hapus transaksi ini?")) return;
+
+            fetch(`/api/finance/transaction/${txId}`, {
+                method: 'DELETE',
+                headers: getAuthHeaders()
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok') {
+                    showToast(d.msg || t('msg_tx_deleted') || "Transaksi dihapus!");
+                    openPaymentModal(clientId);
+                    loadData();
+                } else {
+                    alert(d.error || t('msg_error') || "Gagal menghapus transaksi");
+                }
+            }).catch(e => {
+                console.error(e);
+                alert("Error: " + e);
+            });
+        }
+
+        function printReceipt(txId, clientData, amount, duration, dateOverride) {
+            var s = APP.settings || {};
+
+            // SELECT TEMPLATE BASED ON MODE
+            var tpl;
+            if (s.print_method === 'rawbt_text') {
+                tpl = s.print_template_text || DEFAULT_TEXT_TPL;
+            } else {
+                tpl = s.print_template || DEFAULT_HTML_TPL;
+            }
+
+            // USE OVERRIDE DATE IF PROVIDED (YYYY-MM-DD) OR CURRENT DATE
+            var dateStr;
+            if (dateOverride) {
+                // dateOverride format: YYYY-MM-DD
+                var parts = dateOverride.split('-');
+                if (parts.length === 3) {
+                    // Reformat to DD-MM-YYYY HH:mm (mock time if not available)
+                    dateStr = parts[2] + '-' + parts[1] + '-' + parts[0] + ' (Reprint)';
+                } else {
+                    dateStr = dateOverride;
+                }
+            } else {
+                dateStr = new Date().toLocaleString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(/\./g, ':');
+            }
+
+            // Prepare Data
+            var total = amount * duration; // If Amount is already passed correctly, duration=1 usually ok
+            var fmtAmount = total.toLocaleString('id-ID');
+            var cidRaw = safeText(clientData.id).replace('client_', '');
+
+            // PREMIUM PLACEHOLDER {packet} REPLACEMENT
+            var pktDisplay = safeText(clientData.packet_name);
+            if (s.billing_profiles && s.billing_profiles[pktDisplay]) {
+                var price = parseInt(s.billing_profiles[pktDisplay]);
+                pktDisplay = price.toLocaleString('id-ID') + " / bulan";
+            }
+
+            // Replace Placeholders
+            var content = tpl
+                .replace(/{id}/g, cidRaw)
+                .replace(/{name}/g, safeText(clientData.name))
+                .replace(/{date}/g, dateStr)
+                .replace(/{amount}/g, fmtAmount)
+                .replace(/{packet}/g, pktDisplay)
+                .replace(/{expired}/g, safeText(clientData.paid_until))
+                .replace(/{header}/g, safeText(s.print_header))
+                .replace(/{footer}/g, safeText(s.print_footer))
+                .replace(/{store_name}/g, safeText(s.print_store_name || "NMS WIFI"));
+
+            // Filter out Price Mismatch tags from final printed content (Internal Only)
+            content = content.replace(/\(!! MISMATCH:.*?\)/g, "").trim();
+
+            // HANDLE RAWBT
+            if (s.print_method === 'rawbt') {
+                var htmlRaw = `
+                <html>
+                <body style="margin:0; width:${s.print_paper === '80mm' ? '80mm' : '58mm'}; font-family:monospace;">
+                    ${(s.print_show_logo !== false) ? '<img src="' + window.location.origin + '/static/logo.png" style="max-width:100%; display:block; margin:0 auto;"><br>' : ''}
+                    ${content}
+                </body>
+                </html>`;
+
+                var base64 = btoa(unescape(encodeURIComponent(htmlRaw)));
+                window.location.href = 'rawbt:base64,' + base64;
+                return;
+            }
+
+            // HANDLE RAWBT TEXT ONLY
+            if (s.print_method === 'rawbt_text') {
+                var storeName = (s.print_store_name || "NMS WIFI").toUpperCase();
+                var txt = content.replace(/{store_name}/g, storeName);
+
+                var base64 = btoa(unescape(encodeURIComponent(txt)));
+                window.location.href = 'rawbt:base64,' + base64;
+                return;
+            }
+
+            // HANDLE BTPPRINT (EXPERIMENTAL INTENT)
+            if (s.print_method === 'btprint') {
+                // Many generic BT print apps use this scheme
+                var base64 = btoa(unescape(encodeURIComponent(content)));
+                window.location.href = 'btprint:base64,' + base64;
+                return;
+            }
+
+            // HANDLE BROWSER PRINT / RTPRINTER (DEFAULT)
+            var pw = window.open('', '_blank', 'width=400,height=600');
+            var paperSize = s.print_paper === '80mm' ? '80mm' : '58mm';
+            pw.document.write(`
+                <html>
+                <head>
+                    <title>Print Receipt - ${clientData.name}</title>
+                    <style>
+                        @page { margin: 0; }
+                        body { 
+                            margin: 0; 
+                            padding: 10px; 
+                            width: ${paperSize}; 
+                            font-family: 'Courier New', Courier, monospace;
+                            color: #000;
+                        }
+                        img { max-width: 100%; height: auto; display: block; margin: 0 auto 10px auto; }
+                        @media print {
+                            body { width: 100%; }
+                            .no-print { display: none; }
+                        }
+                    </style>
+                </head>
+                <body onload="window.print(); window.close();">
+                    ${(s.print_show_logo !== false) ? '<img src="/static/logo.png" onerror="this.style.display=\'none\'">' : ''}
+                    ${content}
+                </body>
+                </html>
+            `);
+            pw.document.close();
+        }
+
+        function reprintReceipt(id) {
+            var topo = APP.topology || {};
+            var clients = topo.clients || [];
+            var c = clients.find(x => x.id === id);
+
+            if (!c) {
+                alert('Client data not found');
+                return;
+            }
+
+            // Fetch Last Transaction
+            fetch('/api/finance/last_transaction/' + id, { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'found' && res.data) {
+                        // Use historical data
+                        var tx = res.data;
+                        var histDate = tx.date; // YYYY-MM-DD
+                        var histAmount = parseInt(tx.amount);
+
+                        // Override printReceipt logic to use historical date
+                        // We need to modify printReceipt to accept date override or pass it in a special way
+                        // OR we can just pass the formatted date string if we modify printReceipt to handle it.
+                        // However, printReceipt uses new Date().
+
+                        // Let's modify printReceipt to accept an optional 'dateOverride'
+                        printReceipt(tx.id, c, histAmount, 1, histDate);
+                    } else {
+                        alert(res.msg || 'Belum ada riwayat pembayaran untuk klien ini.');
+                    }
+                })
+                .catch(e => {
+                    console.error(e);
+                    alert('Gagal mengambil data riwayat pembayaran.');
+                });
+        }
+
+        function savePayment() {
+            var cid = document.getElementById('payClientId').value;
+            var amountBase = parseInt(document.getElementById('payAmount').value);
+            var duration = parseInt(document.getElementById('payDuration').value) || 1;
+            var note = document.getElementById('payNote').value;
+
+            if (!amountBase || amountBase <= 0) { alert(t('err_invalid_nominal')); return; }
+
+            var payload = {
+                client_id: cid,
+                type: 'income',
+                category: 'wifi_payment',
+                amount: amountBase * duration,
+                duration: duration,
+                arrears_months: parseInt(document.getElementById('payArrearsMonths').value) || 0,
+                note: note
+            };
+
+            fetch('/api/finance/transaction', {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                body: JSON.stringify(payload)
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok') {
+                    closePaymentModal();
+                    showToast(t('msg_pay_success') || 'Pembayaran Berhasil!');
+
+                    // PRINT LOGIC
+                    var chkPrint = document.getElementById('payPrintReceipt');
+                    if (chkPrint && chkPrint.checked) {
+                        var clientObj = getClientById(cid);
+                        // Fetch latest data if needed, but for now use modal data
+                        printReceipt(d.id, clientObj, amountBase, duration);
+                    }
+
+                    // V3.3.9 Instant UI Update
+                    if (d.paid_until && APP.topology && APP.topology.clients) {
+                        var cidx = APP.topology.clients.findIndex(c => String(c.id) === String(cid));
+                        if (cidx !== -1) {
+                            APP.topology.clients[cidx].paid_until = d.paid_until;
+                            renderClientTable();
+                        }
+                    }
+                    loadData();
+                } else {
+                    alert(t('msg_pay_fail') + (d.error ? ': ' + d.error : ''));
+                }
+            }).catch(() => alert(t('alert_conn_failed')));
+        }
+
+        function syncProfileWithMikrotik() {
+            var btn = document.querySelector('button[onclick="syncProfileWithMikrotik()"]');
+            var icon = btn.querySelector('i');
+            icon.classList.add('fa-spin');
+            btn.disabled = true;
+
+            // 1. Ambil data Mikrotik (Semua Router)
+            fetch('/api/mikrotik/users/all', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(users => {
+                    if (!Array.isArray(users)) {
+                        console.error('Expected array, got:', users);
+                        alert(t('err_mk_sync'));
+                        return;
+                    }
+
+                    var mapProfile = {};
+                    users.forEach(u => {
+                        if (u && u.name) mapProfile[u.name] = u.profile;
+                    });
+
+                    // 2. Ambil data asli dari DATABASE
+                    return fetch('/api/data', { headers: getAuthHeaders() })
+                        .then(r => r.json())
+                        .then(d => {
+                            var topo = d.topology || {};
+                            var clients = topo.clients || [];
+                            var countFixed = 0;
+
+                            // 3. Update profil client di DATABASE
+                            clients.forEach(c => {
+                                if (c.credentials && c.credentials.pppoe_user) {
+                                    var realProfile = mapProfile[c.credentials.pppoe_user];
+                                    if (realProfile && c.packet_name !== realProfile) {
+                                        c.packet_name = realProfile;
+                                        countFixed++;
+                                    }
+                                }
+                            });
+
+                            if (countFixed > 0) {
+                                // 4. Simpan kembali ke DATABASE
+                                return fetch('/api/save', {
+                                    method: 'POST',
+                                    headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                                    body: JSON.stringify(topo)
+                                }).then(r => r.json()).then(res => {
+                                    APP.topology = topo;
+                                    renderClientTable();
+                                    alert(t('msg_sync_done').replace('{count}', countFixed));
+                                });
+                            } else {
+                                renderClientTable();
+                                alert(t('msg_sync_done').replace('{count}', countFixed));
+                            }
+                        });
+                })
+                .catch(e => alert(t('err_sync') + e))
+                .finally(() => {
+                    icon.classList.remove('fa-spin');
+                    btn.disabled = false;
+                });
+        }
+
+
+        // --- LANGUAGE & INIT ---
+        function getLang() { return localStorage.getItem('nms_lang') || 'id'; }
+
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyLanguage();
+            syncSettings();
+            loadData();
+            setInterval(loadData, 15000);
+
+            // Handle URL Search Param
+            var urlParams = new URLSearchParams(window.location.search);
+            var q = urlParams.get('q');
+            if (q) {
+                var searchInput = document.getElementById('clientSearch');
+                if (searchInput) {
+                    searchInput.value = q;
+                    setTimeout(renderClientTable, 1000);
+                }
+            }
+        });
+
+        function goToDash(tab) {
+            localStorage.setItem('nms_active_tab', tab);
+            window.location.href = '/';
+        }
+
+
+        function setClientSort(key) {
+            if (APP.clientSort.key === key) {
+                APP.clientSort.dir = (APP.clientSort.dir === 'asc' ? 'desc' : 'asc');
+            } else {
+                APP.clientSort.key = key;
+                APP.clientSort.dir = 'asc';
+            }
+            renderClientTable();
+        }
+
+        function updateSortIcons() {
+            var headers = document.querySelectorAll('thead th[onclick]');
+            headers.forEach(th => {
+                var icon = th.querySelector('i');
+                if (!icon) return;
+                var key = th.getAttribute('onclick').match(/'([^']+)'/)[1];
+
+                if (key === APP.clientSort.key) {
+                    icon.style.opacity = "1";
+                    icon.className = (APP.clientSort.dir === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down');
+                } else {
+                    icon.style.opacity = "0.3";
+                    icon.className = 'fas fa-sort';
+                }
+            });
+        }
+
+
+        // --- UI REFINEMENTS ---
+        function copyCmd() {
+            var text = document.getElementById('mkCommandText').innerText;
+            // Clean up text if it contains the header "KHUSUS IP STATIK..."
+            if (text.includes('\n')) {
+                text = text.split('\n').pop().trim();
+            }
+
+            navigator.clipboard.writeText(text).then(() => {
+                var toast = document.getElementById('copyToast');
+                toast.style.opacity = '1';
+                setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+
+                // Visual feedback on the box
+                var box = document.getElementById('cmdBox');
+                box.style.borderColor = '#38bdf8';
+                setTimeout(() => { box.style.borderColor = '#1e293b'; }, 500);
+            });
+        }
+
+    </script>
+    <div id="toast-container"></div>
+</body>
+
+</html>

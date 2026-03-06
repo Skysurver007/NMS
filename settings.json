@@ -1,0 +1,107 @@
+{
+    "web_title": "MAPS MONITORING V3",
+    "refresh_rate": 10,
+    "wa_template": "*RizkiNet BOT*\n\n\nHallo pelanggan {name}, sudah akhir bulan {month} jangan lupa bayar tagihannya ya agar tidak terisolir otomatis, abaikan pesan ini jika sudah konfirmasi untuk dibayar bulan depan sekalian. \n\nTotal tagihan + Kurangan (jika ada)\nSebesar = Rp. {price}\n\nUntuk pembayaran bisa datang langsung atau transfer ke :\nSEABANK 901332980806\nBRI 589501070213538\nSHOPEE 085200130032\nDANA 085200130032\n\nEdy Saputro\nAtau QRIS diatas\n\nJika sudah bayar tetapi masih dapat pesan ini tolong konfirmasi karena mungkin belum di input di sistem.\n\nTerima kasih\n\n\n_(pesan otomatis)_",
+    "wa_template_auto": "*RizkiNet BOT*\n\n\nHallo pelanggan {name}, Internet Anda akan otomatis di nonaktifkan dalam waktu 2 hari. Diharapkan untuk segera dibayarkan. Terima kasih\n\nUntuk pembayaran bisa datang langsung atau transfer ke :\nSEABANK 901332980806\nBRI 589501070213538\nSHOPEE 085200130032\nDANA 085200130032\n\nEdy Saputro\nAtau QRIS diatas\n\n\n_(pesan otomatis)_",
+    "wa_template_payment": "*RizkiNet BOT*\n\nTerima kasih, pembayaran wifi a.n {name} sebesar Rp {amount} pada {date} telah diterima.\n\n\n_(pesan otomatis)_\n",
+    "wa_template_isolir": "*RizkiNet BOT*\n\nSelamat pagi, pelanggan {name}, mohon maaf layanan internet Anda telah DIISOLIR sementara karena keterlambatan pembayaran sebesar Rp {price}. Silakan lakukan pembayaran segera agar layanan otomatis aktif kembali. Terima kasih.\"\n\n\n_(pesan otomatis)_",
+    "wa_template_reactivate": "*RizkiNet BOT*\n\nKabar gembira pelanggan {name} Pembayaran sudah kami terima dan internet Kakak sudah AKTIF lagi ya. Selamat berinternet\n\n_(pesan otomatis)_",
+    "map_animation": false,
+    "inventory": [
+        {
+            "is_auto": true,
+            "name": "MIKROTIK",
+            "qty": 2
+        },
+        {
+            "is_auto": true,
+            "name": "ODP PORT",
+            "qty": 111
+        },
+        {
+            "is_auto": true,
+            "name": "OLT",
+            "qty": 2
+        },
+        {
+            "is_auto": true,
+            "name": "HTB",
+            "qty": 14
+        },
+        {
+            "is_auto": true,
+            "name": "ROUTER / ONT",
+            "qty": 51
+        },
+        {
+            "name": "Tiang",
+            "qty": 45
+        }
+    ],
+    "billing": {
+        "auto_isolir_enabled": false,
+        "billing_check_interval_hours": 24,
+        "billing_mode": "monthly",
+        "default_billing_day": 28,
+        "grace_period_days": 5,
+        "isolir_profile": "ISOLIR",
+        "send_wa_notification": false,
+        "wa_end_month_enabled": false,
+        "wa_notif_time": "09:00",
+        "wa_pre_isolir_days": 2,
+        "wa_pre_isolir_enabled": false
+    },
+    "automation": {
+        "backup": {
+            "enabled": true,
+            "schedule_time": "00:05",
+            "keep_days": 7,
+            "include_files": [
+                "topology.db",
+                "settings.json",
+                "finance.json",
+                "config.json",
+                "license.key",
+                "templates"
+            ]
+        },
+        "telegram": {
+            "enabled": false,
+            "bot_token": "",
+            "chat_id": "",
+            "notifications": {
+                "offline": true,
+                "online": true,
+                "backup_report": true,
+                "startup_report": false
+            }
+        }
+    },
+    "wa_payment_notif_enabled": false,
+    "inventory_stock": [
+        {
+            "name": "Kabel dropcore 1 roll",
+            "qty": 1
+        },
+        {
+            "name": "tiang",
+            "qty": 10
+        },
+        {
+            "name": "router ont",
+            "qty": 12
+        }
+    ],
+    "billing_profiles": {},
+    "is_licensed": true,
+    "send_wa_notification": false,
+    "wa_auto_qris": false,
+    "wa_manual_qris": false,
+    "manual_arrears": [],
+    "language": "en",
+    "wa_isolir_qris": false,
+    "wa_auto_enabled": false,
+    "wa_manual_enabled": false,
+    "wa_isolir_enabled": false,
+    "wa_reactivate_enabled": false
+}

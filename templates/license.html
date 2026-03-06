@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Aktivasi NMS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/css/all.min.css"
+        onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'">
+    <script src="/static/js/lang_dict.js"></script>
+    <style>
+        body {
+            background: #050505;
+            color: #eee;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+        }
+
+        .card {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 40px;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin: 0 0 10px 0;
+            color: #fff;
+        }
+
+        p {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .mid-box {
+            background: rgba(0, 123, 255, 0.05);
+            border: 2px dashed #007bff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+
+        .mid-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .mid-val {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+            font-family: monospace;
+            letter-spacing: 1px;
+            user-select: all;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+
+        .input-modern {
+            width: 100%;
+            box-sizing: border-box;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        .input-modern:focus {
+            border-color: #007bff;
+        }
+
+        textarea {
+            width: 100%;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            resize: none;
+            box-sizing: border-box;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            border-color: #007bff;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: #007bff;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: block;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #0056b3;
+        }
+
+        .contact-btn {
+            text-decoration: none;
+            font-weight: bold;
+            padding: 12px 20px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            border: none;
+            transition: 0.2s;
+            color: white !important;
+        }
+
+        .btn-wa {
+            background: #25D366;
+        }
+
+        .btn-wa:hover {
+            background: #1ebd59;
+        }
+
+        .btn-tele {
+            background: #0088cc;
+        }
+
+        .btn-tele:hover {
+            background: #0077b5;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 11px;
+            color: #444;
+        }
+
+        .alert {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .alert-error {
+            background: rgba(220, 53, 69, 0.1);
+            color: #ff6b6b;
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        .alert-success {
+            background: rgba(40, 167, 69, 0.1);
+            color: #5dd475;
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+    </style>
+</head>
+
+<body data-page-key="pg_lic">
+    <div class="container">
+        <div class="card">
+            {% if active %}
+            <div class="logo" style="color:#28a745"><i class="fas fa-check-circle"></i></div>
+            <h2 style="color:#28a745" data-lang="lbl_lic_active">License Active</h2>
+            <p data-lang="msg_lic_registered">This application is officially registered.</p>
+            <div class="mid-box" style="border-color:#28a745; background:rgba(40, 167, 69, 0.05)">
+                <div class="mid-label" data-lang="lbl_lic_type">License Type</div>
+                <div class="mid-val" style="color:#28a745">{{ license_data.typ }}</div>
+                <div class="mid-label" style="margin-top:15px" data-lang="lbl_lic_owner">License Owner</div>
+                <div class="mid-val" style="font-size:16px; color:#eee">{{ license_data.cli }}</div>
+            </div>
+            <a href="/" class="btn" style="background:#28a745">
+                <i class="fas fa-home"></i> <span data-lang="btn_enter_dash">ENTER DASHBOARD</span>
+            </a>
+            {% else %}
+            <div class="logo"><i class="fas fa-key"></i></div>
+            <h2 data-lang="lbl_lic_activation">License Activation</h2>
+            <p data-lang="msg_lic_locked">This application is locked and requires an active license.</p>
+
+            <div class="mid-box">
+                <div class="mid-label" data-lang="lbl_your_mid">Your Machine ID</div>
+                <div class="mid-val" id="mid">{{ machine_id }}</div>
+
+                <div style="margin-top:15px; text-align:left;">
+                    <label data-lang="lbl_name">Name (Manual Fill):</label>
+                    <input type="text" id="custName" class="input-modern" data-lang="ph_name"
+                        data-lang-target="placeholder" placeholder="Enter your name..." oninput="updateContactLinks()">
+
+                    <label style="margin-top:15px;" data-lang="lbl_email">Email Address:</label>
+                    <input type="email" id="custEmail" class="input-modern" data-lang="ph_email"
+                        data-lang-target="placeholder" placeholder="Enter your email..." oninput="updateContactLinks()">
+
+                    <div
+                        style="margin-top:15px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #333; padding-top:10px;">
+                        <span data-lang="lbl_lic_type"
+                            style="font-size:11px; color:#888; text-transform:uppercase;">License Type</span>
+                        <span data-lang="lbl_lic_lifetime"
+                            style="font-size:13px; font-weight:bold; color:#007bff;">(PRO) Lifetime</span>
+                    </div>
+                </div>
+
+                <div style="margin-top:20px; display:flex; gap:15px; justify-content:center;">
+                    <a id="waLink" href="#" target="_blank" class="contact-btn btn-wa">
+                        WhatsApp
+                    </a>
+                    <a id="teleLink" href="#" target="_blank" class="contact-btn btn-tele">
+                        Telegram
+                    </a>
+                </div>
+                <div class="copy-hint" style="margin-top:15px;" data-lang="msg_copy_mid">Copy above data and send to
+                    Admin via WA or Telegram.</div>
+            </div>
+
+            <div class="input-group">
+                <label data-lang="lbl_input_lic">Enter License Key:</label>
+                <textarea id="licenseKey" rows="3" data-lang="ph_lic_key" data-lang-target="placeholder"
+                    placeholder="Paste license key here..."></textarea>
+            </div>
+
+            <button class="btn" onclick="activateLicense()" id="btnActivate" data-lang="btn_activate"
+                style="background:#007bff;">ACTIVATE NOW</button>
+            <div id="msg" class="alert"></div>
+            <div class="footer" data-lang="footer_nms">PEYCELL NETWORK MANAGEMENT SYSTEM</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function updateContactLinks() {
+            try {
+                var nameEl = document.getElementById('custName');
+                var name = (nameEl && nameEl.value.trim()) ? nameEl.value.trim() : "(Empty Name)";
+                var emailEl = document.getElementById('custEmail');
+                var email = (emailEl && emailEl.value.trim()) ? emailEl.value.trim() : "(Empty Email)";
+
+                var midEl = document.getElementById('mid');
+                var machineId = midEl ? midEl.innerText.trim() : "UNKNOWN";
+                var licType = "(PRO) Lifetime";
+
+                var rawMsg = "Hello Admin, please activate my NMS with details:\n" +
+                    "Name: " + name + "\n" +
+                    "Email: " + email + "\n" +
+                    "Machine ID: " + machineId + "\n" +
+                    "License Type: " + licType;
+
+                var encodedMsg = encodeURIComponent(rawMsg);
+                document.getElementById('waLink').href = "https://wa.me/6285200130032?text=" + encodedMsg;
+                document.getElementById('teleLink').href = "https://t.me/Putra_sky?text=" + encodedMsg;
+            } catch (e) { console.error("Error updating links:", e); }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Apply language if localization script is ready
+            if (typeof applyLanguage === 'function') {
+                try { applyLanguage(); } catch (e) { console.warn("Localization error:", e); }
+            }
+            updateContactLinks();
+        });
+
+        function activateLicense() {
+            var keyEl = document.getElementById('licenseKey');
+            var key = keyEl ? keyEl.value.trim() : "";
+            if (!key) {
+                alert("Please enter license key first!");
+                return;
+            }
+            var btn = document.getElementById('btnActivate');
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            fetch('/api/license/activate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: key })
+            }).then(r => r.json()).then(d => {
+                btn.disabled = false;
+                btn.innerText = "ACTIVATE NOW";
+                var msgBox = document.getElementById('msg');
+                // Use msg from server if available
+                msgBox.innerText = d.msg || d.message || (d.status === 'ok' ? 'Success' : 'Failed');
+                msgBox.className = 'alert ' + (d.status === 'ok' ? 'alert-success' : 'alert-error');
+                msgBox.style.display = 'block';
+                if (d.status === 'ok') setTimeout(() => location.reload(), 2000);
+            }).catch(e => {
+                btn.disabled = false;
+                btn.innerText = "ACTIVATE NOW";
+                alert("Error during activation: " + e);
+            });
+        }
+    </script>
+</body>
+
+</html>

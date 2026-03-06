@@ -1,0 +1,2443 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script>
+        try { var savedTitle = localStorage.getItem('nms_web_title'); if (savedTitle) document.title = savedTitle; } catch (e) { }
+        function toggleSidebar() {
+            var s = document.querySelector('.sidebar');
+            var o = document.querySelector('.overlay-bg');
+            if (s) s.classList.toggle('active');
+            if (o) o.classList.toggle('active');
+        }
+    </script>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="/static/css/all.min.css"
+        onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        .card {
+            background: #151b2b;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .input,
+        .select,
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            border-radius: 8px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .input:focus,
+        .select:focus,
+        textarea:focus {
+            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        select option {
+            background: #1e293b;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        .btn-accent,
+        .btn-primary,
+        .btn-sm,
+        button:not(.tab) {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .btn-accent,
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .btn-accent:hover,
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4);
+            filter: brightness(1.1);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        /* Tabs Container Flexibility (Horizontal Scroll on Mobile) */
+        .tabs {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .tab {
+            white-space: nowrap;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s;
+        }
+
+        .tab.active {
+            color: #fff;
+            background: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 15px;
+            }
+
+            .tabs {
+                flex-wrap: wrap;
+                overflow-x: visible;
+                gap: 8px;
+            }
+
+            .tab {
+                flex: 1 1 calc(33.33% - 10px);
+                width: calc(33.33% - 10px);
+                padding: 8px 4px;
+                text-align: center;
+                font-size: 11px;
+                white-space: normal;
+                word-break: break-word;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .btn-accent,
+            .btn-primary,
+            button:not(.tab):not(#btnToggle):not(.btn-sm) {
+                width: 100%;
+                max-width: 400px;
+                margin: 8px auto;
+                padding: 12px 16px;
+                font-size: 13px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .btn-sm {
+                padding: 6px 12px !important;
+                font-size: 11px !important;
+                width: auto !important;
+                min-width: unset !important;
+                margin: 0 !important;
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+            }
+
+            #btnToggle {
+                width: auto !important;
+                padding: 5px !important;
+            }
+
+            .row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .row input[type="file"] {
+                max-width: 100% !important;
+            }
+        }
+
+        /* WhatsApp Control Center Styles */
+        #wa-status-card {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        #wa-qr-container {
+            width: 140px;
+            height: 140px;
+            background: #0d1117;
+            padding: 5px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #wa-qr-container img {
+            width: 100%;
+            height: 100%;
+            display: none;
+            background: #fff;
+            padding: 5px;
+            border-radius: 4px;
+        }
+
+        #wa-info {
+            flex: 1;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .status-connected {
+            background: #059669;
+            color: #ecfdf5;
+        }
+
+        .status-disconnected {
+            background: #dc2626;
+            color: #fef2f2;
+        }
+
+        .status-pairing {
+            background: #d97706;
+            color: #fffbeb;
+        }
+
+        #wa-log-box {
+            background: #0d1117;
+            color: #d1d5db;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            border-radius: 8px;
+            height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 15px;
+        }
+
+        .wa-log-line {
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        @media (max-width: 768px) {
+            #wa-status-card {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        /* Fix stubborn black text on time inputs */
+        input[type="time"] {
+            color-scheme: dark !important;
+        }
+
+        input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+        input[type="time"]::-webkit-datetime-edit-text,
+        input[type="time"]::-webkit-datetime-edit-hour-field,
+        input[type="time"]::-webkit-datetime-edit-minute-field,
+        input[type="time"]::-webkit-datetime-edit-ampm-field {
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+        }
+
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast-msg {
+            min-width: 300px;
+            background: #1e293b;
+            color: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border-left: 5px solid #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            animation: toast-slide-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .toast-msg.success {
+            border-left-color: #10b981;
+        }
+
+        .toast-msg.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast-msg.warning {
+            border-left-color: #f59e0b;
+        }
+
+        .toast-msg.info {
+            border-left-color: #3b82f6;
+        }
+
+        @keyframes toast-slide-in {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-fade-out {
+            animation: toast-fade-out 0.4s forwards;
+        }
+
+        @keyframes toast-fade-out {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            to {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border-top: 4px solid var(--accent);
+        }
+    </style>
+</head>
+
+<body data-page-key="sb_set">
+
+
+    <div class="sidebar">
+        <div class="brand-wrapper"
+            style="display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; margin-bottom: 20px;">
+            <button class="btn-sidebar-toggle desktop-only" onclick="toggleMiniSidebar()"
+                style="background:none; border:none; color:white; font-size:20px; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:1001;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="brand-text" id="brandText"
+                style="font-weight:800; color:#3b82f6; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:8px; flex:1; transition: all 0.3s ease;"></span>
+        </div>
+
+        <div class="menu-label" data-lang="sb_h_main"></div>
+
+        <a href="/" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-home me-2"></i> <span data-lang="sb_dash"></span>
+        </a>
+
+        <a href="/maps" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-map-marked-alt me-2"></i> <span data-lang="sb_map"></span>
+        </a>
+
+        <a href="/client" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-users me-2"></i> <span data-lang="sb_client"></span>
+        </a>
+
+        <a href="/pppoe" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_pppoe"></span>
+        </a>
+
+        <a href="/hotspot" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wifi me-2"></i> <span data-lang="sb_hotspot"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_admin"></div>
+
+        <a href="/network" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-boxes me-2"></i> <span data-lang="sb_inv"></span>
+        </a>
+
+        <a href="/network?tab=infra" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_infra"></span>
+        </a>
+
+        <a href="/billing" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-file-invoice-dollar me-2"></i> <span data-lang="sb_bill"></span>
+        </a>
+
+        <a href="/finance" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wallet me-2"></i> <span data-lang="sb_fin"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_mon"></div>
+
+        <a href="/monitor?tab=traffic" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-chart-line me-2"></i> <span data-lang="sb_traffic"></span>
+        </a>
+
+        <a href="/monitor?tab=logs" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-history me-2"></i> <span data-lang="sb_logs"></span>
+        </a>
+
+        <div class="menu-item active" style="text-decoration:none;">
+            <i class="fas fa-cog me-2"></i> <span data-lang="sb_set"></span>
+        </div>
+
+        <a href="/about" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-info-circle me-2"></i> <span data-lang="sb_about"></span>
+        </a>
+
+        <div class="menu-item menu-danger" onclick="doLogout()">
+            <i class="fas fa-sign-out-alt me-2"></i> <span data-lang="sb_logout"></span>
+        </div>
+    </div>
+
+    <div class="overlay-bg" onclick="toggleSidebar()"></div>
+
+
+    <div class="main">
+
+        <div class="mobile-head">
+            <button id="btnToggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-brand" id="mobileBrandText"></div>
+        </div>
+        <div style="display:flex; align-items:center; gap:5px; margin-bottom: 20px; min-height: 40px;">
+            <div class="header" data-lang="set_page_title" style="margin:0; border-left:none; padding-left:0;"></div>
+        </div>
+
+
+
+
+
+        <div id="pg-settings">
+            <div class="card">
+                <div class="tabs">
+                    <div id="stTabDisplay" class="tab active" onclick="setSettingsTab('display')" data-lang="tab_disp">
+                    </div>
+                    <div id="stTabAuto" class="tab" onclick="setSettingsTab('auto')" data-lang="tab_auto"></div>
+                    <div id="stTabWa" class="tab" onclick="setSettingsTab('wa')" data-lang="tab_wa"></div>
+                    <div id="stTabPrint" class="tab" onclick="setSettingsTab('print')" data-lang="tab_print"></div>
+                    <div id="stTabUpd" class="tab" onclick="setSettingsTab('upd')" data-lang="tab_upd"></div>
+                    <div id="stTabSec" class="tab" onclick="setSettingsTab('sec')" data-lang="tab_sec"></div>
+                </div>
+
+                <div id="st-display">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-lang="lbl_lang"></label>
+                            <select id="langSelect" class="select">
+                                <option value="id" data-lang="lbl_opt_ind"></option>
+                                <option value="en" data-lang="lbl_opt_eng"></option>
+                            </select>
+                            <div class="hint" data-lang="hint_lang"></div>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="lbl_web_title"></label>
+                            <input id="setWebTitle" class="input" placeholder="MAPS MONITORING WIFI">
+                            <div class="hint" data-lang="hint_web_title"></div>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="lbl_refresh"></label>
+                            <select id="setRefresh" class="select">
+                                <option value="5">5 <span data-lang="opt_sec"></span></option>
+                                <option value="10">10 <span data-lang="opt_sec"></span></option>
+                                <option value="15">15 <span data-lang="opt_sec"></span></option>
+                                <option value="20">20 <span data-lang="opt_sec"></span></option>
+                                <option value="30">30 <span data-lang="opt_sec"></span></option>
+                                <option value="45">45 <span data-lang="opt_sec"></span></option>
+                                <option value="60">60 <span data-lang="opt_sec"></span></option>
+                            </select>
+                            <div class="hint" data-lang="hint_refresh"></div>
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top:12px;">
+                        <div class="form-group">
+                            <label data-lang="lbl_anim"></label>
+                            <div class="radio-row">
+                                <label><input type="radio" name="setAnim" value="true"> <span
+                                        data-lang="lbl_on"></span></label>
+                                <label><input type="radio" name="setAnim" value="false"> <span
+                                        data-lang="lbl_off"></span></label>
+                            </div>
+                            <div class="hint" data-lang="hint_anim"></div>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="lbl_favicon"></label>
+                            <div class="row">
+                                <div id="favPreviewWrapper" style="margin-bottom:8px;">
+                                    <img id="favPreview" src="/static/favicon.ico"
+                                        style="width:48px;height:48px;border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);padding:4px;"
+                                        onerror="this.style.display='none'">
+                                </div>
+                                <input id="favFile" type="file" class="input" style="max-width: 360px;"
+                                    accept=".png,.ico">
+                                <button class="btn-sm btn-accent" onclick="uploadTargetFile('favicon.ico','favFile')"
+                                    data-lang="btn_upload"></button>
+                            </div>
+                            <div class="hint" data-lang="hint_favicon"></div>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="lbl_qris">QRIS Pembayaran</label>
+                            <div id="qrisPreviewWrapper" style="margin-bottom:8px; display:none;">
+                                <img id="qrisPreview" src="/static/photos/qris.jpg"
+                                    style="max-width:200px; max-height:200px; border:1px solid rgba(255,255,255,0.12); border-radius:8px; padding:4px; background:white;">
+                            </div>
+                            <div class="row">
+                                <input id="qrisFile" type="file" class="input" style="max-width: 360px;"
+                                    accept="image/*">
+                                <button class="btn-sm btn-accent" onclick="uploadQris()" data-lang="btn_upload">
+                                    UPLOAD
+                                </button>
+                                <button class="btn-sm btn-accent" onclick="downloadQris()" data-lang="btn_download">
+                                    UNDUH
+                                </button>
+                                <button class="btn-sm btn-accent" onclick="deleteQris()" data-lang="btn_remove">
+                                    HAPUS
+                                </button>
+                            </div>
+                            <div class="hint" data-lang="hint_qris">Upload QRIS untuk pembayaran otomatis. Format:
+                                JPG/PNG.</div>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="lbl_custom_logo"></label>
+                            <div id="logoPreviewWrapper" style="margin-bottom:8px; display:none;">
+                                <img id="logoPreview" src="/static/logo.png"
+                                    style="max-width:200px; max-height:100px; border:1px solid rgba(255,255,255,0.12); border-radius:4px; padding:4px; background:rgba(255,255,255,0.06);">
+                            </div>
+                            <div class="row">
+                                <input id="logoFile" type="file" class="input" style="max-width: 360px;"
+                                    accept="image/*">
+                                <button class="btn-sm btn-accent" onclick="uploadLogo()"
+                                    data-lang="btn_upload"></button>
+                                <button class="btn-sm btn-accent" onclick="deleteLogo()"
+                                    data-lang="btn_remove"></button>
+                            </div>
+                            <div class="hint" data-lang="hint_logo"></div>
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top:14px;">
+                        <button id="btnSaveDisplay" class="btn-accent" onclick="saveDisplaySettings()"
+                            data-lang="btn_save_change"></button>
+                    </div>
+                </div>
+
+                <div id="st-wa" class="hidden">
+                    <!-- Section 1: Connection & Status -->
+                    <div id="wa-status-card">
+                        <div id="wa-qr-container">
+                            <div id="wa-qr-status-msg" style="color:#64748b; font-size:11px; text-align:center;"
+                                data-lang="msg_loading">
+                                <i class="fas fa-qrcode fa-2x"
+                                    style="display:block; margin-bottom:10px; opacity:0.3;"></i>
+                                <span data-lang="msg_loading">Checking...</span>
+                            </div>
+                            <img id="wa-qr-img" src="">
+                        </div>
+                        <div id="wa-info" style="padding-left: 10px;">
+                            <div id="wa-status-badge" class="status-badge status-disconnected"></div>
+                            <h3 style="margin: 0 0 5px 0;" data-lang="wa_header"></h3>
+                            <p style="font-size: 11px; color: #64748b; margin: 0 0 15px 0;" data-lang="wa_sub_header">
+                            </p>
+
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="btn-sm btn-primary" id="btn-wa-init" onclick="wakeupGateway()"
+                                    style="font-size: 11px; background: #2563eb; padding: 8px 15px;">
+                                    <i class="fas fa-link me-1"></i> <span data-lang="btn_wa_connect"></span>
+                                </button>
+                                <button class="btn-sm" onclick="resetWaSession()"
+                                    style="font-size: 11px; background: #dc262622; border: 1px solid #dc262644; color: #f87171; padding: 8px 15px;">
+                                    <i class="fas fa-trash-alt me-1"></i> <span data-lang="btn_wa_reset"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Templates -->
+                    <div class="form-row" style="margin-bottom: 25px;">
+                        <!-- Row 1: Auto & Manual Billing -->
+                        <div class="form-group">
+                            <label
+                                style="margin-bottom:8px; display:block; font-weight:bold; font-size:13px; color:var(--text-muted);"
+                                data-lang="lbl_tpl_bill_auto"></label>
+                            <textarea id="setWaTemplateAuto" class="input" rows="5"
+                                style="resize: vertical;"></textarea>
+                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                                <label
+                                    style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="setWaAutoEnabled"> <span
+                                        data-lang="lbl_enable_auto_wa"></span>
+                                </label>
+                                <label
+                                    style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="setWaAutoQris"> <span
+                                        data-lang="lbl_include_qris"></span>
+                                </label>
+                            </div>
+                            <div class="hint" data-lang="hint_tpl_bill_auto"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label
+                                style="margin-bottom:8px; display:block; font-weight:bold; font-size:13px; color:var(--text-muted);"
+                                data-lang="lbl_tpl_bill"></label>
+                            <textarea id="setWaTemplate" class="input" rows="5" style="resize: vertical;"></textarea>
+                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                                <label
+                                    style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="setWaManualEnabled"> <span
+                                        data-lang="lbl_enable_manual_wa"></span>
+                                </label>
+                                <label
+                                    style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="setWaManualQris"> <span
+                                        data-lang="lbl_include_qris"></span>
+                                </label>
+                            </div>
+                            <div class="hint" data-lang="hint_tpl_bill"></div>
+                        </div>
+
+                        <!-- Row 2: Payment & Isolir -->
+                        <div class="form-group">
+                            <label
+                                style="margin-bottom:8px; display:block; font-weight:bold; font-size:13px; color:var(--text-muted);"
+                                data-lang="lbl_tpl_pay"></label>
+                            <textarea id="setWaTemplatePayment" class="input" rows="5"
+                                style="resize: vertical;"></textarea>
+                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                                <label
+                                    style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="setWaPaymentEnabled"> <span
+                                        data-lang="lbl_enable_pay_wa"></span>
+                                </label>
+                            </div>
+                            <div class="hint">
+                                <b data-lang="hint_tpl_pay"></b>
+                                <div data-lang="hint_tpl_pay_desc"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label
+                                style="margin-bottom:8px; display:block; font-weight:bold; font-size:13px; color:var(--text-muted);"
+                                data-lang="lbl_tpl_isolir"></label>
+                            <textarea id="setWaTemplateIsolir" class="input" rows="5"
+                                style="resize: vertical;"></textarea>
+                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                                <label
+                                    style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="setWaIsolirEnabled"> <span
+                                        data-lang="lbl_enable_isolir_wa"></span>
+                                </label>
+                                <label
+                                    style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="setWaIsolirQris"> <span
+                                        data-lang="lbl_include_qris"></span>
+                                </label>
+                            </div>
+                            <div class="hint" data-lang="hint_tpl_isolir"></div>
+                        </div>
+
+                        <!-- Row 3: Reactivate & Info -->
+                        <div class="form-group">
+                            <label
+                                style="margin-bottom:8px; display:block; font-weight:bold; font-size:13px; color:var(--text-muted);"
+                                data-lang="lbl_tpl_reactivate"></label>
+                            <textarea id="setWaTemplateReactivate" class="input" rows="5"
+                                style="resize: vertical;"></textarea>
+                            <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                                <label
+                                    style="font-size: 13px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <input type="checkbox" id="setWaReactivateEnabled"> <span
+                                        data-lang="lbl_enable_reactivate_wa"></span>
+                                </label>
+                            </div>
+                            <div class="hint" data-lang="hint_tpl_reactivate"></div>
+                        </div>
+
+                        <div
+                            style="background: rgba(59, 130, 246, 0.05); padding: 15px; border-radius: 6px; border: 1px solid rgba(59, 130, 246, 0.1); font-size: 11px; color: #94a3b8;">
+                            <div
+                                style="margin-bottom: 12px; border-bottom: 1px solid rgba(59,130,246,0.1); padding-bottom: 8px;">
+                                <b style="color: #60a5fa;"><i class="fas fa-terminal me-1"></i> <span
+                                        data-lang="wa_inst_title"></span></b><br>
+                                <div style="margin-top: 5px; opacity: 0.8; font-size: 11px; line-height: 1.8;">
+                                    <span data-lang="wa_inst_ssh"></span><br>
+                                    <div data-lang="wa_inst_1" data-lang-target="innerHTML"></div>
+                                    <div data-lang="wa_inst_2" data-lang-target="innerHTML"></div>
+                                    <div data-lang="wa_inst_3" data-lang-target="innerHTML"></div>
+                                </div>
+                            </div>
+
+                            <div style="margin-bottom: 12px;">
+                                <b style="color: #f59e0b;"><i class="fas fa-exclamation-triangle me-1"></i> <span
+                                        data-lang="wa_warn_title"></span>:</b><br>
+                                <span data-lang="wa_warn_server"></span> | <span data-lang="wa_warn_banned"></span>
+                            </div>
+
+                            <div style="margin-bottom: 5px;">
+                                <b style="color: #38bdf8;"><i class="fas fa-info-circle me-1"></i> <span
+                                        data-lang="wa_usage_title"></span>:</b>
+                                <span data-lang="wa_usage_delay"></span> | <span data-lang="wa_tip_test"></span><br>
+                                <span data-lang="wa_tip_save"
+                                    style="font-size:11px; color:#94a3b8; font-style:italic;"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 3: Testing -->
+                    <div class="form-row" style="margin-bottom: 25px; align-items: flex-start;">
+                        <div class="form-group" style="flex: 1;">
+                            <label
+                                style="margin-bottom:8px; display:block; font-weight:bold; font-size:13px; color:var(--text-muted);"
+                                data-lang="lbl_wa_test"></label>
+                            <input id="waTestNumber" class="input" placeholder="Contoh: 08123456789"
+                                data-lang="ph_wa_test" style="margin-bottom: 12px;">
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn-accent" onclick="testWaMessage('manual')"
+                                    style="flex: 1; font-size: 11px; padding: 10px;"
+                                    data-lang="btn_wa_test_manual"></button>
+                                <button class="btn-accent" onclick="testWaMessage('auto')"
+                                    style="flex: 1; font-size: 11px; padding: 10px;"
+                                    data-lang="btn_wa_test_auto"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top:14px; margin-bottom: 30px;">
+                        <button id="btnSaveWa" class="btn-accent" onclick="saveWaSettings()"
+                            data-lang="btn_save_tpl"></button>
+                    </div>
+
+
+
+                    <!-- Section 3: WhatsApp Logs -->
+                    <div style="margin-top:30px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <label style="font-weight:bold; font-size:13px; color:var(--text-muted);"
+                                data-lang="lbl_wa_log"></label>
+                            <button class="btn-sm"
+                                style="background:transparent; border:1px solid rgba(255,255,255,0.1); padding:4px 8px;"
+                                onclick="clearWaLogs()" data-lang="btn_wa_clear_log"></button>
+                        </div>
+                        <div id="wa-log-box">
+                            <div class="wa-log-line" data-lang="msg_wa_log_waiting"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="st-sec" class="hidden">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-lang="lbl_pass_admin">Password Administrator</label>
+                        <input id="secAdmin" class="input" type="password" placeholder="Password Baru"
+                            data-lang="ph_pass_new">
+                    </div>
+                    <div class="form-group">
+                        <label data-lang="lbl_pass_view">Password Viewer</label>
+                        <input id="secViewer" class="input" type="password" placeholder="Password Baru"
+                            data-lang="ph_pass_new">
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-top:12px;">
+                    <div class="form-group">
+                        <label data-lang="lbl_svc_name"></label>
+                        <input id="secService" class="input" placeholder="monitoring-wifi.service"
+                            data-lang="ph_svc_name">
+                        <div class="hint" data-lang="hint_svc"></div>
+                    </div>
+                    <div class="form-group">
+                        <label data-lang="lbl_port"></label>
+                        <input id="secPort" class="input" type="number" placeholder="5002" data-lang="ph_port">
+                        <div class="hint" data-lang="hint_port">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="warn-box" data-lang="warn_sec"></div>
+                <div class="row" style="margin-top:14px;">
+                    <button id="btnSaveSec" class="btn-accent" onclick="updateSecurity()"
+                        data-lang="btn_upd_sec"></button>
+                </div>
+            </div>
+            <div id="st-print" class="hidden">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label data-lang="lbl_print_store_name"></label>
+                        <input id="setPrintStoreName" class="input" placeholder="NMS PREMIUM WIFI">
+                    </div>
+                    <div class="form-group">
+                        <label data-lang="lbl_print_paper"></label>
+                        <select id="setPrintPaper" class="select">
+                            <option value="58mm">58mm</option>
+                            <option value="80mm">80mm</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top:12px;">
+                    <div class="form-group">
+                        <label data-lang="lbl_print_header"></label>
+                        <textarea id="setPrintHeader" class="input" rows="2" style="height:auto;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label data-lang="lbl_print_footer"></label>
+                        <textarea id="setPrintFooter" class="input" rows="2" style="height:auto;"></textarea>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top:12px;">
+                    <div class="form-group">
+                        <label data-lang="lbl_print_auto"></label>
+                        <div class="radio-row">
+                            <label><input type="checkbox" id="setPrintAuto"> <span data-lang="lbl_on"></span></label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label data-lang="lbl_print_show_logo"></label>
+                        <div class="radio-row">
+                            <label><input type="checkbox" id="setPrintShowLogo"> <span
+                                    data-lang="lbl_on"></span></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top:12px;">
+                    <div class="form-group">
+                        <label data-lang="lbl_print_method"></label>
+                        <select id="setPrintMethod" class="select" onchange="togglePrintTemplate()">
+                            <option value="browser" data-lang="lbl_method_browser"></option>
+                            <option value="rawbt_text" data-lang="lbl_method_rawbt_text"
+                                style="font-weight:bold; color:#f59e0b;"></option>
+                            <option value="rtprinter" data-lang="lbl_method_rtprinter"></option>
+                            <option value="btprint" data-lang="lbl_method_btprint"></option>
+                        </select>
+                        <div id="hintPrintMethod" class="hint" data-lang="hint_rawbt_html"
+                            style="margin-top:5px; color:#fbbf24;"></div>
+                    </div>
+                </div>
+                <div class="form-row" style="margin-top:12px;" id="grpPrintTemplate">
+                    <div class="form-group" style="flex: 100%;">
+                        <div
+                            style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                            <label data-lang="lbl_print_template" style="margin:0;"></label>
+                            <button class="btn-sm" onclick="resetPrintTemplate()"
+                                style="background:#ef4444; color:white; border:none; padding:2px 8px; font-size:10px; border-radius:4px;">
+                                <i class="fas fa-undo"></i> <span data-lang="btn_reset_default">Reset Default</span>
+                            </button>
+                        </div>
+                        <textarea id="setPrintTemplate" class="input" rows="8"
+                            style="height:auto; font-family: monospace; display:block;"
+                            placeholder="HTML Template..."></textarea>
+
+                        <!-- TEXT TEMPLATE EDITOR -->
+                        <textarea id="setPrintTemplateText" class="input" rows="8"
+                            style="height:auto; font-family: monospace; display:none;"
+                            placeholder="Text Template..."></textarea>
+
+                        <div class="hint" data-lang="hint_print_template"></div>
+                    </div>
+                </div>
+                <!-- Pesan Alert Text Only Mode -->
+                <div id="msgRawbtText" class="alert alert-info hidden"
+                    style="margin-top:10px; background:rgba(245, 158, 11, 0.1); color:#fbbf24; border:1px solid rgba(245, 158, 11, 0.2);">
+                    <i class="fas fa-info-circle"></i> Mode <b>RawBT Text Only</b> menggunakan format standar (bukan
+                    HTML) untuk kompatibilitas maksimal. Template di atas tidak berlaku untuk mode ini.
+                </div>
+                <div class="row" style="margin-top:14px; margin-bottom: 20px;">
+                    <button id="btnSavePrint" class="btn-accent" onclick="savePrintSettings()"
+                        data-lang="btn_save_change"></button>
+                </div>
+
+                <!-- PANDUAN METODE CETAK -->
+                <div class="warn-box"
+                    style="margin-top:10px; border: 1px dashed rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.05);">
+                    <b style="color: #38bdf8; display: block; margin-bottom: 8px;" data-lang="lbl_print_info_title"></b>
+                    <ul style="margin: 0 0 0 18px; padding: 0; font-size: 11px; line-height: 1.6; color: #cbd5e1;">
+                        <li style="margin-bottom: 5px;">
+                            <span style="color: #38bdf8; font-weight: bold;">Browser PC:</span>
+                            <span data-lang="lbl_print_method_browser_desc"></span>
+                        </li>
+                        <li style="margin-bottom: 5px;">
+                            <span style="color: #f59e0b; font-weight: bold;">RawBT (Android):</span>
+                            <span data-lang="lbl_print_method_rawbt_desc"></span>
+                        </li>
+                        <li style="margin-bottom: 5px;">
+                            <span style="color: #10b981; font-weight: bold;">RTPrinter / System (Android):</span>
+                            <span data-lang="lbl_rtprinter_desc"></span>
+                        </li>
+                        <li
+                            style="color: #f87171; font-weight: bold; list-style: none; margin-left: -18px; margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px;">
+                            <i class="fas fa-exclamation-triangle"></i> <span
+                                data-lang="lbl_print_install_rawbt"></span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div id="st-upd" class="hidden">
+                <!-- Google Drive Cloud Update (OTA) -->
+                <div class="form-group"
+                    style="border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:20px; margin-bottom:20px;">
+                    <label data-lang="lbl_ota_cloud"></label>
+                    <div class="hint" data-lang="hint_ota_cloud">
+                    </div>
+                    <div class="row" style="margin-top:10px;">
+                        <button id="btnOtaDrive" class="btn-accent" onclick="otaFromDrive()"
+                            style="padding:12px 30px; justify-content:center;">
+                            <i class="fas fa-cloud-download-alt"></i> <span data-lang="btn_ota_drive"></span>
+                        </button>
+                    </div>
+                    <div id="otaStatus" style="margin-top:10px; font-size:12px; display:none; text-align:center;">
+                    </div>
+                </div>
+
+                <!-- Changelog Section (UI Only, Static Source) -->
+                <div id="changelogSection" class="form-group"
+                    style="margin-top:-10px; border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.03); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); padding:20px; border-radius:16px; display:none; box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <i class="fas fa-history" style="color:var(--accent-color); font-size:18px;"></i>
+                            <label data-lang="lbl_changelog"
+                                style="color:#fff; font-weight:bold; margin-bottom:0; font-size:14px; letter-spacing:0.5px;"></label>
+                        </div>
+                        <span id="versionBadge"
+                            style="font-size:10px; color:rgba(255,255,255,0.4); font-family:monospace;">STABLE
+                            RELEASE</span>
+                    </div>
+                    <div id="changelogContent"
+                        style="max-height: 280px; overflow-y: auto; padding-right: 8px; scrollbar-width: thin;">
+                        <div style="font-size:11px; color:rgba(255,255,255,0.5); text-align:center; padding:20px;">
+                            <i class="fas fa-spinner fa-spin"></i> Syncing records...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unified Smart Upload -->
+                <div class="form-group"
+                    style="border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:25px; margin-bottom:25px;">
+                    <label data-lang="lbl_smart_upd"></label>
+                    <div class="hint" style="margin-bottom:10px;" data-lang="hint_smart_upd">
+                    </div>
+                    <div class="row" style="gap:10px;">
+                        <input id="smartFile" type="file" class="input" style="max-width: 400px;"
+                            accept=".zip,.js,.html,.json,.py,.ico">
+                        <button id="btnSmartUpload" class="btn-accent" onclick="unifiedUpload()" data-lang="btn_upload">
+                            <i class="fas fa-upload"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Migration Tool (V2.9 to V3.0) -->
+                <div class="form-group"
+                    style="border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:25px; margin-bottom:25px;">
+                    <label data-lang="lbl_mig_title"></label>
+                    <div class="hint" style="margin-bottom:15px;" data-lang="hint_mig_desc">
+                    </div>
+                    <div class="row" style="gap:10px;">
+                        <input id="v2MigrateFile" type="file" class="input" style="max-width: 400px;" accept=".json">
+                        <button id="btnV2Migrate" class="btn-accent" onclick="startV2Migration()"
+                            style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                            <i class="fas fa-exchange-alt"></i> <span data-lang="btn_convert_now"></span>
+                        </button>
+                    </div>
+                    <div id="migrateStatus" style="margin-top:10px; font-size:12px; display:none;"></div>
+                </div>
+
+                <!-- System Control (Restart) -->
+                <div class="form-group"
+                    style="margin-top:30px; border-top:1px solid rgba(255,255,255,0.05); padding-top:20px;">
+                    <label data-lang="lbl_sys_ctrl"></label>
+                    <div class="row" style="margin-top:10px;">
+                        <button class="btn-accent" onclick="callRestart()" data-lang="btn_restart">
+                            <i class="fas fa-sync-alt"></i> RESTART
+                        </button>
+                    </div>
+                    <div class="hint" data-lang="hint_restart"></div>
+                </div>
+
+                <div class="warn-box" style="margin-top:25px;">
+                    <b data-lang="warn_title"></b>
+                    <ul style="margin: 10px 0 0 18px; padding: 0; font-size: 11px; line-height: 1.6;">
+                        <li data-lang="warn_p1"></li>
+                        <li data-lang="warn_p2"></li>
+                        <li data-lang="warn_p3"></li>
+                        <li data-lang="warn_p4"></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="st-auto" class="hidden" style="margin-top:-10px;">
+                <div class="tabs" style="border-bottom:none; margin-bottom:10px !important;">
+                    <div class="tab active" onclick="setCompTab('backup', this)"
+                        style="border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05);">
+                        <i class="fas fa-database" style="font-size:18px;"></i>
+                        <span style="font-size:10px; font-weight:bold;" data-lang="tab_bk"></span>
+                    </div>
+                    <div class="tab" onclick="setCompTab('telegram', this)"
+                        style="border:1px solid rgba(255,255,255,0.1); background:rgba(255,255,255,0.05);">
+                        <i class="fas fa-paper-plane" style="font-size:18px;"></i>
+                        <span style="font-size:10px; font-weight:bold;" data-lang="tab_tele"></span>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB: BACKUP -->
+                <div id="tab-backup" class="tab-content" style="display:block;">
+                    <div class="form-group mb-4">
+                        <label class="switch" style="display:flex; align-items:center;">
+                            <input type="checkbox" id="bk-enabled" style="margin-right:10px;">
+                            <span style="font-weight:bold;" data-lang="lbl_auto_backup"></span>
+                        </label>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-lang="lbl_backup_time"></label>
+
+                            <input type="time" class="input" id="bk-time" value="02:00"
+                                style="background:#1f2937; color:white; border:1px solid #374151;">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="lbl_keep_days"></label>
+                            <input type="number" class="input" id="bk-days" value="5" min="1" max="20"
+                                style="background:#1f2937; color:white;">
+                            <div class="hint" data-lang="hint_bk_keep"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group"
+                        style="margin-top:15px; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
+                        <label style="margin-bottom:10px; display:block;" data-lang="lbl_inc_files"></label>
+                        <label class="switch" style="display:flex; align-items:center; margin-bottom:8px;">
+                            <input type="checkbox" id="inc-db" checked>
+                            <span style="margin-left:8px;" data-lang="lbl_inc_db"></span>
+                        </label>
+                        <label class="switch" style="display:flex; align-items:center;">
+                            <input type="checkbox" id="inc-web" checked>
+                            <span style="margin-left:8px;" data-lang="lbl_inc_web"></span>
+                        </label>
+                    </div>
+
+                    <div class="warn-box" style="margin-top:15px;" data-lang="hint_bk_safe"></div>
+
+                    <!-- Buttons: Normal Width -->
+                    <div class="row" style="margin-top:20px; display:flex; gap:10px;">
+                        <button id="btnSaveAuto" class="btn-accent" onclick="saveAutomationSettings()"
+                            data-lang="btn_save_change"></button>
+                        <button id="btnTriggerBackup" class="btn-accent" onclick="triggerManualBackup()"
+                            data-lang="btn_bk_now"></button>
+                    </div>
+
+                    <div style="margin-top:20px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+                        <h4
+                            style="margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
+                            <span data-lang="lbl_bk_hist"></span>
+                            <button class="btn-sm btn-accent" onclick="loadBackupHistory()" style="font-size:10px;"
+                                data-lang="btn_refresh_bk">🔄</button>
+                        </h4>
+                        <div id="bk-list"
+                            style="max-height:200px; overflow-y:auto; font-size:12px; background:rgba(0,0,0,0.2); padding:10px; border-radius:6px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-TAB: TELEGRAM -->
+                <div id="tab-telegram" class="tab-content hidden">
+                    <div class="alert alert-info"
+                        style="margin-bottom:12px; background:rgba(59,130,246,0.1); color:#60a5fa; padding:10px; border-radius:6px; font-size:12px;"
+                        data-lang="lbl_tele_alert">
+                    </div>
+                    <div style="margin-bottom:15px; font-size:11px; color:#fbbf24; background:rgba(251,191,36,0.05); border:1px solid rgba(251,191,36,0.2); padding:8px; border-radius:6px;"
+                        data-lang="hint_tele_chat">
+                    </div>
+                    <div class="form-group mb-4">
+                        <label class="switch" style="display:flex; align-items:center;">
+                            <input type="checkbox" id="tg-enabled" style="margin-right:10px;">
+                            <span style="font-weight:bold;" data-lang="lbl_active_tele"></span>
+                        </label>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-lang="lbl_bot_token"></label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="password" class="input" id="tg-token" placeholder="123:AA...">
+                                <button class="btn-sm btn-accent" onclick="togglePass('tg-token')">👁️</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="lbl_chat_id"></label>
+                            <div style="display:flex; gap:5px;">
+                                <input type="text" class="input" id="tg-chatid" placeholder="-100...">
+                                <button class="btn-sm btn-accent" onclick="testTelegramBot()"
+                                    data-lang="btn_test_bot"></button>
+                            </div>
+                        </div>
+                    </div>
+                    <h4 style="margin-top:20px; margin-bottom:10px; color:#34d399;" data-lang="lbl_tele_trigger">
+                    </h4>
+                    <div class="form-row">
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox"
+                                id="nt-offline">
+                            <span data-lang="lbl_cl_offline"></span></label>
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="nt-online">
+                            <span data-lang="lbl_cl_online"></span></label>
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="nt-backup">
+                            <span data-lang="lbl_bk_report"></span></label>
+                        <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox"
+                                id="nt-startup">
+                            <span data-lang="lbl_sys_startup"></span></label>
+                    </div>
+
+                    <div class="form-group" style="margin-top:20px;">
+                        <label data-lang="lbl_tele_tpl_up"></label>
+                        <textarea class="input" id="tg-msg-up" rows="4"
+                            style="font-family: monospace; font-size: 12px; background:#1f2937; color:#34d399;"
+                            placeholder="Gunakan {name}, {ip}, {status}, {date}, {time}, {total_online}, {total_offline}, {packet}"></textarea>
+                    </div>
+                    <div class="form-group" style="margin-top:10px;">
+                        <label data-lang="lbl_tele_tpl_down"></label>
+                        <textarea class="input" id="tg-msg-down" rows="4"
+                            style="font-family: monospace; font-size: 12px; background:#1f2937; color:#fb7185;"
+                            placeholder="Gunakan {name}, {ip}, {status}, {date}, {time}, {total_online}, {total_offline}, {packet}"></textarea>
+                    </div>
+                    <div class="hint" data-lang="hint_tele_tpl" style="margin-top:5px; color:#9ca3af; font-size: 11px;">
+                    </div>
+
+                    <div class="row" style="margin-top:20px;">
+                        <button id="btnSaveTg" class="btn-accent" onclick="saveAutomationSettings()"
+                            data-lang="btn_save_change"></button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="/static/js/lang_dict.js"></script>
+    <script>
+        // --- PREMIUM TOAST NOTIFICATION ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast-msg ${type}`;
+
+            let icon = 'fa-check-circle';
+            if (type === 'error') icon = 'fa-exclamation-circle';
+            if (type === 'warning') icon = 'fa-exclamation-triangle';
+            if (type === 'info') icon = 'fa-info-circle';
+
+            toast.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <span class="toast-text"></span>
+            `;
+            toast.querySelector('.toast-text').textContent = message;
+
+            container.appendChild(toast);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.add('toast-fade-out');
+                setTimeout(() => {
+                    if (toast.parentNode) toast.remove();
+                }, 400);
+            }, 3000);
+        }
+
+        // Global variables required for some functions
+        var APP = { settings: {} };
+
+        // AUTH & UTILS
+        function getAuthHeaders() {
+            var pass = localStorage.getItem('nms_auth_session');
+            return pass ? { 'X-Auth-Token': pass } : {};
+        }
+
+        function safeText(v) {
+            if (v === undefined || v === null) return '';
+            var s = String(v);
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function doLogout() {
+            if (!confirm(t('confirm_logout') || 'Logout?')) return;
+            localStorage.removeItem('nms_auth_session');
+            window.location.href = '/';
+        }
+
+
+
+
+        // Language functions are imported from lang_dict.js
+        // We use the global applyLanguage() and t() from there.
+
+
+        // SETTINGS LOGIC
+        // OTA & Cloud Update Logic
+        function otaFromDrive() {
+            var btn = document.getElementById('btnOtaDrive');
+            var status = document.getElementById('otaStatus');
+            btn.disabled = true;
+            status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + t('msg_connecting_cloud');
+            status.style.display = 'block';
+            status.style.color = 'var(--text-color)';
+
+            fetch('/api/update/drive', {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                body: JSON.stringify({ url: "" }) // Backend otomatis menggunakan link pusat yang aman
+            })
+                .then(r => r.json())
+                .then(d => {
+                    btn.disabled = false;
+                    if (d.status === 'ok') {
+                        status.innerHTML = '✅ ' + (d.msg || t('msg_update_success'));
+                        status.style.color = '#10b981';
+                        if (d.restart) {
+                            showToast((t(d.msg_key) || d.msg || 'Success') + (d.ver ? ' (' + d.ver + ')' : ''), 'success');
+                            // Kembali ke behavior lama: Konfirmasi Restart
+                            callRestart();
+                        } else {
+                            var m = (t(d.msg_key) || d.msg || 'Success') + (d.ver ? ' (' + d.ver + ')' : '');
+                            showToast(m, 'success');
+                        }
+                    } else {
+                        status.innerHTML = '❌ ' + (d.error || t('msg_failed'));
+                        status.style.color = '#ef4444';
+                        showToast(t('msg_error') + ': ' + (d.error || t('msg_cloud_fail')), 'error');
+                    }
+                })
+                .catch(e => {
+                    btn.disabled = false;
+                    status.innerHTML = '❌ ' + t('msg_backend_fail');
+                    status.style.color = '#ef4444';
+                });
+        }
+
+        function loadChangelog() {
+            var container = document.getElementById('changelogSection');
+            var content = document.getElementById('changelogContent');
+            if (!container || !content) return;
+
+            container.style.display = 'block';
+            content.innerHTML = '<div style="text-align:center; padding:20px; font-size:11px; color:rgba(255,255,255,0.5);"><i class="fas fa-spinner fa-spin"></i> Checking Cloud for updates...</div>';
+
+            var currentLang = localStorage.getItem('nms_lang') || 'id';
+
+            // Ambil data langsung dari Cloud via API (Sama seperti dashboard)
+            fetch('/api/update/check', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(data => {
+                    var html = '';
+
+                    // Info Versi Terpasang vs Cloud
+                    var curVer = data.current_version || '---';
+                    var cloudVer = data.new_version || curVer;
+
+                    html += '<div style="margin-bottom:15px; background:rgba(16, 185, 129, 0.05); padding:12px; border-radius:12px; border:1px solid rgba(16, 185, 129, 0.2); text-align:center;">';
+                    html += '<div style="font-size:10px; color:rgba(255,255,255,0.5); margin-bottom:4px;" data-lang="lbl_current_version"></div>';
+                    html += '<div style="font-weight:bold; color:#10b981; font-size:16px;">v' + curVer + '</div>';
+                    if (data.update_available) {
+                        html += '<div style="font-size:10px; color:#fbbf24; margin-top:5px;"><i class="fas fa-exclamation-triangle"></i> New Version Available: v' + cloudVer + '</div>';
+                    }
+                    html += '</div>';
+
+                    if (data.notes) {
+                        var versions = Object.keys(data.notes).sort((a, b) => {
+                            var pa = a.split('.').map(Number);
+                            var pb = b.split('.').map(Number);
+                            for (var i = 0; i < Math.max(pa.length, pb.length); i++) {
+                                var na = pa[i] || 0;
+                                var nb = pb[i] || 0;
+                                if (na > nb) return -1;
+                                if (na < nb) return 1;
+                            }
+                            return 0;
+                        });
+
+                        versions.forEach(v => {
+                            var isCurrent = (v === curVer) ? ' <span style="font-size:9px; background:#10b981; color:#fff; padding:2px 6px; border-radius:10px; margin-left:5px; font-weight:normal;">INSTALLED</span>' : '';
+
+                            // Handle localized dates
+                            var dObj = data.dates ? data.dates[v] : null;
+                            var dateVal = (dObj && typeof dObj === 'object') ? (dObj[currentLang] || dObj['id']) : (dObj || '');
+                            var releaseDate = dateVal ? '<span style="font-size:10px; color:rgba(255,255,255,0.4); margin-left:8px;">(' + dateVal + ')</span>' : '';
+
+                            html += '<div style="margin-bottom:12px; background:rgba(255,255,255,0.03); padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.05);">';
+                            html += '<div style="font-weight:bold; font-size:12px; color:var(--accent-color); margin-bottom:6px;">Version ' + v + isCurrent + releaseDate + '</div>';
+                            html += '<ul style="margin:0; padding-left:18px; font-size:11px; line-height:1.6; color:rgba(255,255,255,0.7);">';
+
+                            // Handle localized notes
+                            var vNotes = data.notes[v];
+                            var notesArr = (vNotes && !Array.isArray(vNotes)) ? (vNotes[currentLang] || vNotes['id']) : (vNotes || []);
+
+                            notesArr.forEach(note => {
+                                html += '<li style="margin-bottom:3px;">' + safeText(note) + '</li>';
+                            });
+                            html += '</ul></div>';
+                        });
+                    }
+                    content.innerHTML = html || '<div style="text-align:center; padding:15px; font-size:11px; color:rgba(255,255,255,0.4);">No version details found on Cloud.</div>';
+                    applyLanguage();
+                })
+                .catch(err => {
+                    content.innerHTML = '<div style="text-align:center; padding:15px; font-size:11px; color:#ef4444;">' + (currentLang === 'en' ? 'Could not reach Cloud to fetch Changelog.' : 'Gagal menghubungi Cloud untuk mengambil Riwayat.') + '</div>';
+                });
+        }
+
+        function startV2Migration() {
+            var fileInput = document.getElementById('v2MigrateFile');
+            var btn = document.getElementById('btnV2Migrate');
+            var status = document.getElementById('migrateStatus');
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showToast("Please select topology.json file first!", "warning");
+                return;
+            }
+
+            if (!confirm(t('msg_mig_confirm'))) return;
+
+            btn.disabled = true;
+            status.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + t('msg_mig_process');
+            status.style.display = 'block';
+            status.style.color = 'white';
+
+            var formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            fetch('/api/migrate_v2', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: formData
+            })
+                .then(r => r.json())
+                .then(d => {
+                    btn.disabled = false;
+                    if (d.status === 'ok') {
+                        status.innerHTML = '✅ ' + d.msg;
+                        status.style.color = '#10b981';
+                        showToast(d.msg + "\n\nSummary:\n- Klien: " + d.summary.clients + "\n- ODP: " + d.summary.odps + "\n- Router: " + d.summary.routers, 'success');
+                        setTimeout(() => location.reload(), 3000);
+                    } else {
+                        status.innerHTML = '❌ ' + d.msg;
+                        status.style.color = '#ef4444';
+                        showToast("Error: " + d.msg, 'error');
+                    }
+                })
+                .catch(e => {
+                    btn.disabled = false;
+                    status.innerHTML = '❌ Gagal terhubung ke server';
+                    status.style.color = '#ef4444';
+                });
+        }
+
+        function setSettingsTab(t) {
+            var tabs = ['display', 'wa', 'print', 'sec', 'upd', 'auto'];
+            tabs.forEach(x => {
+                var pane = document.getElementById('st-' + x);
+                if (pane) pane.classList.add('hidden');
+            });
+            var target = document.getElementById('st-' + t);
+            if (target) target.classList.remove('hidden');
+
+            document.querySelectorAll('.tabs .tab').forEach(el => el.classList.remove('active'));
+            var activeId = { 'display': 'stTabDisplay', 'wa': 'stTabWa', 'print': 'stTabPrint', 'sec': 'stTabSec', 'upd': 'stTabUpd', 'auto': 'stTabAuto' }[t];
+            if (activeId && document.getElementById(activeId)) document.getElementById(activeId).classList.add('active');
+
+            if (t === 'upd') loadChangelog();
+            if (t === 'auto') loadAutomationSettings();
+            if (t === 'wa') {
+                checkWaStatus();
+                fetchWaLogs();
+                if (!waStatusInterval) waStatusInterval = setInterval(() => {
+                    checkWaStatus();
+                    fetchWaLogs();
+                }, 5000);
+            } else {
+                if (waStatusInterval) { clearInterval(waStatusInterval); waStatusInterval = null; }
+            }
+        }
+
+        // Logic Auto-Tab from URL
+        window.addEventListener('load', function () {
+            var urlParams = new URLSearchParams(window.location.search);
+            var tab = urlParams.get('tab');
+            if (tab) {
+                setTimeout(() => setSettingsTab(tab), 100);
+            }
+        });
+
+        function loadSettings() {
+            fetch('/api/settings', { headers: getAuthHeaders() }).then(r => r.json()).then(s => {
+                if (!s) return;
+                APP.settings = Object.assign(APP.settings || {}, s);
+                renderSettings();
+            }).catch(e => console.error(e));
+        }
+
+        function renderSettings() {
+            if (!APP.settings) return;
+            var s = APP.settings;
+
+            // 1. Update Brand & Title
+            if (s.web_title) {
+                document.querySelectorAll('.brand-text').forEach(e => e.innerText = s.web_title);
+                document.title = (t('sb_set') || "PENGATURAN").toUpperCase() + " - " + s.web_title.toUpperCase();
+                var wt = document.getElementById('setWebTitle');
+                if (wt) wt.value = s.web_title;
+            } else {
+                var wt = document.getElementById('setWebTitle');
+                if (wt) wt.value = "MAPS MONITORING WIFI";
+            }
+
+            // 2. Sidebar Protection (Demo Lock)
+            if (s.is_licensed === false) {
+                var protectedLinks = [
+                    { sel: '[data-lang="sb_fin"]', name: 'Finance' },
+                    { sel: '[data-lang="sb_set"]', name: 'Settings' },
+                    { sel: '[data-lang="sb_bill"]', name: 'Billing' },
+                    { sel: '[data-lang="sb_inv"]', name: 'Inventory' },
+                    { sel: '[data-lang="sb_infra"]', name: 'Infrastructure' },
+                    { sel: '[data-lang="sb_auto"]', name: 'Automation' },
+                    { sel: '[data-lang="sb_hotspot"]', name: 'Hotspot' }
+                ];
+
+                protectedLinks.forEach(p => {
+                    document.querySelectorAll(p.sel).forEach(el => {
+                        // Visual Lock
+                        if (el.querySelector('i')) el.querySelector('i').className = 'fas fa-lock me-2';
+
+                        // Disable Click
+                        el.style.opacity = '0.6';
+                        el.style.cursor = 'not-allowed';
+
+                        // Remove href if 'a' tag
+                        if (el.tagName === 'A') el.removeAttribute('href');
+
+                        // Override Click
+                        el.onclick = function (e) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            showToast(t('msg_pro_locked_menu'), 'warning');
+                        }
+                    });
+                });
+            }
+
+            var r = document.getElementById('setRefresh');
+            if (r) r.value = s.refresh_rate || 10;
+
+            // Set language dropdown to current language AND sync to localStorage
+            var langSel = document.getElementById('langSelect');
+            if (langSel) {
+                var currentLang = s.language || localStorage.getItem('nms_lang') || 'id';
+                langSel.value = currentLang;
+                // CRITICAL FIX: Sync backend language to localStorage to prevent race condition
+                localStorage.setItem('nms_lang', currentLang);
+                // Re-apply language to ensure UI reflects the saved preference
+                if (typeof applyLanguage === 'function') applyLanguage();
+            }
+
+            var animVal = (s.map_animation !== false) ? 'true' : 'false';
+            var animRadio = document.querySelector('input[name="setAnim"][value="' + animVal + '"]');
+            if (animRadio) animRadio.checked = true;
+
+            var twa = document.getElementById('setWaTemplate');
+            if (twa) twa.value = s.wa_template || "";
+            var twaAuto = document.getElementById('setWaTemplateAuto');
+            if (twaAuto) twaAuto.value = s.wa_template_auto || "";
+
+            var twaPay = document.getElementById('setWaTemplatePayment');
+            if (twaPay) twaPay.value = s.wa_template_payment || "";
+            var twaIsolir = document.getElementById('setWaTemplateIsolir');
+            if (twaIsolir) twaIsolir.value = s.wa_template_isolir || "";
+            var twaReactivate = document.getElementById('setWaTemplateReactivate');
+            if (twaReactivate) twaReactivate.value = s.wa_template_reactivate || "";
+
+            var chkPay = document.getElementById('setWaPaymentEnabled');
+            if (chkPay) chkPay.checked = s.wa_payment_notif_enabled === true;
+
+            // Granular Toggles
+            var chkAutoEnabled = document.getElementById('setWaAutoEnabled');
+            if (chkAutoEnabled) chkAutoEnabled.checked = s.wa_auto_enabled !== false;
+            var chkManualEnabled = document.getElementById('setWaManualEnabled');
+            if (chkManualEnabled) chkManualEnabled.checked = s.wa_manual_enabled !== false;
+            var chkIsolirEnabled = document.getElementById('setWaIsolirEnabled');
+            if (chkIsolirEnabled) chkIsolirEnabled.checked = s.wa_isolir_enabled !== false;
+            var chkReactivateEnabled = document.getElementById('setWaReactivateEnabled');
+            if (chkReactivateEnabled) chkReactivateEnabled.checked = s.wa_reactivate_enabled !== false;
+
+            // Checkboxes for QRIS
+            var chkAuto = document.getElementById('setWaAutoQris');
+            if (chkAuto) chkAuto.checked = s.wa_auto_qris !== false;
+            var chkManual = document.getElementById('setWaManualQris');
+            if (chkManual) chkManual.checked = s.wa_manual_qris !== false;
+
+            var chkIsolir = document.getElementById('setWaIsolirQris');
+            if (chkIsolir) chkIsolir.checked = s.wa_isolir_qris !== false;
+
+            // PRINT SETTINGS
+            var spStore = document.getElementById('setPrintStoreName');
+            if (spStore) spStore.value = s.print_store_name || "";
+            var spPaper = document.getElementById('setPrintPaper');
+            if (spPaper) spPaper.value = s.print_paper || "58mm";
+            var spHeader = document.getElementById('setPrintHeader');
+            if (spHeader) spHeader.value = s.print_header || "";
+            var spFooter = document.getElementById('setPrintFooter');
+            if (spFooter) spFooter.value = s.print_footer || "";
+            var spAuto = document.getElementById('setPrintAuto');
+            if (spAuto) spAuto.checked = s.print_auto === true;
+            var spLogo = document.getElementById('setPrintShowLogo');
+            if (spLogo) spLogo.checked = s.print_show_logo !== false;
+            var spTpl = document.getElementById('setPrintTemplate');
+            if (spTpl) spTpl.value = s.print_template || "";
+            var spTplText = document.getElementById('setPrintTemplateText');
+            if (spTplText) spTplText.value = s.print_template_text || "";
+
+            // FIX: Populate Print Method
+            var spMethod = document.getElementById('setPrintMethod');
+            if (spMethod) {
+                spMethod.value = s.print_method || 'browser';
+                // Trigger UI update
+                if (typeof togglePrintTemplate === 'function') togglePrintTemplate();
+            }
+
+            var secS = document.getElementById('secService');
+            if (secS && s.service_name) secS.value = s.service_name;
+            var secP = document.getElementById('secPort');
+            if (secP && s.app_port) secP.value = s.app_port;
+
+            showLogoPreview();
+            showQrisPreview();
+        }
+
+        function showQrisPreview() {
+            var img = document.getElementById('qrisPreview');
+            var wrapper = document.getElementById('qrisPreviewWrapper');
+            if (!img) return;
+            img.src = '/static/photos/qris.jpg?t=' + new Date().getTime();
+            img.onload = () => { if (wrapper) wrapper.style.display = 'block'; };
+            img.onerror = () => { if (wrapper) wrapper.style.display = 'none'; };
+        }
+
+        function downloadQris() {
+            window.location.href = '/static/photos/qris.jpg';
+        }
+
+        function uploadQris() {
+            var f = document.getElementById('qrisFile');
+            if (!f.files.length) { showToast(t('msg_select_file') || "Pilih file dulu!", 'warning'); return; }
+
+            var fd = new FormData();
+            fd.append('file', f.files[0]);
+
+            fetch('/api/qris', { method: 'POST', headers: getAuthHeaders(), body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.status === 'ok') {
+                        showToast(t('msg_upload_ok') || "Upload Berhasil!", 'success');
+                        showQrisPreview();
+                        f.value = '';
+                    } else {
+                        showToast("Error: " + (d.message || d.msg || "Upload failed"), 'error');
+                    }
+                })
+                .catch(e => showToast("Error: " + e, 'error'));
+        }
+
+        function deleteQris() {
+            if (!confirm(t('conf_del_qris') || "Hapus QRIS?")) return;
+            fetch('/api/qris', { method: 'DELETE', headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.status === 'ok') {
+                        showToast(t('msg_qris_deleted') || "Berhasil dihapus", 'success');
+                        showQrisPreview();
+                    } else {
+                        showToast("Error: " + (d.message || d.msg), 'error');
+                    }
+                })
+                .catch(e => showToast("Error: " + e, 'error'));
+        }
+
+        function saveDisplaySettings() {
+            var payload = {
+                language: document.getElementById('langSelect').value,
+                web_title: document.getElementById('setWebTitle').value,
+                refresh_rate: parseInt(document.getElementById('setRefresh').value || '10') || 10,
+                map_animation: (document.querySelector('input[name="setAnim"]:checked') || { value: 'true' }).value === 'true',
+
+                // ALSO SAVE PRINT SETTINGS (To prevent loss if user clicks this button)
+                print_store_name: document.getElementById('setPrintStoreName').value,
+                print_paper: document.getElementById('setPrintPaper').value,
+                print_header: document.getElementById('setPrintHeader').value,
+                print_footer: document.getElementById('setPrintFooter').value,
+                print_auto: document.getElementById('setPrintAuto').checked,
+                print_show_logo: document.getElementById('setPrintShowLogo').checked,
+                print_method: document.getElementById('setPrintMethod').value,
+                print_template: document.getElementById('setPrintTemplate').value,
+                // NEW: Use separate field
+                print_template_text: document.getElementById('setPrintTemplateText').value
+            };
+            fetch('/api/settings', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()), body: JSON.stringify(payload) })
+                .then(r => r.ok ? r.json() : null).then(d => {
+                    if (d && d.settings) {
+                        APP.settings = d.settings;
+                        // Update cache for immediate effect
+                        if (APP.settings.web_title) localStorage.setItem('nms_web_title', APP.settings.web_title);
+                        if (APP.settings.language) localStorage.setItem('nms_lang', APP.settings.language); // Fix language persistence
+                        showToast(t('alert_saved'), 'success');
+                        applyLanguage();
+                    } else showToast(t('msg_failed_save'), 'error');
+                }).catch(e => showToast("Error: " + e, 'error'));
+        }
+
+        function saveWaSettings() {
+            var payload = {
+                wa_template: document.getElementById('setWaTemplate').value,
+                wa_template_auto: document.getElementById('setWaTemplateAuto').value,
+                wa_template_payment: document.getElementById('setWaTemplatePayment').value,
+                wa_template_isolir: document.getElementById('setWaTemplateIsolir').value,
+                wa_template_reactivate: document.getElementById('setWaTemplateReactivate').value,
+                wa_payment_notif_enabled: document.getElementById('setWaPaymentEnabled').checked,
+                wa_auto_enabled: document.getElementById('setWaAutoEnabled').checked,
+                wa_manual_enabled: document.getElementById('setWaManualEnabled').checked,
+                wa_isolir_enabled: document.getElementById('setWaIsolirEnabled').checked,
+                wa_reactivate_enabled: document.getElementById('setWaReactivateEnabled').checked,
+                wa_auto_qris: document.getElementById('setWaAutoQris').checked,
+                wa_manual_qris: document.getElementById('setWaManualQris').checked,
+                wa_isolir_qris: document.getElementById('setWaIsolirQris').checked,
+                // Sinkronisasi dengan billing settings jika elemen ada
+                wa_notif_time: document.getElementById('waNotifTime')?.value,
+                wa_pre_days: document.getElementById('waPreDays')?.value,
+                wa_pre_active: document.getElementById('waPreActive')?.checked,
+                wa_end_month_active: document.getElementById('waEndMonthActive')?.checked,
+
+                // ALSO SAVE PRINT SETTINGS (To prevent loss if user clicks this button)
+                print_store_name: document.getElementById('setPrintStoreName').value,
+                print_paper: document.getElementById('setPrintPaper').value,
+                print_header: document.getElementById('setPrintHeader').value,
+                print_footer: document.getElementById('setPrintFooter').value,
+                print_auto: document.getElementById('setPrintAuto').checked,
+                print_show_logo: document.getElementById('setPrintShowLogo').checked,
+                print_method: document.getElementById('setPrintMethod').value,
+                print_template: document.getElementById('setPrintTemplate').value,
+                // NEW: Use separate field
+                print_template_text: document.getElementById('setPrintTemplateText').value
+            };
+            fetch('/api/settings', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()), body: JSON.stringify(payload) })
+                .then(r => r.ok ? r.json() : null).then(d => {
+                    if (d) showToast(t('alert_saved'), 'success');
+                    else showToast(t('msg_failed_save'), 'error');
+                });
+        }
+
+        function savePrintSettings() {
+            var payload = {
+                print_store_name: document.getElementById('setPrintStoreName').value,
+                print_paper: document.getElementById('setPrintPaper').value,
+                print_header: document.getElementById('setPrintHeader').value,
+                print_footer: document.getElementById('setPrintFooter').value,
+                print_auto: document.getElementById('setPrintAuto').checked,
+                print_show_logo: document.getElementById('setPrintShowLogo').checked,
+                print_method: document.getElementById('setPrintMethod').value,
+                print_template: document.getElementById('setPrintTemplate').value,
+                // NEW: Use separate field
+                print_template_text: document.getElementById('setPrintTemplateText').value
+            };
+            fetch('/api/settings', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()), body: JSON.stringify(payload) })
+                .then(r => r.ok ? r.json() : null).then(d => {
+                    if (d) showToast(t('alert_saved'), 'success');
+                    else showToast(t('msg_failed_save'), 'error');
+                });
+        }
+
+        var waStatusInterval = null;
+        function showConfirmModal(title, message, onConfirm, onCancel) {
+            const modal = document.getElementById('modalConfirm');
+            document.getElementById('modalConfirmTitle').innerText = title;
+            document.getElementById('modalConfirmMessage').innerText = message;
+
+            const okBtn = document.getElementById('modalConfirmOk');
+            const newOkBtn = okBtn.cloneNode(true);
+            okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+
+            const cancelBtn = document.getElementById('modalConfirmCancel');
+            const newCancelBtn = cancelBtn.cloneNode(true);
+            cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+            newOkBtn.onclick = () => {
+                modal.classList.remove('show');
+                if (onConfirm) onConfirm();
+            };
+
+            newCancelBtn.onclick = () => {
+                modal.classList.remove('show');
+                if (onCancel) onCancel();
+            };
+
+            modal.classList.add('show');
+        }
+
+        function checkWaStatus() {
+            fetch('/api/whatsapp/qr', { headers: getAuthHeaders() })
+                .then(r => r.json()).then(d => {
+                    var img = document.getElementById('wa-qr-img');
+                    var msg = document.getElementById('wa-qr-status-msg');
+                    var b = document.getElementById('wa-status-badge');
+
+                    if (d.status === 'pairing' && d.qr) {
+                        b.innerText = t('msg_wa_pairing');
+                        b.className = "status-badge status-pairing";
+                        msg.style.display = 'none';
+                        img.style.display = 'block';
+                        img.src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(d.qr);
+                    } else if (d.status === 'connected') {
+                        b.innerText = t('msg_wa_connected');
+                        b.className = "status-badge status-connected";
+                        msg.innerHTML = '<i class="fas fa-check-circle fa-2x" style="color:#10b981; display:block; margin-bottom:10px;"></i>' + t('msg_wa_connected');
+                        msg.style.display = 'block';
+                        img.style.display = 'none';
+                    } else {
+                        b.innerText = t('msg_wa_disconnected');
+                        b.className = "status-badge status-disconnected";
+                        msg.innerHTML = '<i class="fas fa-qrcode fa-2x" style="opacity:0.3; display:block; margin-bottom:10px;"></i>' + t('msg_wa_disconnected');
+                        msg.style.display = 'block';
+                        img.style.display = 'none';
+                    }
+                }).catch(e => console.error("WA Status Error:", e));
+        }
+
+        function wakeupGateway() {
+            var btn = document.getElementById('btn-wa-init');
+            var oldText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> ' + (t('msg_processing') || 'Memproses...');
+            btn.disabled = true;
+
+            fetch('/api/whatsapp/init', { method: 'POST', headers: getAuthHeaders() })
+                .then(r => r.json()).then(d => {
+                    showToast(d.msg || "Menghubungkan...", 'info');
+                    btn.innerHTML = oldText;
+                    btn.disabled = false;
+                    checkWaStatus();
+                }).catch(e => {
+                    showToast(t('err_wa_wake'), 'error');
+                    btn.innerHTML = oldText;
+                    btn.disabled = false;
+                });
+        }
+
+        function resetWaSession() {
+            showConfirmModal(t('conf_wa_reset'), t('wa_reset_sub'), () => {
+                fetch('/api/whatsapp/reset', { method: 'POST', headers: getAuthHeaders() })
+                    .then(r => r.json()).then(d => {
+                        showToast(d.msg, 'info');
+                        checkWaStatus();
+                    }).catch(e => showToast("Reset Error: " + e, 'error'));
+            });
+        }
+
+        function testWaMessage(type) {
+            var num = document.getElementById('waTestNumber').value;
+            if (!num) return showToast("Masukkan nomor tujuan tes!", 'warning');
+
+            fetch('/api/whatsapp/test', {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                body: JSON.stringify({ target: num, name: "Admin/Tester", type: type })
+            }).then(r => r.json()).then(d => {
+                showToast(d.msg, d.status === 'ok' ? 'success' : 'error');
+                // Refresh log multiple times to catch progress
+                let count = 0;
+                let interval = setInterval(() => {
+                    fetchWaLogs();
+                    count++;
+                    if (count > 15) clearInterval(interval); // Stop after 45s (3s * 15)
+                }, 3000);
+            }).catch(e => showToast("Test Error: " + e, 'error'));
+        }
+
+        function translateLogLine(line) {
+            // Pattern: [TIMESTAMP] MESSAGE
+            const match = line.match(/^\[(.*?)\] (.*)$/);
+            if (!match) return line;
+            const ts = match[1];
+            let msg = match[2];
+
+            const patterns = [
+                { reg: /START: Mode=(.*)/, key: 'log_wa_start', vars: ['mode'] },
+                { reg: /SHUTDOWN: Service dimatikan \(Code: (\d+)\)/, key: 'log_wa_shutdown', vars: ['code'] },
+                { reg: /INFO: Service berhasil dibangunkan \(PID: (\d+)\)/, key: 'log_wa_info_start', vars: ['pid'] },
+                { reg: /\[STATUS\] Timeout: Tidak ada aktivitas pairing selama 3 menit\. Mematikan service\.\.\./, key: 'log_wa_timeout' },
+                { reg: /\[QR\] Silakan scan QR Code yang muncul di terminal atau UI\./, key: 'log_wa_qr_scan' },
+                { reg: /\[STATUS\] Koneksi terputus\. Kodenya: (\d+)/, key: 'log_wa_conn_fail', vars: ['code'] },
+                { reg: /\[STATUS\] Sesi dihentikan \(Logged Out\)\./, key: 'log_wa_session_out' },
+                { reg: /\[STATUS\] Terhubung ke WhatsApp!/, key: 'log_wa_connected' },
+                { reg: /\[STATUS\] Memproses (\d+) antrean pesan\.\.\./, key: 'log_wa_processing', vars: ['count'] },
+                { reg: /\[WAIT\] Menunggu 30 detik sebelum pesan berikutnya\.\.\./, key: 'log_wa_waiting' },
+                { reg: /\[ERROR\] Gagal memproses file antrean: (.*)/, key: 'log_wa_queue_fail', vars: ['msg'] },
+                { reg: /\[STATUS\] Semua tugas selesai\. Mematikan service\.\.\./, key: 'log_wa_all_done' },
+                { reg: /\[ERROR\] Nomor tujuan atau konten pesan kosong\./, key: 'log_wa_empty_req' },
+                { reg: /\[SEND\] Mengirim ke (.*)\.\.\./, key: 'log_wa_sending', vars: ['target'] },
+                { reg: /\[SUCCESS\] Gambar \+ Pesan terkirim ke (.*)/, key: 'log_wa_success_img', vars: ['target'] },
+                { reg: /\[SUCCESS\] Pesan teks terkirim ke (.*)/, key: 'log_wa_success_txt', vars: ['target'] },
+                { reg: /\[FAILED\] Gagal kirim ke (.*): (.*)/, key: 'log_wa_failed', vars: ['target', 'msg'] },
+                { reg: /ERROR: Node\.js tidak ditemukan di server\. Pastikan Node\.js sudah terinstal\./, key: 'log_wa_node_missing' },
+                { reg: /ERROR: Folder 'node_modules' tidak ada\. Jalankan 'npm install' di folder app\./, key: 'log_wa_nm_missing' },
+                { reg: /CRITICAL: Script berhenti mendadak \((\d+)\)\. Error: (.*)/, key: 'log_wa_critical', vars: ['code', 'msg'] },
+                { reg: /EXCEPTION: (.*)/, key: 'log_wa_exception', vars: ['msg'] }
+            ];
+
+            for (let p of patterns) {
+                const m = msg.match(p.reg);
+                if (m) {
+                    let translated = t(p.key);
+                    if (p.vars) {
+                        p.vars.forEach((v, idx) => {
+                            translated = translated.replace('{' + v + '}', m[idx + 1]);
+                        });
+                    }
+                    return `[${ts}] ${translated}`;
+                }
+            }
+
+            return line; // Return original if no match
+        }
+
+        function fetchWaLogs() {
+            fetch('/api/whatsapp/logs', { headers: getAuthHeaders() })
+                .then(r => r.json()).then(d => {
+                    var box = document.getElementById('wa-log-box');
+                    if (!d || d.length === 0) {
+                        box.innerHTML = '<div class="wa-log-line">No logs yet.</div>';
+                        return;
+                    }
+                    // Use textContent for each line if translateLogLine doesn't return HTML
+                    box.innerHTML = d.map(line => `<div class="wa-log-line">${safeText(translateLogLine(line))}</div>`).join('');
+                    box.scrollTop = box.scrollHeight;
+                }).catch(e => console.error("Logs Error:", e));
+        }
+
+        function clearWaLogs() {
+            showConfirmModal(t('conf_wa_clear_log'), t('conf_del_data'), () => {
+                fetch('/api/whatsapp/logs/clear', { method: 'POST', headers: getAuthHeaders() })
+                    .then(r => r.json()).then(d => {
+                        fetchWaLogs();
+                    }).catch(e => showToast("Clear Error: " + e, 'error'));
+            });
+        }
+
+        function updateSecurity() {
+            var adminPwd = document.getElementById('secAdmin').value.trim();
+            var viewerPwd = document.getElementById('secViewer').value.trim();
+            var serviceName = document.getElementById('secService').value.trim();
+            var appPort = document.getElementById('secPort').value.trim();
+
+            var payload = {
+                admin_password: adminPwd,
+                viewer_password: viewerPwd,
+                service_name: serviceName,
+                app_port: appPort
+            };
+
+            fetch('/api/security', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()), body: JSON.stringify(payload) })
+                .then(r => r.ok ? r.json() : null).then(d => {
+                    if (d) {
+                        // If password was changed, user MUST logout to avoid 401 crash
+                        if (adminPwd || viewerPwd) {
+                            showToast(t('msg_pwd_changed_logout'), 'warning');
+                            setTimeout(() => {
+                                localStorage.removeItem('nms_auth_session');
+                                window.location.href = '/';
+                            }, 2000);
+                            return;
+                        }
+
+                        // Check if system config (Port/Service) changed
+                        var s = APP.settings || {};
+                        var configChanged = (serviceName !== s.service_name && serviceName !== '') ||
+                            (parseInt(appPort) !== s.app_port && appPort !== '');
+
+                        if (configChanged) {
+                            showConfirmModal(t('confirm_restart'), t('conf_system_restart'), () => {
+                                callRestart(true);
+                            });
+                        } else {
+                            showToast(t('alert_saved'), 'success');
+                        }
+                    } else {
+                        showToast(t('msg_failed_upd'), 'error');
+                    }
+                }).catch(e => showToast("Error: " + e, 'error'));
+        }
+
+        function uploadTargetFile(target, inputId) {
+            var el = document.getElementById(inputId);
+            if (!el || !el.files[0]) { showToast(t('msg_sel_file_first'), 'warning'); return; }
+            var fd = new FormData();
+            fd.append('target', target);
+            fd.append('file', el.files[0]);
+            fetch('/api/update/file', { method: 'POST', headers: getAuthHeaders(), body: fd })
+                .then(r => r.json()).then(res => {
+                    if (res.status === 'ok') {
+                        showToast(t('msg_upload_ok'), 'success');
+                        if (target === 'favicon.ico') {
+                            var img = document.getElementById('favPreview');
+                            if (img) img.src = '/static/favicon.ico?' + new Date().getTime();
+                        }
+                    }
+                    else showToast(t('msg_failed') + ': ' + (res.msg || res.status), 'error');
+                }).catch(() => showToast(t('msg_error_upload'), 'error'));
+        }
+
+        function unifiedUpload() {
+            var el = document.getElementById('smartFile');
+            if (!el || !el.files[0]) { showToast(t('msg_attach_file_first'), 'warning'); return; }
+
+            var file = el.files[0];
+            var name = file.name.toLowerCase();
+            var ext = name.split('.').pop();
+
+            var isDbFile = (ext === 'json' || ext === 'zip');
+
+            if (isDbFile) {
+                showConfirmModal(t('msg_confirm_restore_smart').replace('{name}', name), t('warn_restore'),
+                    () => { performRestore(file); },
+                    () => {
+                        showConfirmModal(t('msg_confirm_update_smart').replace('{name}', name), t('conf_irrevocable'),
+                            () => { performUpdate(file); });
+                    });
+            } else {
+                showConfirmModal(t('msg_confirm_upload_file').replace('{name}', name), t('conf_irrevocable'),
+                    () => { performUpdate(file); });
+            }
+        }
+
+        function performRestore(file) {
+            var fd = new FormData();
+            fd.append('file', file);
+            setUploadBtnState(true, 'Restoring...');
+            fetch('/api/db/restore', { method: 'POST', headers: getAuthHeaders(), body: fd })
+                .then(r => r.json()).then(d => {
+                    setUploadBtnState(false);
+                    if (d.status === 'ok') showToast(t('msg_restore_success'), 'success');
+                    else showToast(t('msg_failed') + ' Restore: ' + (d.error || 'Server Error'), 'error');
+                }).catch(() => {
+                    setUploadBtnState(false);
+                    showToast(t('msg_conn_fail'), 'error');
+                });
+        }
+
+        function performUpdate(file) {
+            var fd = new FormData();
+            fd.append('file', file);
+            setUploadBtnState(true, 'Updating...');
+            fetch('/api/update/file', { method: 'POST', headers: getAuthHeaders(), body: fd })
+                .then(r => r.json()).then(res => {
+                    setUploadBtnState(false);
+                    if (res.status === 'ok') {
+                        showToast(t('msg_upd_success'), 'success');
+                        if (file.name.toLowerCase() === 'app.py') showToast(t('msg_upd_restart'), 'info');
+                    } else showToast(t('msg_upd_fail') + (res.error || res.msg), 'error');
+                }).catch(() => {
+                    setUploadBtnState(false);
+                    showToast(t('msg_upd_fail'), 'error');
+                });
+        }
+
+        function setUploadBtnState(loading, text) {
+            var btn = document.getElementById('btnSmartUpload');
+            if (!btn) return;
+            if (loading) {
+                btn.innerText = text || 'Processing...';
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+            } else {
+                btn.innerText = 'UPLOAD';
+                btn.disabled = false;
+                btn.style.opacity = '1';
+            }
+        }
+
+
+
+        function callRestart(skipConfirm) {
+            if (!skipConfirm) {
+                showConfirmModal(t('confirm_restart') || 'Restart service?', t('conf_system_restart'), () => {
+                    executeRestart();
+                });
+            } else {
+                executeRestart();
+            }
+        }
+
+        function executeRestart() {
+            showToast(t('msg_restart_wait') || 'OK! Please wait 5 seconds while the system restarts...', 'info');
+            fetch('/api/system/restart', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()) })
+                .then(r => r.json()).then(d => {
+                    if (d.status === 'ok') {
+                        setTimeout(() => {
+                            location.reload();
+                        }, 5000);
+                    } else {
+                        showToast(t('msg_error') + ': ' + (d.msg || d.error), 'error');
+                    }
+                }).catch(e => showToast("Restart Error: " + e, 'error'));
+        }
+
+        function uploadLogo() {
+            var f = document.getElementById('logoFile');
+            if (!f.files[0]) return showToast(t('msg_sel_file_first'), 'warning');
+            var fd = new FormData();
+            fd.append('file', f.files[0]);
+            fetch('/api/logo', { method: 'POST', headers: getAuthHeaders(), body: fd })
+                .then(r => r.json()).then(d => {
+                    if (d.status === 'ok') { showToast(t('msg_upload_ok'), 'success'); showLogoPreview(); f.value = ''; }
+                    else showToast(t('msg_failed') + ': ' + d.msg, 'error');
+                }).catch(e => showToast("Upload Error: " + e, 'error'));
+        }
+
+        function deleteLogo() {
+            if (!confirm(t('conf_del_logo'))) return;
+            fetch('/api/logo', { method: 'DELETE', headers: getAuthHeaders() })
+                .then(r => r.json()).then(d => {
+                    if (d.status === 'ok') { showToast(t('msg_logo_deleted'), 'success'); showLogoPreview(); }
+                    else showToast(t('msg_failed'), 'error');
+                }).catch(e => showToast("Delete Error: " + e, 'error'));
+        }
+
+        function showLogoPreview() {
+            var img = document.getElementById('logoPreview');
+            var wrapper = document.getElementById('logoPreviewWrapper');
+            if (!img) return;
+            img.src = '/static/logo.png?' + new Date().getTime();
+            img.onload = () => { if (wrapper) wrapper.style.display = 'block'; };
+            img.onerror = () => { if (wrapper) wrapper.style.display = 'none'; };
+        }
+
+        function downloadDbBackup() {
+            var t = localStorage.getItem('nms_auth_session') || '';
+            window.open('/api/db/backup?token=' + encodeURIComponent(t), '_blank');
+        }
+
+        function resetLogs() {
+            showConfirmModal(t('conf_reset_logs'), t('msg_wait'), () => {
+                fetch('/api/logs/reset', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()) })
+                    .then(r => { if (r.ok) showToast(t('msg_logs_cleared'), 'success'); })
+                    .catch(e => showToast("Reset Error: " + e, 'error'));
+            });
+        }
+
+        function backupToTelegram() {
+            var btn = event.target.closest('button');
+            var old = btn.innerHTML;
+            btn.innerHTML = t('msg_sending'); btn.disabled = true;
+            fetch('/api/backup/telegram', { method: 'POST', headers: getAuthHeaders() })
+                .then(r => r.json()).then(d => {
+                    btn.innerHTML = old; btn.disabled = false;
+                    if (d.status === 'ok') {
+                        showToast(t('msg_backup_sent'), 'success');
+                    } else {
+                        showToast(t('msg_failed') + ': ' + d.msg, 'error');
+                    }
+                }).catch(e => {
+                    btn.innerHTML = old; btn.disabled = false;
+                    showToast(t('msg_error'), 'error');
+                });
+        }
+
+        // --- AUTOMATION LOGIC ---
+        function setCompTab(cat, el) {
+            document.getElementById('tab-backup').classList.add('hidden');
+            document.getElementById('tab-telegram').classList.add('hidden');
+            document.getElementById('tab-' + cat).classList.remove('hidden');
+            el.parentElement.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function loadAutomationSettings() {
+            var bk = APP.settings.automation.backup || {};
+            var tg = APP.settings.automation.telegram || {};
+
+            if (document.getElementById('bk-enabled')) document.getElementById('bk-enabled').checked = !!bk.enabled;
+            if (document.getElementById('bk-time')) document.getElementById('bk-time').value = bk.schedule_time || '02:00';
+            if (document.getElementById('bk-days')) document.getElementById('bk-days').value = bk.keep_days || 7;
+
+            // File Selection Logic
+            var inc = bk.include_files || ['topology.db', 'settings.json', 'finance.json', 'config.json', 'license.key']; // Default all
+            var hasDb = inc.includes('topology.db') || inc.includes('config.json') || inc.includes('finance.json') || inc.includes('license.key');
+            var hasWeb = inc.includes('templates');
+
+            if (document.getElementById('inc-db')) document.getElementById('inc-db').checked = hasDb;
+            if (document.getElementById('inc-web')) document.getElementById('inc-web').checked = hasWeb;
+
+            // Telegram
+            if (document.getElementById('tg-enabled')) document.getElementById('tg-enabled').checked = !!tg.enabled;
+            if (document.getElementById('tg-token')) document.getElementById('tg-token').value = tg.bot_token || '';
+            if (document.getElementById('tg-chatid')) document.getElementById('tg-chatid').value = tg.chat_id || '';
+            var notif = tg.notifications || {};
+            ['offline', 'online', 'backup', 'startup'].forEach(k => {
+                if (document.getElementById('nt-' + k)) document.getElementById('nt-' + k).checked = !!notif[k === 'backup' ? 'backup_report' : (k === 'startup' ? 'startup_report' : k)];
+            });
+
+            // Telegram Templates
+            var defaultUp = "✅ PPPoE Connected\nTanggal: {date}\nJam: {time}\nUser: {name}\nIP: {ip}\nTotal Active: {total_online}\nService: {packet}";
+            var defaultDown = "❌ PPPoE Disconnected\nTanggal: {date}\nJam: {time}\nUser: {name}\nTotal Active: {total_online}\nTotal Offline: {total_offline}";
+
+            if (document.getElementById('tg-msg-up')) document.getElementById('tg-msg-up').value = tg.template_up || defaultUp;
+            if (document.getElementById('tg-msg-down')) document.getElementById('tg-msg-down').value = tg.template_down || defaultDown;
+
+            // Load History
+            loadBackupHistory();
+        }
+
+        function saveAutomationSettings() {
+            // Construct include_files
+            var incFiles = [];
+            if (document.getElementById('inc-db').checked) {
+                // Full Core Data Backup
+                incFiles.push('topology.db', 'settings.json', 'finance.json', 'config.json', 'license.key');
+            }
+            if (document.getElementById('inc-web').checked) incFiles.push('templates'); // Valid flag for future
+
+            var payload = {
+                automation: {
+                    backup: {
+                        enabled: document.getElementById('bk-enabled').checked,
+                        schedule_time: document.getElementById('bk-time').value,
+                        keep_days: parseInt(document.getElementById('bk-days').value) || 5,
+                        include_files: incFiles
+                    },
+                    telegram: {
+                        enabled: document.getElementById('tg-enabled').checked,
+                        bot_token: document.getElementById('tg-token').value.trim(),
+                        chat_id: document.getElementById('tg-chatid').value.trim(),
+                        notifications: {
+                            offline: document.getElementById('nt-offline').checked,
+                            online: document.getElementById('nt-online').checked,
+                            backup_report: document.getElementById('nt-backup').checked,
+                            startup_report: document.getElementById('nt-startup').checked
+                        },
+                        template_up: document.getElementById('tg-msg-up').value.trim(),
+                        template_down: document.getElementById('tg-msg-down').value.trim()
+                    }
+                }
+            };
+            fetch('/api/settings', { method: 'POST', headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()), body: JSON.stringify(payload) })
+                .then(r => r.json()).then(d => {
+                    if (d.settings) APP.settings = Object.assign(APP.settings || {}, d.settings);
+                    showToast(t('alert_saved'), 'success'); loadAutomationSettings();
+                }).catch(e => showToast("Save Error: " + e, 'error'));
+        }
+
+        function loadBackupHistory() {
+            var list = document.getElementById('bk-list');
+            if (!list) return;
+            list.innerHTML = `<div style="font-size:10px; opacity:0.6;"><i class="fas fa-spinner fa-spin"></i> ${t('lbl_loading') || 'Loading...'}</div>`;
+            fetch('/api/backup/list', { headers: getAuthHeaders() }).then(r => r.json()).then(d => {
+                var files = Array.isArray(d) ? d : (d.files || []);
+                list.innerHTML = '';
+                if (files.length === 0) return list.innerHTML = '<div class="muted" style="font-size:12px; opacity:0.5;">' + t('msg_bk_empty') + '</div>';
+
+                files.forEach(f => {
+                    var div = document.createElement('div');
+                    div.style = "display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05); gap:10px;";
+                    div.innerHTML = `
+                         <div style="flex:1; min-width:0;">
+                             <div style="font-weight:bold; color:#eee; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${f.name}</div>
+                             <div style="font-size:10px; color:#64748b;">${f.date} | ${f.size} KB</div>
+                         </div>
+                         <div style="display:flex; gap:5px;">
+                             <a class="btn-xs btn-primary" style="width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; text-decoration:none;" href="/api/backup/download/${f.name}?token=${localStorage.getItem('nms_auth_session')}" target="_blank"><i class="fas fa-download"></i></a>
+                             <button class="btn-xs btn-danger" style="width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center;" onclick="deleteBackup('${f.name}')"><i class="fas fa-trash"></i></button>
+                         </div>
+                    `;
+                    list.appendChild(div);
+                });
+            }).catch(err => {
+                list.innerHTML = `<div style="color:#ef4444; font-size:10px;">${t('msg_bk_load_err') || 'Gagal memuat riwayat.'}</div>`;
+            });
+        }
+
+        function deleteBackup(filename) {
+            showConfirmModal(t('btn_delete') || 'Hapus?', (t('msg_bk_del_conf') || "Hapus file backup {file}?").replace('{file}', filename), () => {
+                fetch('/api/backup/delete/' + filename, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.status === 'ok') {
+                            loadBackupHistory();
+                        } else {
+                            showToast(t('msg_wa_del_err') + (d.msg || d.error), 'error');
+                        }
+                    })
+                    .catch(err => showToast(t('msg_server_err') || "Gagal konek server", 'error'));
+            });
+        }
+
+        function triggerManualBackup() {
+            var btn = document.getElementById('btnTriggerBackup');
+            var oldText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (t('msg_bk_process') || 'Backing up...');
+            btn.disabled = true;
+
+            fetch('/api/backup/trigger', { method: 'POST', headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(d => {
+                    btn.innerHTML = oldText;
+                    btn.disabled = false;
+                    if (d.status === 'ok') {
+                        showToast(t('msg_bk_manual_start') || "Proses backup dimulai di background...", 'info');
+                        setTimeout(loadBackupHistory, 3000);
+                    } else {
+                        showToast(t('msg_error') + ': ' + d.msg, 'error');
+                    }
+                })
+                .catch(e => {
+                    btn.innerText = oldText;
+                    btn.disabled = false;
+                    showToast(t('msg_req_error'), 'error');
+                });
+        }
+
+        function testTelegramBot() {
+            var t_val = document.getElementById('tg-token').value;
+            var c = document.getElementById('tg-chatid').value;
+            if (!t_val || !c) return showToast(t('msg_tele_empty'), 'warning');
+            fetch('/api/telegram/test', { method: 'POST', headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }, body: JSON.stringify({ token: t_val, chat_id: c }) })
+                .then(r => r.json()).then(d => showToast(d.msg, d.status === 'ok' ? 'success' : 'error'))
+                .catch(e => showToast("Test Error: " + e, 'error'));
+        }
+
+        function togglePass(id) {
+            var x = document.getElementById(id);
+            x.type = (x.type === "password") ? "text" : "password";
+        }
+
+        var DEFAULT_HTML_TPL = `<div style="text-align:center; font-family:monospace;">\n    <p style="margin:0; font-weight:bold; font-size:16px;">STRUK PEMBAYARAN</p>\n    <p style="margin:5px 0;">{header}</p>\n    <hr style="border-top:1px dashed #000;">\n    <table style="width:100%; font-size:14px;">\n        <tr><td style="text-align:left;">Tgl</td><td style="text-align:right;">{date}</td></tr>\n        <tr><td style="text-align:left;">ID</td><td style="text-align:right;">{id}</td></tr>\n        <tr><td style="text-align:left;">Nama</td><td style="text-align:right;">{name}</td></tr>\n        <tr><td style="text-align:left;">Paket</td><td style="text-align:right;">{packet}</td></tr>\n        <tr><td style="text-align:left; font-weight:bold;">TOTAL</td><td style="text-align:right; font-weight:bold;">Rp {amount}</td></tr>\n    </table>\n    <hr style="border-top:1px dashed #000;">\n    <p style="margin:5px 0;">Berlaku S/D: <b>{expired}</b></p>\n    <hr style="border-top:1px dashed #000;">\n    <p style="margin:5px 0; font-size:12px;">{footer}</p>\n</div>`;
+
+        var DEFAULT_TEXT_TPL = `{store_name}\n--------------------------------\nTanggal : {date}\nNama    : {name}\nPaket   : {packet}\nHarga   : {amount}\n--------------------------------\nTerima Kasih\n\n{footer}`;
+
+        function togglePrintTemplate() {
+            var method = document.getElementById('setPrintMethod').value;
+            var tplGroup = document.getElementById('grpPrintTemplate');
+            var msg = document.getElementById('msgRawbtText');
+            var hint = document.getElementById('hintPrintMethod'); // Dynamic Hint
+
+            var tplHtml = document.getElementById('setPrintTemplate');
+            var tplText = document.getElementById('setPrintTemplateText');
+
+            // Show template editor for both
+            if (tplGroup) tplGroup.style.display = 'flex';
+
+            if (method === 'rawbt_text') {
+                if (msg) {
+                    msg.classList.remove('hidden');
+                    msg.innerHTML = '<i class="fas fa-info-circle"></i> Mode <b>RawBT Text</b>: Gunakan template TEXT (tanpa tag HTML). Baris baru = Enter.';
+                }
+                if (hint) {
+                    hint.style.display = 'block';
+                    hint.innerHTML = t('hint_rawbt_html') || "<b>Mode HTML:</b> Butuh setting 'Parse HTML' di RawBT. <br><b>Mode Text:</b> Lebih ringan, tanpa logo, format sederhana, PASTI JALAN.";
+                }
+
+                // Show Text Editor, Hide HTML Editor
+                tplHtml.style.display = 'none';
+                tplText.style.display = 'block';
+
+                // Set default if empty
+                if (tplText.value.trim() === '') tplText.value = DEFAULT_TEXT_TPL;
+
+            } else {
+                if (msg) msg.classList.add('hidden');
+                if (hint) {
+                    // Hide hint for browser or show different text
+                    hint.style.display = 'none';
+                }
+
+                // Show HTML Editor, Hide Text Editor
+                tplHtml.style.display = 'block';
+                tplText.style.display = 'none';
+
+                // Set default if empty
+                if (tplHtml.value.trim() === '') tplHtml.value = DEFAULT_HTML_TPL;
+            }
+        }
+
+        function resetPrintTemplate() {
+            showConfirmModal(t('btn_reset_default'), "Reset template ke default? Perubahan manual akan hilang.", () => {
+                var method = document.getElementById('setPrintMethod').value;
+                if (method === 'rawbt_text') {
+                    document.getElementById('setPrintTemplateText').value = DEFAULT_TEXT_TPL;
+                } else {
+                    document.getElementById('setPrintTemplate').value = DEFAULT_HTML_TPL;
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyLanguage();
+            syncSettings();
+            loadSettings();
+
+            // Unified Language Switcher logic
+            var langSel = document.getElementById('langSelect');
+            if (langSel) {
+                langSel.value = localStorage.getItem('nms_lang') || 'id';
+                langSel.onchange = function () {
+                    localStorage.setItem('nms_lang', this.value);
+                    applyLanguage();
+                    console.log('[LANG] Switched to:', this.value);
+                };
+            }
+        });
+
+        function syncSettings() {
+            fetch('/api/settings', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(s => {
+                    if (s) {
+                        if (s.web_title) {
+                            localStorage.setItem('nms_web_title', s.web_title);
+                            document.querySelectorAll('.brand-text, #brandText, .mobile-brand').forEach(e => {
+                                e.innerText = s.web_title;
+                                e.removeAttribute('data-lang');
+                            });
+                            document.title = (t('sb_set') || "SETTINGS").toUpperCase() + " - " + s.web_title.toUpperCase();
+                        }
+                        if (s.is_licensed) {
+                            localStorage.setItem('nms_is_licensed', 'true');
+                            var b = document.getElementById('licBadge');
+                            if (b) {
+                                b.innerHTML = '<i class="fas fa-check-circle me-1"></i> LICENSED (PRO)';
+                                b.style.background = 'rgba(16, 185, 129, 0.1)';
+                                b.style.color = '#10b981';
+                                b.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                                b.href = '/license';
+                                b.style.cursor = 'pointer';
+                            }
+                        } else {
+                            localStorage.removeItem('nms_is_licensed');
+                        }
+                    }
+                }).catch(() => { });
+        }
+    </script>
+    <div id="toast-container"></div>
+    <div id="modalConfirm" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div style="margin-bottom: 20px;">
+                <i class="fas fa-question-circle fa-3x" style="color: var(--accent); opacity: 0.8;"></i>
+            </div>
+            <h3 id="modalConfirmTitle" style="margin-bottom: 10px; font-size: 18px;"></h3>
+            <p id="modalConfirmMessage"
+                style="color: var(--text-muted); font-size: 14px; margin-bottom: 25px; line-height: 1.5;"></p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="modalConfirmCancel" class="btn-sm"
+                    style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 10px 25px;">BATAL</button>
+                <button id="modalConfirmOk" class="btn-sm btn-accent"
+                    style="padding: 10px 25px; min-width: 100px;">OK</button>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

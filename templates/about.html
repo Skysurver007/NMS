@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="/static/css/all.min.css"
+        onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="/static/js/lang_dict.js"></script>
+    <script>initAntiFlicker();</script>
+    <style>
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media(max-width: 768px) {
+            .about-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 0;
+        }
+
+        .info-k {
+            color: #94a3b8;
+        }
+
+        .info-v {
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+
+        #sys-inf-q {
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        #sys-inf-q img {
+            max-width: 250px;
+            height: auto;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body data-page-key="pg_about_title">
+
+    <div class="overlay-bg" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar">
+        <div class="brand-wrapper"
+            style="display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; margin-bottom: 20px;">
+            <button class="btn-sidebar-toggle desktop-only" onclick="toggleMiniSidebar()"
+                style="background:none; border:none; color:white; font-size:20px; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:1001;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="brand-text" id="brandText"
+                style="font-weight:800; color:#3b82f6; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:8px; flex:1; transition: all 0.3s ease;"></span>
+        </div>
+
+        <div class="menu-label" data-lang="sb_h_main"></div>
+
+        <a href="/" class="menu-item">
+            <i class="fas fa-home me-2"></i> <span data-lang="sb_dash"></span>
+        </a>
+        <a href="/maps" class="menu-item">
+            <i class="fas fa-map-marked-alt me-2"></i> <span data-lang="sb_map"></span>
+        </a>
+        <a href="/client" class="menu-item">
+            <i class="fas fa-users me-2"></i> <span data-lang="sb_client"></span>
+        </a>
+        <a href="/pppoe" class="menu-item">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_pppoe"></span>
+        </a>
+
+        <a href="/hotspot" class="menu-item">
+            <i class="fas fa-wifi me-2"></i> <span data-lang="sb_hotspot"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_admin"></div>
+
+        <a href="/network" class="menu-item">
+            <i class="fas fa-boxes me-2"></i> <span data-lang="sb_inv"></span>
+        </a>
+        <a href="/network?tab=infra" class="menu-item">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_infra"></span>
+        </a>
+        <a href="/billing" class="menu-item">
+            <i class="fas fa-file-invoice-dollar me-2"></i> <span data-lang="sb_bill"></span>
+        </a>
+        <a href="/finance" class="menu-item">
+            <i class="fas fa-wallet me-2"></i> <span data-lang="sb_fin"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_mon"></div>
+
+        <a href="/monitor?tab=traffic" class="menu-item">
+            <i class="fas fa-chart-line me-2"></i> <span data-lang="sb_traffic"></span>
+        </a>
+        <a href="/monitor?tab=logs" class="menu-item">
+            <i class="fas fa-history me-2"></i> <span data-lang="sb_logs"></span>
+        </a>
+
+        <a href="/settings" class="menu-item">
+            <i class="fas fa-cog me-2"></i> <span data-lang="sb_set"></span>
+        </a>
+
+        <a href="/about" class="menu-item active">
+            <i class="fas fa-info-circle me-2"></i> <span data-lang="sb_about"></span>
+        </a>
+
+        <div class="menu-item menu-danger" onclick="doLogout()" style="cursor:pointer;">
+            <i class="fas fa-sign-out-alt me-2"></i> <span data-lang="sb_logout"></span>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="mobile-head">
+            <button id="btnToggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="mobile-brand" id="mobileBrandText"></span>
+        </div>
+
+        <div
+            style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; min-height: 40px;">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <h2 class="header" data-lang="pg_about_title" style="margin:0; border-left:none; padding-left:0;"></h2>
+            </div>
+
+            <div
+                style="border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; font-size: 11px; color: #94a3b8; background: rgba(15, 23, 42, 0.6);">
+                <span data-lang="lbl_lang_prefix">LANG: </span><span id="currentLangDisplay"
+                    style="color: #38bdf8; font-weight: bold;"></span>
+            </div>
+        </div>
+
+        <div class="about-grid">
+            <div class="card">
+                <div class="card-title">
+                    <h3 data-lang="lbl_sys_info"></h3>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-k" data-lang="lbl_version"></span>
+                    <span class="info-v" id="dispAppVersion">...</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-k" data-lang="lbl_copyright"></span>
+                    <span class="info-v">© 2026 PEYCELL</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-k" data-lang="lbl_dev_support"></span>
+                    <span class="info-v">@peycellgroup</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-k" data-lang="lbl_dev_web"></span>
+                    <span class="info-v"><a href="https://peycell.com" target="_blank"
+                            style="color:#e2e8f0; text-decoration:none;">peycell.com</a></span>
+                </div>
+                <div class="info-row" style="border:none;">
+                    <span class="info-k" data-lang="lbl_license_to"></span>
+                    <span class="info-v">085200130032</span>
+                </div>
+
+                <div
+                    style="margin-top:20px; background:rgba(56, 189, 248, 0.1); border:1px solid rgba(56, 189, 248, 0.2); padding:15px; border-radius:8px;">
+                    <p style="margin:0; font-size:12px; line-height:1.6; color:#bae6fd;" data-lang="lbl_system_desc">
+                    </p>
+                </div>
+            </div>
+
+
+            <div class="card">
+                <div class="card-title">
+                    <h3 data-lang="lbl_donate_title"></h3>
+                </div>
+                <p style="font-size:13px; color:#cbd5e1; margin-bottom:15px;" data-lang="lbl_donate_desc"></p>
+
+
+                <a href="https://lynk.id/peycell/s/kmgj3rre7jmp" target="_blank"
+                    style="display:block; width:100%; text-align:center; background:#8b5cf6; color:white; padding:10px; border-radius:6px; margin-bottom:15px; text-decoration:none; font-weight:bold;">
+                    <i class="fas fa-heart me-2"></i> <span data-lang="lbl_donate_lynk"></span>
+                </a>
+
+
+                <div id="sys-inf-q">
+                    <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhXkKJfsTkSWr3xKieOd5WuA10W8Bw_Nw8ZDz0R8tsHO3EiZxyx-nAoZQY0Y8AgggQekL0CNKTWrukt40X5eAyegepvnQJ-ncFb81Xr8AJWj0rSO5rWAivdSi2ElqDPf5ftv7ZeZlQNsNu-nbZKw8eZgQR9TITN3_WQzgoBhinpSOXgQuk6VAb_sZcZJpo/s564/photo_2026-01-18_00-20-35.jpg"
+                        alt="QRIS Donation">
+                </div>
+
+                <div style="text-align:center; margin-top:10px; font-size:12px; color:#64748b;">
+                    NMS PREMIUM v3.0
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.querySelector('.overlay-bg').classList.toggle('active');
+        }
+
+        function doLogout() {
+            if (confirm(t('sb_logout') + '?')) {
+                document.cookie = "nms_auth_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+                window.location.href = "/";
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyLanguage();
+            // Init Dynamic Title & Brand
+            var brand = localStorage.getItem('nms_web_title') || "NMS MONITORING";
+            document.title = (t('sb_about') || "ABOUT").toUpperCase() + " - " + brand.toUpperCase();
+
+            var elBrand = document.getElementById('brandText');
+            if (elBrand) elBrand.innerText = brand;
+            var elMob = document.getElementById('mobileBrandText');
+            if (elMob) elMob.innerText = brand;
+
+            fetch('/api/settings', { headers: { 'X-Auth-Token': localStorage.getItem('nms_auth_session') || '' } })
+                .then(r => r.json())
+                .then(s => {
+                    if (s && s.web_title) {
+                        localStorage.setItem('nms_web_title', s.web_title);
+                        document.title = (t('sb_about') || "ABOUT").toUpperCase() + " - " + s.web_title.toUpperCase();
+                        document.querySelectorAll('.brand-text, #brandText, .mobile-brand').forEach(e => {
+                            e.innerText = s.web_title;
+                            e.removeAttribute('data-lang');
+                        });
+                    }
+                }).catch(() => { });
+
+            applyLanguage();
+
+            // License API (Passive check for status only)
+            fetch('/api/check_license').then(r => r.json()).catch(e => console.error(e));
+
+            // FETCH DYNAMIC VERSION
+            fetch('/api/version').then(r => r.json()).then(d => {
+                if (d.version) {
+                    var el = document.getElementById('dispAppVersion');
+                    if (el) el.innerText = 'v' + d.version;
+                }
+            }).catch(e => console.log(e));
+        });
+    </script>
+    <script>
+        (function () {
+            var _0xP = ["\x73\x79\x73\x2D\x69\x6E\x66\x2D\x71", "\x32\x30\x32\x36\x20\x50\x45\x59\x43\x45\x4C\x4C", "\x70\x65\x79\x63\x65\x6C\x6C\x2E\x63\x6F\x6D", "\x40\x70\x65\x79\x63\x65\x6C\x6C\x67\x72\x6F\x75\x70", "\x62\x6F\x64\x79", "\x69\x6E\x6E\x65\x72\x48\x54\x4D\x4C", "\x3C\x64\x69\x76\x20\x73\x74\x79\x6C\x65\x3D\x27\x70\x6F\x73\x69\x74\x69\x6F\x6E\x3A\x66\x69\x78\x65\x64\x3B\x74\x6F\x70\x3A\x30\x3B\x6C\x65\x66\x74\x3A\x30\x3B\x77\x69\x64\x74\x68\x3A\x31\x30\x30\x25\x3B\x68\x65\x69\x67\x68\x74\x3A\x31\x30\x30\x76\x68\x3B\x62\x61\x63\x6B\x67\x72\x6F\x75\x6E\x64\x3A\x62\x6C\x61\x63\x6B\x3B\x63\x6F\x6C\x6F\x72\x3A\x72\x65\x64\x3B\x7A\x2D\x69\x6E\x64\x65\x78\x3A\x39\x39\x39\x39\x39\x3B\x64\x69\x73\x70\x6C\x61\x79\x3A\x66\x6C\x65\x78\x3B\x66\x6C\x65\x78\x2D\x64\x69\x72\x65\x63\x74\x69\x6F\x6E\x3A\x63\x6F\x6C\x75\x6D\x6E\x3B\x6A\x75\x73\x74\x69\x66\x79\x2D\x63\x6F\x6E\x74\x65\x6E\x74\x3A\x63\x65\x6E\x74\x65\x72\x3B\x61\x6C\x69\x67\x6E\x2D\x69\x74\x65\x6D\x73\x3A\x63\x65\x6E\x74\x65\x72\x3B\x74\x65\x78\x74\x2D\x61\x6C\x69\x67\x6E\x3A\x63\x65\x6E\x74\x65\x72\x3B\x66\x6F\x6E\x74\x2D\x66\x61\x6D\x69\x6C\x79\x3A\x73\x61\x6E\x73\x2D\x73\x65\x72\x69\x66\x3B\x27\x3E\x3C\x68\x31\x3E\x53\x59\x53\x54\x45\x4D\x20\x43\x52\x41\x53\x48\x3C\x2F\x68\x31\x3E\x3C\x68\x33\x3E\x49\x4E\x54\x45\x47\x52\x49\x54\x59\x20\x45\x52\x52\x4F\x52\x3C\x2F\x68\x33\x3E\x3C\x70\x3E\x49\x74\x20\x69\x73\x20\x66\x6F\x72\x62\x69\x64\x64\x65\x6E\x20\x74\x6F\x20\x65\x64\x69\x74\x20\x74\x68\x69\x73\x20\x61\x62\x6F\x75\x74\x20\x70\x61\x67\x65\x20\x77\x69\x74\x68\x6F\x75\x74\x20\x70\x65\x72\x6D\x69\x73\x73\x69\x6F\x6E\x3C\x62\x72\x3E\x28\x50\x45\x59\x43\x45\x4C\x4C\x2E\x43\x4F\x4D\x29\x3C\x2F\x70\x3E\x3C\x2F\x64\x69\x76\x3E", "\x70\x68\x6F\x74\x6F\x5F\x32\x30\x32\x36\x2D\x30\x31\x2D\x31\x38\x5F\x30\x30\x2D\x32\x30\x2D\x33\x35\x2E\x6A\x70\x67"];
+
+            function _v_sys_ctx() {
+                try {
+                    var x = document.getElementById(_0xP[0]);
+                    var b = document[_0xP[4]].innerText || "";
+                    var f = false;
+                    if (!x || x.offsetParent === null) f = true;
+                    else {
+                        var i = x.querySelector('img');
+                        if (!i || i.src.indexOf(_0xP[7]) === -1) f = true;
+                    }
+                    if (b.indexOf(_0xP[1]) === -1 || b.indexOf(_0xP[2]) === -1 || b.indexOf(_0xP[3]) === -1) f = true;
+                    if (f) { document[_0xP[4]][_0xP[5]] = _0xP[6]; window.stop(); }
+                } catch (e) { }
+            }
+            setInterval(_v_sys_ctx, 4000);
+        })();
+    </script>
+</body>
+
+</html>

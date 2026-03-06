@@ -1,0 +1,8 @@
+{
+    "admin_password": "admin",
+    "viewer_password": "tamu",
+    "telegram_bot_token": "",
+    "telegram_chat_id": "",
+    "service_name": "monitoring-wifi.service",
+    "app_port": 5002
+}

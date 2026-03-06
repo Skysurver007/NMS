@@ -1,0 +1,11 @@
+{
+  "name": "nms-wa-bridge",
+  "version": "1.0.0",
+  "description": "WhatsApp Bridge for NMS using Baileys",
+  "main": "wa-bridge.js",
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.6.0",
+    "qrcode-terminal": "^0.12.0",
+    "pino": "^8.19.0"
+  }
+}

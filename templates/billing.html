@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script>try { var t = localStorage.getItem('nms_web_title'); if (t) document.title = t; } catch (e) { }</script>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="/static/js/lang_dict.js"></script>
+    <script>initAntiFlicker();</script>
+    <style>
+        /* Flexible Table Fix for Billing */
+        .table-container {
+            width: 100%;
+            border-radius: 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px !important;
+            /* Ensure side scroll works on mobile */
+            table-layout: auto;
+        }
+
+        th,
+        td {
+            white-space: nowrap;
+            /* Prevent messy wrapping */
+        }
+
+        .td-actions {
+            display: flex !important;
+            gap: 6px !important;
+            flex-wrap: nowrap !important;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .table-container {
+                border-radius: 4px;
+                background: #0f172a;
+            }
+
+            .table {
+                min-width: auto !important;
+                /* Remove fixed width to allow tight layout */
+            }
+
+            .table th,
+            .table td {
+                padding: 8px 4px !important;
+                /* Thinner padding */
+                font-size: 10px !important;
+                /* Slightly smaller text */
+            }
+
+            .td-actions {
+                gap: 4px !important;
+                /* Tighter button gap */
+            }
+
+            .btn-xs {
+                padding: 4px !important;
+                font-size: 9px !important;
+                min-width: 26px;
+                min-height: 26px;
+            }
+
+            .mobile-hide {
+                display: none !important;
+            }
+
+            .mobile-full {
+                width: 100% !important;
+            }
+        }
+
+        .input-xs {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            width: 100px;
+            text-align: right;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-xs:focus {
+            border-color: #38bdf8;
+        }
+
+        @media (max-width: 600px) {
+            .input-xs {
+                width: 80px;
+                font-size: 11px;
+            }
+        }
+
+        /* WA Status Badge Styles */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            display: inline-block;
+            text-transform: uppercase;
+        }
+
+        .status-connected {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-disconnected {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-pairing {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .wa-status-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        /* Fix stubborn black text on time inputs */
+        input[type="time"] {
+            color-scheme: dark !important;
+        }
+
+        input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+        input[type="time"]::-webkit-datetime-edit-text,
+        input[type="time"]::-webkit-datetime-edit-hour-field,
+        input[type="time"]::-webkit-datetime-edit-minute-field,
+        input[type="time"]::-webkit-datetime-edit-ampm-field {
+            color: #ffffff !important;
+            -webkit-text-fill-color: #ffffff !important;
+        }
+
+        input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex !important;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content .card-title {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-content .card-title h3 {
+            margin: 0;
+            color: #38bdf8;
+        }
+
+        /* Select dan Textarea Styling */
+        select.input {
+            cursor: pointer;
+            background: #0f172a;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 35px;
+        }
+
+        select.input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        textarea.input {
+            resize: vertical;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        textarea.input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+    </style>
+</head>
+
+<body data-page-key="sb_bill">
+
+
+    <div class="sidebar">
+        <div class="brand-wrapper"
+            style="display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; margin-bottom: 20px;">
+            <button class="btn-sidebar-toggle desktop-only" onclick="toggleMiniSidebar()"
+                style="background:none; border:none; color:white; font-size:20px; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:1001;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="brand-text" id="brandText" data-lang="sb_brand"
+                style="font-weight:800; color:#3b82f6; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:8px; flex:1; transition: all 0.3s ease;"></span>
+        </div>
+
+        <div class="menu-label" data-lang="sb_h_main"></div>
+
+        <a href="/" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-home me-2"></i> <span data-lang="sb_dash"></span>
+        </a>
+
+        <a href="/maps" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-map-marked-alt me-2"></i> <span data-lang="sb_map"></span>
+        </a>
+
+        <a href="/client" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-users me-2"></i> <span data-lang="sb_client"></span>
+        </a>
+
+        <a href="/pppoe" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_pppoe"></span>
+        </a>
+
+        <a href="/hotspot" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wifi me-2"></i> <span data-lang="sb_hotspot"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_admin"></div>
+
+        <a href="/network" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-boxes me-2"></i> <span data-lang="sb_inv"></span>
+        </a>
+
+        <a href="/network?tab=infra" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_infra"></span>
+        </a>
+
+        <div class="menu-item active">
+            <i class="fas fa-file-invoice-dollar me-2"></i> <span data-lang="sb_bill"></span>
+        </div>
+
+        <a href="/finance" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wallet me-2"></i> <span data-lang="sb_fin"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_mon"></div>
+
+        <a href="/monitor?tab=traffic" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-chart-line me-2"></i> <span data-lang="sb_traffic"></span>
+        </a>
+
+        <a href="/monitor?tab=logs" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-history me-2"></i> <span data-lang="sb_logs"></span>
+        </a>
+
+        <a href="/settings" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-cog me-2"></i> <span data-lang="sb_set"></span>
+        </a>
+
+        <a href="/about" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-info-circle me-2"></i> <span data-lang="sb_about"></span>
+        </a>
+
+        <div class="menu-item menu-danger" onclick="doLogout()">
+            <i class="fas fa-sign-out-alt me-2"></i> <span data-lang="sb_logout"></span>
+        </div>
+    </div>
+    <div class="overlay-bg" onclick="toggleSidebar()"></div>
+
+
+    <div class="main-content">
+        <!-- HEADER MOBILE -->
+        <div class="mobile-head">
+            <button id="btnToggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-brand" id="mobileBrandText" data-lang="sb_bill"></div>
+        </div>
+
+
+
+
+        <div class="row space" style="margin-bottom:20px; min-height: 40px;">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <div>
+                    <h2 data-lang="pg_bill_title" class="header" style="margin:0; border-left:none; padding-left:0;">
+                    </h2>
+                    <div class="text-xs muted" style="margin-top:2px;" data-lang="pg_bill_subtitle"></div>
+                </div>
+            </div>
+            <div style="display:flex; gap:15px; align-items:center;">
+
+
+
+                <div
+                    style="border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; font-size: 11px; color: #94a3b8; background: rgba(15, 23, 42, 0.6);">
+                    <span data-lang="lbl_lang_prefix">LANG: </span><span id="currentLangDisplay"
+                        style="color: #38bdf8; font-weight: bold;"></span>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="pg-billing">
+
+            <div class="tabs" style="border-bottom: 2px solid #334155; margin-bottom: 20px;">
+                <div class="tab active" onclick="switchTab('tab-pricing', this)" data-lang="tab_pricing">
+                    <i class="fas fa-tags me-2"></i>
+                </div>
+                <div class="tab" onclick="switchTab('tab-arrears', this)" data-lang="tab_arrears">
+                    <i class="fas fa-user-clock me-2"></i>
+                </div>
+                <div class="tab" onclick="switchTab('tab-config', this)" data-lang="tab_config">
+                    <i class="fas fa-cogs me-2"></i>
+                </div>
+            </div>
+
+
+            <div id="tab-pricing" class="tab-pane">
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-title">
+                        <h3 data-lang="card_pricing_title"></h3>
+                        <div style="font-size:12px; color:#94a3b8; font-weight:normal;"
+                            data-lang="card_pricing_subtitle"></div>
+                    </div>
+
+                    <div class="row space" style="margin-bottom: 15px;">
+                        <button class="btn-sm btn-primary" onclick="importMikrotikProfiles()"
+                            data-lang="btn_import_prof"></button>
+                        <button class="btn-sm" style="border:1px solid #475569;" onclick="addManualProfile()"
+                            data-lang="btn_add_manual"></button>
+                    </div>
+
+                    <div class="table-container">
+                        <table class="table" style="font-size:13px;">
+                            <thead>
+                                <tr style="cursor: pointer;">
+                                    <th style="padding:8px;" data-lang="th_paket_name" onclick="sortPricing('name')">
+                                        <i class="fas fa-sort ms-1" style="font-size:10px; opacity:0.5;"></i>
+                                    </th>
+                                    <th style="width:110px; padding:8px; text-align:right;" data-lang="th_price"
+                                        onclick="sortPricing('price')"><i class="fas fa-sort ms-1"
+                                            style="font-size:10px; opacity:0.5;"></i></th>
+                                    <th style="width:45px; padding:8px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl-pricing">
+                                <tr>
+                                    <td colspan="3" class="text-center muted" style="padding:15px;"
+                                        data-lang="msg_no_price"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+                    <div id="pagination-pricing" class="row"
+                        style="margin-top: 15px; justify-content: center; gap:5px; font-size: 11px;"></div>
+
+                    <div class="row" style="margin-top:15px; justify-content: flex-end;">
+                        <button class="btn btn-primary" onclick="savePricingData()" data-lang="btn_save_price"></button>
+                    </div>
+
+                    <div class="hint"
+                        style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                        <div style="font-weight: bold; color: #38bdf8; margin-bottom: 8px; text-align: left;">
+                            <i class="fas fa-info-circle me-1"></i> <span data-lang="hint_pricing_title"></span>
+                        </div>
+                        <div data-lang="hint_pricing_match"
+                            style="font-size: 11px; margin-bottom: 6px; text-align: left; color: #cbd5e1; line-height: 1.5;">
+                        </div>
+                        <ul
+                            style="margin: 0; padding-left: 20px; font-size: 11px; color: #e2e8f0; text-align: left; line-height: 1.6;">
+                            <li data-lang="hint_pricing_mikrotik"></li>
+                            <li data-lang="hint_pricing_static"></li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+
+            <div id="tab-arrears" class="tab-pane hidden">
+                <div class="card">
+                    <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3 data-lang="card_arrears_title"></h3>
+                            <div style="font-size:12px; color:#94a3b8; font-weight:normal;"
+                                data-lang="card_arrears_subtitle"></div>
+                        </div>
+                        <button class="btn-sm btn-primary" onclick="openManualArrearsModal()"
+                            data-lang="btn_add_arrears">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                    <div class="table-container">
+                        <table class="table" style="font-size:13px;">
+                            <thead>
+                                <tr style="cursor: pointer;">
+                                    <th style="padding:8px;" onclick="sortArrears('name')" data-lang="th_name"> <i
+                                            id="sort-name" class="fas fa-sort ms-1" style="opacity:0.3;"></i></th>
+                                    <th class="mobile-hide" style="padding:8px;" onclick="sortArrears('packet')"
+                                        data-lang="th_paket">
+                                        <i id="sort-packet" class="fas fa-sort ms-1" style="opacity:0.3;"></i>
+                                    </th>
+                                    <th style="padding:8px; text-align:center;" onclick="sortArrears('months')"
+                                        data-lang="th_months"> <i id="sort-months" class="fas fa-sort ms-1"
+                                            style="opacity:0.3;"></i></th>
+                                    <th style="padding:8px; text-align:right;" onclick="sortArrears('bill')"
+                                        data-lang="th_bill"> <i id="sort-bill" class="fas fa-sort ms-1"
+                                            style="opacity:0.3;"></i></th>
+                                    <th style="padding:8px; width:1%;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl-arrears">
+                                <tr>
+                                    <td colspan="5" class="text-center muted" style="padding:15px;"
+                                        data-lang="msg_loading_data"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination UI for Arrears -->
+                    <div id="arrears-pagination"
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 12px;">
+                        <button class="btn-xs"
+                            style="background: rgba(255,255,255,0.1); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1);"
+                            onclick="changeArrearsPage(-1)" id="btn-arr-prev"><i class="fas fa-chevron-left me-1"></i>
+                            Prev</button>
+                        <span id="arr-page-info" style="color: #94a3b8; font-weight: 500;">Page 1 of 1</span>
+                        <button class="btn-xs"
+                            style="background: rgba(255,255,255,0.1); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1);"
+                            onclick="changeArrearsPage(1)" id="btn-arr-next">Next <i
+                                class="fas fa-chevron-right ms-1"></i></button>
+                    </div>
+                    <div class="hint"
+                        style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                        <div style="font-weight: bold; color: #fbbf24; margin-bottom: 8px;">
+                            <i class="fas fa-lightbulb me-1"></i> <span data-lang="hint_arrears_title"></span>
+                        </div>
+                        <ul
+                            style="margin: 0; padding-left: 20px; font-size: 11px; color: #e2e8f0; line-height: 1.6; white-space: normal;">
+                            <li style="white-space: normal; margin-bottom: 4px;" data-lang="hint_arrears_calc"></li>
+                            <li style="white-space: normal; margin-bottom: 4px;" data-lang="hint_arrears_manual"></li>
+                            <li style="white-space: normal;" data-lang="hint_arrears_sync"></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+
+            <div id="tab-config" class="tab-pane hidden">
+                <div class="card">
+                    <div class="card-title">
+                        <h3 data-lang="card_bill_conf"></h3>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-lang="lbl_billing_system"></label>
+                            <select id="billingMode" class="select" onchange="toggleBillingMode()">
+                                <option value="monthly" data-lang="opt_billing_monthly"></option>
+                                <option value="cyclic" data-lang="opt_billing_cyclic"></option>
+                            </select>
+                            <div class="hint" data-lang="hint_billing_system"></div>
+                        </div>
+                        <div id="groupBillingDay" class="form-group">
+                            <label data-lang="lbl_due_date"></label>
+                            <input id="billingDay" class="select" type="number" min="1" max="31"
+                                data-lang="ph_date_range" data-lang-target="placeholder">
+                            <div class="hint" data-lang="hint_due_date">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label data-lang="lbl_grace"></label>
+                        <input id="gracePeriod" class="input" type="number" min="0" max="30" data-lang="ph_zero"
+                            data-lang-target="placeholder">
+                        <div class="hint" data-lang="hint_grace"></div>
+                    </div>
+                </div>
+
+                <div class="form-row" style="margin-top:12px;">
+                    <div class="form-group">
+                        <label data-lang="lbl_isolir_prof"></label>
+                        <input id="isolirProfile" class="input" data-lang="ph_isolir_prof"
+                            data-lang-target="placeholder">
+                        <div class="hint" data-lang="hint_isolir_prof"></div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:12px;">
+                    <label>
+                        <input type="checkbox" id="autoIsolirEnabled">
+                        <strong data-lang="lbl_enable_isolir"></strong>
+                    </label>
+                    <div class="hint" data-lang="hint_enable_isolir">
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <label style="margin-bottom:0;">
+                        <input type="checkbox" id="sendWaNotif" onchange="toggleWaOptions()">
+                        <strong data-lang="lbl_wa_notif"></strong>
+                    </label>
+                    <div class="wa-status-badge status-badge status-disconnected" id="wa-status-text"></div>
+                </div>
+                <div class="hint" data-lang="hint_wa_notif"></div>
+
+                <!-- Billing Check Interval -->
+                <div class="form-group" style="margin-top:15px;">
+                    <label style="font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                        <span data-lang="lbl_billing_interval"></span>
+                        <select id="billingCheckInterval" class="input"
+                            style="width: 180px; padding: 6px; height: auto; font-size: 12px;">
+                            <option value="1" data-lang="opt_1h"></option>
+                            <option value="3" data-lang="opt_3h"></option>
+                            <option value="6" data-lang="opt_6h"></option>
+                            <option value="12" data-lang="opt_12h"></option>
+                            <option value="24" selected data-lang="opt_24h"></option>
+                        </select>
+                    </label>
+                    <div class="hint" style="font-size: 11px;" data-lang="hint_billing_interval"></div>
+                </div>
+
+                <!-- Advanced WA Options -->
+                <div id="wa-notif-options"
+                    style="margin-top: 15px; padding-left: 20px; border-left: 2px solid var(--accent); display: none;">
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 13px;">
+                            <input type="checkbox" id="waEndMonthEnabled">
+                            <span data-lang="lbl_wa_rem_end_month"></span>
+                        </label>
+                        <div class="hint" style="font-size: 11px;" data-lang="hint_wa_rem_end_month"></div>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label style="font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="waPreIsolirEnabled">
+                            <span data-lang="lbl_wa_rem_pre_isolir"></span>
+                            <input type="number" id="waPreIsolirDays" class="input" value="2"
+                                style="width: 50px; padding: 4px; height: auto; font-size: 12px;">
+                            <span data-lang="lbl_days"></span>
+                        </label>
+                        <div class="hint" style="font-size: 11px;" data-lang="hint_wa_rem_pre_isolir"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label style="font-size: 13px; display: flex; align-items: center; gap: 10px;">
+                            <span data-lang="lbl_wa_notif_time"></span>
+                            <input type="time" id="waNotifTime" class="input" value="00:30"
+                                style="width: 120px; padding: 4px; height: auto; font-size: 14px; background: #3b82f6 !important; color: white !important; -webkit-text-fill-color: white !important; font-weight: bold; border: 1px solid #2563eb;">
+                        </label>
+                        <div class="hint" style="font-size: 11px;" data-lang="hint_wa_notif_time"></div>
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top:20px;">
+                    <button onclick="saveBillingSettings(event)" data-lang="btn_save_change"
+                        style="background-color: #2563eb; color: white; padding: 12px 24px; border: none; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background 0.2s; text-transform: uppercase; letter-spacing: 0.5px;">
+                        <span data-lang="btn_save_change"></span>
+                    </button>
+                </div>
+
+                <div class="hint"
+                    style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                    <div style="font-weight: bold; color: #38bdf8; margin-bottom: 10px;">
+                        <i class="fas fa-cog me-1"></i> <span data-lang="hint_conf_title"></span>
+                    </div>
+                    <ul style="margin: 0; padding-left: 20px; font-size: 11px; color: #e2e8f0; line-height: 1.8;">
+                        <li data-lang="hint_conf_cycle_m"></li>
+                        <li data-lang="hint_conf_cycle_c"></li>
+                        <li data-lang="hint_conf_grace"></li>
+                        <li data-lang="hint_conf_isolir_mk"></li>
+                        <li data-lang="hint_conf_auto_isolir"></li>
+                    </ul>
+
+                    <div
+                        style="margin-top: 15px; padding: 15px; background: rgba(59, 130, 246, 0.05); border-radius: 8px; border-left: 4px solid #3b82f6;">
+                        <div style="font-weight: bold; color: #3b82f6; font-size: 11px; margin-bottom: 5px;"
+                            data-lang="hint_conf_static_title"></div>
+                        <div style="font-size: 10px; color: #e2e8f0; margin-bottom: 8px;"
+                            data-lang="hint_conf_static_cmd"></div>
+                        <code
+                            style="display: block; background: #0f172a; color: #10b981; padding: 10px; border-radius: 6px; font-size: 11px; word-break: break-all; border: 1px solid rgba(255,255,255,0.1); font-family: 'Consolas', monospace;">
+                            /ip firewall filter add chain=forward action=drop src-address-list=ISOLIR comment="ISOLIR IP STATIK atau PPPOE RADIUS by nms peycell" place-before=0
+                        </code>
+                    </div>
+                </div>
+
+                <!-- Manual Test Section (Moved to Top) -->
+                <div style="margin-top:20px; padding-top:15px; border-top:1px solid rgba(255,255,255,0.1);">
+                    <span data-lang="lbl_manual_test"></span>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap:wrap;">
+                        <input id="testIsolirUser" class="input" list="pppoeList" data-lang="ph_test_user"
+                            data-lang-target="placeholder" style="flex:1; min-width:200px;">
+                        <datalist id="pppoeList"></datalist>
+                        <button class="btn-sm btn-danger" onclick="runBillingCheck()" data-lang="btn_test_isolir"><i
+                                class="fas fa-sync"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Today's Notification Schedule -->
+                <div id="card-today-schedule" class="card"
+                    style="margin-top:20px; border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.02);">
+                    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="font-size:14px; color:#3b82f6;"><i class="fas fa-calendar-check me-2"></i> <span
+                                data-lang="lbl_schedule_today">Jadwal Notifikasi (30 Hari)</span> <span
+                                id="today-date-label"></span></h3>
+                        <span class="status-badge status-connected" style="font-size:10px; padding:2px 8px;"
+                            id="schedule-count-badge">0 <span data-lang="lbl_unit_client"></span></span>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table style="width:100%; font-size:12px; border-collapse:collapse;">
+                            <thead>
+                                <tr
+                                    style="border-bottom:1px solid rgba(255,255,255,0.05); text-align:left; color:#64748b;">
+                                    <th style="padding:8px;" data-lang="th_date">Tanggal</th>
+                                    <th style="padding:8px;" data-lang="th_name">Nama</th>
+                                    <th style="padding:8px;" data-lang="th_wa">WhatsApp</th>
+                                    <th style="padding:8px;" data-lang="th_purpose">Tujuan</th>
+                                    <th style="padding:8px;" data-lang="th_status">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbl-today-schedule">
+                                <tr>
+                                    <td colspan="5" style="text-align:center; padding:20px; color:#64748b;"
+                                        data-lang="msg_loading_schedule">Memuat jadwal...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- NEW: Pagination UI for Today Schedule -->
+                    <div id="schedule-pagination"
+                        style="display: none; justify-content: space-between; align-items: center; margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.02); border-radius: 8px; font-size: 11px;">
+                        <button class="btn-xs"
+                            style="background: rgba(255,255,255,0.1); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1);"
+                            onclick="changeSchedulePage(-1)" id="btn-sch-prev"><i class="fas fa-chevron-left me-1"></i>
+                            Prev</button>
+                        <span id="sch-page-info" style="color: #94a3b8; font-weight: 500;">Page 1 of 1</span>
+                        <button class="btn-xs"
+                            style="background: rgba(255,255,255,0.1); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1);"
+                            onclick="changeSchedulePage(1)" id="btn-sch-next">Next <i
+                                class="fas fa-chevron-right ms-1"></i></button>
+                    </div>
+
+                    <div id="schedule-footer"
+                        style="padding:15px; border-top:1px solid rgba(255,255,255,0.05); text-align:right; display:flex; justify-content:flex-end; gap:10px; align-items:center;">
+                        <select id="tplModeSelect" class="input"
+                            style="width:auto; max-width:150px; font-size:12px; padding:4px 8px; height:32px;">
+                            <option value="auto" data-lang="lbl_tpl_auto"></option>
+                            <option value="manual" data-lang="lbl_tpl_manual"></option>
+                        </select>
+                        <button class="btn-sm" style="background:#25d366; color:white; border:none;"
+                            onclick="runNotifyManual()">
+                            <i class="fab fa-whatsapp me-2"></i> <span data-lang="btn_send_now"></span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Log WhatsApp Section (NEW) -->
+                <div class="card"
+                    style="margin-top:20px; border-color: rgba(37, 211, 102, 0.3); background: rgba(37, 211, 102, 0.02);">
+                    <div class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3 style="font-size:14px; color:#25d366;"><i class="fab fa-whatsapp me-2"></i> <span
+                                data-lang="lbl_wa_log"></span> (Realtime)</h3>
+                        <button class="btn-xs" style="background:transparent; border:1px solid #475569; color:#94a3b8;"
+                            onclick="loadWaLogs()"><i class="fas fa-sync"></i></button>
+                    </div>
+                    <div id="wa-log-container"
+                        style="max-height: 250px; overflow-y: auto; font-family: monospace; font-size: 11px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 4px; border: 1px solid rgba(255,255,255,0.05);">
+                        <div style="text-align:center; color:#64748b; padding:20px;" data-lang="msg_loading_log"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="modalArrears" class="modal">
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="card-title">
+                <h3 id="modalArrearsTitle" data-lang="lbl_add_arrears"></h3>
+            </div>
+            <div class="form-group">
+                <label data-lang="lbl_choose_client"></label>
+                <input id="arrClientInput" list="clientSearchList" class="input" data-lang="ph_client_name"
+                    data-lang-target="placeholder" autocomplete="off">
+                <datalist id="clientSearchList"></datalist>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label
+                    style="display: flex; align-items: center; gap: 8px; cursor: pointer; color: #44ee88; font-weight: bold;">
+                    <input type="checkbox" id="arrBypass" style="width: 18px; height: 18px;">
+                    <span data-lang="lbl_bypass_billing"></span>
+                </label>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label data-lang="th_arrears_amount"></label>
+                <input id="arrAmount" class="input" type="number" data-lang="ph_arrears_amount" placeholder="0">
+                <div class="hint" style="color: #4ade80; font-size: 11px; margin-top: 5px;">
+                    <i class="fas fa-info-circle"></i> <span data-lang="hint_arrears_negative"
+                        data-lang-target="innerHTML"></span>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label data-lang="lbl_arrears_note"></label>
+                <textarea id="arrDesc" class="input" rows="3"
+                    style="resize: vertical; min-height: 60px; font-family: inherit;" data-lang="ph_arrears_note"
+                    data-lang-target="placeholder"></textarea>
+            </div>
+            <div class="row" style="margin-top: 25px; gap: 10px; justify-content: flex-end;">
+                <button class="btn" style="background:#475569;" onclick="closeModal('modalArrears')"
+                    data-lang="btn_cancel"></button>
+                <button class="btn btn-primary" onclick="saveManualArrears()" data-lang="btn_save"></button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.querySelector('.overlay-bg');
+            if (sidebar) sidebar.classList.toggle('active');
+            if (overlay) overlay.classList.toggle('active');
+        }
+
+        var APP = {
+            role: null,
+            settings: {},
+            topology: null,
+            financeData: null,
+            billingProfiles: {},
+            arrearsSort: { key: 'months', dir: 'desc' },
+            arrearsPage: 1,
+            arrearsLimit: 20,
+            pricingSort: { key: 'name', dir: 'asc' },
+            currentPage: 1,
+            itemsPerPage: 10,
+            scheduleData: [], // Backup for paging
+            schedulePage: 1,
+            scheduleLimit: 15
+        };
+
+        function switchTab(tabId, el) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.add('hidden'));
+            if (el) el.classList.add('active');
+            else {
+                var targetTab = document.querySelector(`.tab[onclick*="${tabId}"]`);
+                if (targetTab) targetTab.classList.add('active');
+            }
+            // Show active pane
+            var activePane = document.getElementById(tabId);
+            if (activePane) activePane.classList.remove('hidden');
+
+            if (tabId === 'tab-arrears') renderArrearsTable();
+        }
+
+        function sortPricing(key) {
+            if (APP.pricingSort.key === key) APP.pricingSort.dir = (APP.pricingSort.dir === 'asc') ? 'desc' : 'asc';
+            else { APP.pricingSort.key = key; APP.pricingSort.dir = 'asc'; }
+            renderPricingTable();
+        }
+
+        function renderPricingTable() {
+            var tbody = document.getElementById('tbl-pricing');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            var profiles = Object.keys(APP.billingProfiles || {});
+
+            // Sort pricing
+            profiles.sort((a, b) => {
+                var valA = (APP.pricingSort.key === 'name') ? a : APP.billingProfiles[a];
+                var valB = (APP.pricingSort.key === 'name') ? b : APP.billingProfiles[b];
+                var res = (typeof valA === 'string') ? valA.localeCompare(valB) : valA - valB;
+                return (APP.pricingSort.dir === 'asc') ? res : -res;
+            });
+            if (profiles.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding:15px; color:#64748b;">' + t('msg_no_price') + '</td></tr>';
+                return;
+            }
+            var totalPages = Math.ceil(profiles.length / APP.itemsPerPage);
+            var startIdx = (APP.currentPage - 1) * APP.itemsPerPage;
+            var endIdx = Math.min(startIdx + APP.itemsPerPage, profiles.length);
+            for (var i = startIdx; i < endIdx; i++) {
+                var p = profiles[i];
+                var price = APP.billingProfiles[p];
+                var tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="padding:6px; font-weight:bold; font-size:11px; color:#cbd5e1;">${p}</td>
+                    <td style="padding:6px; text-align:right;"><input type="number" class="input-xs price-input" value="${price}" onchange="updateLocalPrice('${p}', this.value)"></td>
+                    <td style="padding:6px; text-align:center;"><button class="btn-xs btn-danger" onclick="deleteProfile('${p}')"><i class="fas fa-trash"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            }
+            renderPagination(totalPages);
+        }
+
+        function renderPagination(totalPages) {
+            var div = document.getElementById('pagination-pricing');
+            if (!div) return;
+            div.innerHTML = '';
+            if (totalPages <= 1) return;
+            for (var i = 1; i <= totalPages; i++) {
+                var btn = document.createElement('span');
+                btn.innerText = i;
+                btn.style = (i === APP.currentPage) ? "background:#38bdf8; color:white; padding:4px 8px; border-radius:4px; margin:2px; cursor:pointer;" : "background:#1e293b; color:#94a3b8; padding:4px 8px; border-radius:4px; margin:2px; cursor:pointer;";
+                btn.onclick = (function (page) { return function () { APP.currentPage = page; renderPricingTable(); }; })(i);
+                div.appendChild(btn);
+            }
+        }
+
+        function sanitizePrice(val) {
+            if (typeof val === 'number') return val;
+            if (!val) return 0;
+            var clean = String(val).replace(/[^\d]/g, '');
+            return parseInt(clean) || 0;
+        }
+
+        function updateLocalPrice(name, val) {
+            APP.billingProfiles[name] = sanitizePrice(val);
+            renderPricingTable();
+            renderArrearsTable();
+        }
+
+        function addManualProfile() {
+            var name = prompt(t('msg_prompt_paket'));
+            if (name && !APP.billingProfiles[name]) {
+                APP.billingProfiles[name] = 0;
+                renderPricingTable();
+            }
+        }
+
+        function deleteProfile(name) {
+            if (confirm(t('msg_confirm_del_prof') + name + "?")) {
+                delete APP.billingProfiles[name];
+                renderPricingTable();
+            }
+        }
+
+        function importMikrotikProfiles() {
+            var pass = localStorage.getItem('nms_auth_session');
+            fetch('/api/mikrotik/profiles/server_utama', { headers: { 'X-Auth-Token': pass } })
+                .then(r => r.json())
+                .then(d => {
+                    if (d.status === 'ok' && d.profiles) {
+                        var count = 0;
+                        d.profiles.forEach(p => {
+                            if (!APP.billingProfiles[p]) {
+                                APP.billingProfiles[p] = 0;
+                                count++;
+                            }
+                        });
+                        renderPricingTable();
+                        alert(count + " " + t('msg_import_success'));
+                    } else {
+                        alert(t('msg_err_fetch_prof') + (d.error || 'Unknown'));
+                    }
+                }).catch(e => alert(t('msg_err_conn') + e));
+        }
+
+        function savePricingData() {
+            var pass = localStorage.getItem('nms_auth_session');
+            fetch('/api/settings', { headers: { 'X-Auth-Token': pass } }).then(r => r.json()).then(current => {
+                var toSave = current || {};
+                toSave.billing_profiles = APP.billingProfiles;
+                fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass },
+                    body: JSON.stringify(toSave)
+                }).then(r => r.json()).then(d => { if (d.status === 'ok') alert(t('msg_saved') || 'Tersimpan'); });
+            });
+        }
+
+        function processArrearsData() {
+            var grouped = {};
+            var now = new Date();
+            var currentMonth = now.getMonth();
+            var currentYear = now.getFullYear();
+            if (!APP.topology?.clients) return [];
+
+            var billingDay = (APP.settings.billing && APP.settings.billing.default_billing_day) || 5;
+            var graceDays = (APP.settings.billing && APP.settings.billing.grace_period_days) || 0;
+            var bypassList = (APP.settings.billing && APP.settings.billing.bypass_list) || [];
+
+            // 1. Process All Clients for "Auto" Arrears based on paid_until
+            APP.topology.clients.forEach(c => {
+                if (c.billing && c.billing.enabled === false) return;
+
+                var unpaidMonths = 0;
+                if (c.paid_until && c.paid_until !== 'N/A') {
+                    var puDate = new Date(c.paid_until);
+                    if (puDate < now) {
+                        var diffMs = now - puDate;
+                        var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                        unpaidMonths = Math.max(1, Math.ceil(diffDays / 30));
+                    }
+                } else {
+                    // Legacy check if no paid_until
+                    for (var i = 0; i < 6; i++) {
+                        var d_check = new Date(currentYear, currentMonth - i, 1);
+                        var dueDate = new Date(d_check.getFullYear(), d_check.getMonth(), billingDay + graceDays);
+                        if (now < dueDate) continue;
+
+                        var hasPaid = (APP.financeData?.transactions || []).some(tx => {
+                            if (tx.client_id !== c.id && tx.client_name !== c.name) return false;
+                            if (tx.category && !tx.category.toLowerCase().includes('wifi')) return false;
+                            var txDate = new Date(tx.date);
+                            return txDate.getMonth() === d_check.getMonth() && txDate.getFullYear() === d_check.getFullYear();
+                        });
+                        if (!hasPaid) unpaidMonths++; else break;
+                    }
+                }
+
+                var price = APP.billingProfiles[(c.packet_name || "").trim()] || 0;
+                if (price <= 0 && c.packet_name) {
+                    var match = c.packet_name.match(/(\d+)rb/i) || c.packet_name.match(/(\d+)k/i);
+                    if (match) price = parseInt(match[1]) * 1000;
+                }
+                if (bypassList.includes(c.name) || bypassList.includes(String(c.id))) price = 0;
+
+                var key = (c.name || "").trim().toUpperCase();
+                grouped[key] = {
+                    type: 'auto',
+                    id: c.id,
+                    name: c.name,
+                    packet: c.packet_name || '-',
+                    months: (price > 0 && unpaidMonths > 0) ? unpaidMonths : '-',
+                    bill: unpaidMonths * price
+                };
+            });
+
+            // 2. Aggregate Manual Arrears into the same client key
+            (APP.settings.manual_arrears || []).forEach(ma => {
+                var key = (ma.client_name || "").trim().toUpperCase();
+                var amt = sanitizePrice(ma.amount || 0);
+                if (grouped[key]) {
+                    grouped[key].bill += amt;
+                    // If months was '-' but now we have a bill, and price > 0, we can estimate months again if it helps
+                    // But simpler to just keep months description as is
+                } else {
+                    grouped[key] = {
+                        type: 'manual',
+                        id: ma.id,
+                        name: ma.client_name,
+                        packet: 'Adjustment',
+                        months: '-',
+                        bill: amt
+                    };
+                }
+            });
+
+            return Object.values(grouped).filter(item => item.bill !== 0);
+        }
+
+        function renderArrearsTable() {
+            var tbody = document.getElementById('tbl-arrears');
+            if (!tbody) return;
+            ['name', 'packet', 'months', 'bill'].forEach(k => {
+                var el = document.getElementById('sort-' + k);
+                if (el) {
+                    el.className = 'fas fa-sort ms-1'; el.style.opacity = '0.3';
+                    if (APP.arrearsSort.key === k) {
+                        el.className = (APP.arrearsSort.dir === 'asc') ? 'fas fa-caret-up ms-1' : 'fas fa-caret-down ms-1';
+                        el.style.opacity = '1'; el.style.color = '#38bdf8';
+                    }
+                }
+            });
+
+            var data = processArrearsData();
+            data.sort((a, b) => {
+                var valA = a[APP.arrearsSort.key], valB = b[APP.arrearsSort.key];
+                if (valA === '-') valA = 0; if (valB === '-') valB = 0;
+                var res = (typeof valA === 'string') ? valA.localeCompare(valB) : valA - valB;
+                return (APP.arrearsSort.dir === 'asc') ? res : -res;
+            });
+
+            tbody.innerHTML = '';
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center" style="color:#4ade80; padding:20px;">' + (t('msg_all_pd') || '✅ Semua lunas!') + '</td></tr>';
+                document.getElementById('arrears-pagination').style.display = 'none';
+                return;
+            }
+
+            // PAGINATION LOGIC
+            document.getElementById('arrears-pagination').style.display = 'flex';
+            var totalItems = data.length;
+            var totalPages = Math.ceil(totalItems / APP.arrearsLimit);
+            if (APP.arrearsPage > totalPages) APP.arrearsPage = totalPages;
+            if (APP.arrearsPage < 1) APP.arrearsPage = 1;
+
+            var start = (APP.arrearsPage - 1) * APP.arrearsLimit;
+            var end = start + APP.arrearsLimit;
+            var paginatedData = data.slice(start, end);
+
+            document.getElementById('arr-page-info').innerText = `Page ${APP.arrearsPage} of ${totalPages} (${totalItems} items)`;
+            document.getElementById('btn-arr-prev').disabled = (APP.arrearsPage === 1);
+            document.getElementById('btn-arr-next').disabled = (APP.arrearsPage === totalPages);
+            document.getElementById('btn-arr-prev').style.opacity = (APP.arrearsPage === 1) ? '0.3' : '1';
+            document.getElementById('btn-arr-next').style.opacity = (APP.arrearsPage === totalPages) ? '0.3' : '1';
+
+            paginatedData.forEach(d => {
+                var cid = (d.type === 'auto') ? d.id : d.client_id;
+                var dNameUpper = (d.name || "").trim().toUpperCase();
+                var c = APP.topology.clients.find(cli => (cli.id && String(cli.id) === String(cid)) || (cli.name || "").trim().toUpperCase() === dNameUpper);
+                var phone = c ? normalizeWa(c.wa_number || c.phone || "") : "";
+                var tr = document.createElement('tr');
+
+                // MODIFIED: Open Manual Arrears Adjustment for BOTH manual and auto rows
+                var editAction = (d.type === 'manual') ? `openManualArrearsModal('${d.id}')` : `openManualArrearsModal(null, '${d.name}')`;
+                var deleteAction = (d.type === 'manual') ? `deleteManualArrears('${d.id}')` : `alert(t('msg_auto_arrears_err'))`;
+
+                var totalForWa = 0;
+                data.forEach(x => {
+                    var xId = (x.type === 'auto') ? x.id : x.client_id;
+                    if ((cid && String(xId) === String(cid)) || (x.name && x.name.trim().toUpperCase() === dNameUpper)) {
+                        totalForWa += x.bill;
+                    }
+                });
+
+
+
+                var billVal = parseInt(d.bill || 0);
+                var isCredit = billVal < 0;
+                var billDisplay = (isCredit ? "+ Rp " : "Rp ") + Math.abs(billVal).toLocaleString('id-ID');
+                var billColor = isCredit ? "#4ade80" : "#f59e0b"; // Hijau terang jika saldo, Orange jika hutang
+                var billLabel = isCredit ? ` <small style="font-size:11px; font-weight:normal; opacity:0.9;">${t('lbl_balance_badge')}</small>` : "";
+
+                tr.innerHTML = `
+        <td style="padding:8px 10px;"><strong>${safeText(d.name)}</strong></td>
+        <td class="mobile-hide" style="padding:10px;">${safeText(d.packet)}</td>
+        <td style="color:#ef4444; padding:8px 5px; text-align:center;">${safeText(d.months)}</td>
+        <td style="padding:8px 5px; text-align:right; font-weight:600; color:${billColor};">${billDisplay}${billLabel}</td>
+        <td style="padding:8px 5px; width:1%;">
+            <div class="td-actions">
+                <button class="btn-xs" style="background:#3b82f6; color:white; border:none; border-radius:4px;" title="${t('btn_edit')}" onclick="${editAction}"><i class="fas fa-edit"></i></button>
+                <button class="btn-xs" style="background:#ef4444; color:white; border:none; border-radius:4px;" title="${t('btn_delete')}" onclick="${deleteAction}"><i class="fas fa-trash"></i></button>
+                <button class="btn-xs" style="background:#25d366; color:white; border:none; border-radius:4px;" title="WhatsApp" onclick="sendWaReminder('${cid}', '${safeText(d.name)}', '${phone}', ${totalForWa})"><i class="fab fa-whatsapp"></i></button>
+            </div>
+        </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function sortArrears(key) {
+            if (APP.arrearsSort.key === key) APP.arrearsSort.dir = (APP.arrearsSort.dir === 'asc') ? 'desc' : 'asc';
+            else { APP.arrearsSort.key = key; APP.arrearsSort.dir = 'desc'; }
+            APP.arrearsPage = 1; // Reset to page 1 on sort
+            renderArrearsTable();
+        }
+
+        function changeArrearsPage(delta) {
+            APP.arrearsPage += delta;
+            renderArrearsTable();
+            // Scroll to top of card
+            document.getElementById('tab-arrears').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function loadBillingSettings() {
+            var pass = localStorage.getItem('nms_auth_session');
+            fetch('/api/settings', { headers: { 'X-Auth-Token': pass } }).then(r => r.json()).then(d => {
+                APP.settings = d || {};
+                APP.billingProfiles = d.billing_profiles || {};
+                var b = d.billing || {};
+                var setVal = (id, val) => { var el = document.getElementById(id); if (el) el.value = val; };
+                var setChk = (id, val) => { var el = document.getElementById(id); if (el) el.checked = val; };
+                setVal('billingDay', b.default_billing_day || 28);
+                setVal('billingMode', b.billing_mode || 'monthly');
+                setVal('gracePeriod', b.grace_period_days || 0);
+                setVal('isolirProfile', b.isolir_profile || 'ISOLIR');
+                setChk('autoIsolirEnabled', b.auto_isolir_enabled !== false);
+                setChk('sendWaNotif', b.send_wa_notification === true);
+                setVal('billingCheckInterval', b.billing_check_interval_hours || 24);
+                setChk('waEndMonthEnabled', b.wa_end_month_enabled === true);
+                setChk('waPreIsolirEnabled', b.wa_pre_isolir_enabled === true);
+                setVal('waPreIsolirDays', b.wa_pre_isolir_days || 2);
+                setVal('waNotifTime', b.wa_notif_time || '00:30');
+                renderPricingTable();
+                toggleWaOptions();
+                toggleBillingMode();
+                applyLanguage();
+                if (!window.waPolling) window.waPolling = setInterval(checkWaStatus, 5000);
+            });
+        }
+
+        function toggleWaOptions() {
+            var el = document.getElementById('wa-notif-options');
+            var chk = document.getElementById('sendWaNotif');
+            if (el && chk) el.style.display = chk.checked ? 'block' : 'none';
+        }
+
+        function toggleBillingMode() {
+            var mode = document.getElementById('billingMode')?.value;
+            var group = document.getElementById('groupBillingDay');
+            if (group) group.style.display = (mode === 'monthly') ? 'block' : 'none';
+        }
+
+        function openManualArrearsModal(editId = null, prefilledName = "") {
+            var modal = document.getElementById('modalArrears');
+            if (!modal) return;
+            var title = document.getElementById('modalArrearsTitle');
+            var nameInp = document.getElementById('arrClientInput'), amntInp = document.getElementById('arrAmount'), descInp = document.getElementById('arrDesc');
+
+            // All modes now show "Edit Tunggakan" as requested
+            title.innerText = t('lbl_edit_arrears');
+
+            var datalist = document.getElementById('clientSearchList');
+            if (datalist && APP.topology?.clients) {
+                datalist.innerHTML = '';
+                APP.topology.clients.forEach(c => { var o = document.createElement('option'); o.value = c.name; datalist.appendChild(o); });
+            }
+            if (editId) {
+                // Ensure editId is compared robustly (ma.id can be string or number)
+                var item = (APP.settings.manual_arrears || []).find(ma => String(ma.id) === String(editId));
+                if (item) {
+                    nameInp.value = item.client_name;
+                    amntInp.value = item.amount;
+                    descInp.value = item.desc;
+                    modal.dataset.editId = editId;
+                } else {
+                    console.error("Manual arrear with ID " + editId + " not found in current settings.");
+                }
+            } else {
+                nameInp.value = prefilledName || "";
+                amntInp.value = ""; descInp.value = ""; delete modal.dataset.editId;
+            }
+
+            // NEW: Load Bypass State (V3.1.6)
+            var bypassList = (APP.settings.billing && APP.settings.billing.bypass_list) || [];
+            var currentName = nameInp.value;
+            var c = APP.topology.clients.find(cli => cli.name === currentName);
+            document.getElementById('arrBypass').checked = c && (bypassList.includes(c.name) || bypassList.includes(String(c.id)));
+
+            modal.classList.add('active');
+        }
+
+        function closeModal(id) { var el = document.getElementById(id); if (el) el.classList.remove('active'); }
+
+        function saveManualArrears() {
+            if (!name) { alert(t('msg_client_required')); return; }
+
+            // Normalize name to official client name if found (case-insensitive)
+            var c = APP.topology.clients.find(cli => cli.name.trim().toUpperCase() === name.trim().toUpperCase());
+            if (c) name = c.name; // Use official name from DB
+            if (!APP.settings.manual_arrears) APP.settings.manual_arrears = [];
+            if (!APP.settings.billing) APP.settings.billing = {};
+            if (!APP.settings.billing.bypass_list) APP.settings.billing.bypass_list = [];
+
+            // 1. Save Bypass State
+            var c = APP.topology.clients.find(cli => cli.name === name);
+            var identifier = c ? String(c.id) : name;
+            if (isBypass) {
+                if (!APP.settings.billing.bypass_list.includes(identifier)) APP.settings.billing.bypass_list.push(identifier);
+            } else {
+                APP.settings.billing.bypass_list = APP.settings.billing.bypass_list.filter(x => x !== identifier);
+            }
+
+            // 2. Save Manual Arrears if amount != 0
+            var editId = document.getElementById('modalArrears').dataset.editId;
+            if (amount !== 0) {
+                if (editId) {
+                    var idx = APP.settings.manual_arrears.findIndex(ma => ma.id == editId);
+                    if (idx !== -1) APP.settings.manual_arrears[idx] = { id: editId, client_name: name, amount: amount, desc: desc };
+                } else {
+                    APP.settings.manual_arrears.push({ id: Date.now(), client_name: name, amount: amount, desc: desc });
+                }
+            } else if (editId) {
+                // If amount is 0/empty and we were editing, delete it
+                APP.settings.manual_arrears = APP.settings.manual_arrears.filter(ma => ma.id != editId);
+            }
+
+            var pass = localStorage.getItem('nms_auth_session');
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass },
+                body: JSON.stringify({
+                    manual_arrears: APP.settings.manual_arrears,
+                    billing: APP.settings.billing
+                })
+            }).then(r => r.json()).then(() => { closeModal('modalArrears'); renderArrearsTable(); });
+        }
+
+        function deleteManualArrears(id) {
+            var item = (APP.settings.manual_arrears || []).find(ma => ma.id == id);
+            if (item && confirm((t('msg_confirm_del_arrears') || t('btn_delete') + " ") + item.client_name + "?")) {
+                APP.settings.manual_arrears = APP.settings.manual_arrears.filter(ma => ma.id != id);
+                var pass = localStorage.getItem('nms_auth_session');
+                fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass }, body: JSON.stringify({ manual_arrears: APP.settings.manual_arrears }) })
+                    .then(r => r.json()).then(() => renderArrearsTable());
+            }
+        }
+
+        // --- QUICK PAYMENT FUNCTIONS (REMOVED: User prefers Manual Arrears Adjustment) ---
+
+        function saveBillingSettings(e) {
+            var pass = localStorage.getItem('nms_auth_session');
+            var getV = id => document.getElementById(id)?.value, getC = id => document.getElementById(id)?.checked;
+            var payload = {
+                billing: {
+                    billing_mode: getV('billingMode'), default_billing_day: parseInt(getV('billingDay')), grace_period_days: parseInt(getV('gracePeriod')),
+                    isolir_profile: getV('isolirProfile').trim(), auto_isolir_enabled: getC('autoIsolirEnabled'), send_wa_notification: getC('sendWaNotif'),
+                    billing_check_interval_hours: parseInt(getV('billingCheckInterval')), wa_end_month_enabled: getC('waEndMonthEnabled'),
+                    wa_pre_isolir_enabled: getC('waPreIsolirEnabled'), wa_pre_isolir_days: parseInt(getV('waPreIsolirDays')), wa_notif_time: getV('waNotifTime')
+                }
+            };
+            var btn = e ? e.target : document.querySelector('button[onclick*="saveBillingSettings"]');
+            if (btn) { btn.disabled = true; btn.innerText = t('msg_saving'); }
+            fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass }, body: JSON.stringify(payload) })
+                .then(r => r.json()).then(d => {
+                    if (btn) { btn.disabled = false; btn.innerText = t('btn_save_change'); }
+                    if (d.status === 'ok') { alert(t('alert_saved')); loadBillingSettings(); loadTodaySchedule(); }
+                }).catch(() => { if (btn) btn.disabled = false; alert(t('msg_server_err')); });
+        }
+
+        function runBillingCheck() {
+            var user = document.getElementById('testIsolirUser').value.trim();
+            var pass = localStorage.getItem('nms_auth_session');
+            if (!confirm((t('msg_confirm_test_isolir')) + (user ? user : (t('msg_all_clients'))) + '?')) return;
+
+            fetch('/api/debug/run_billing', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass },
+                body: JSON.stringify({ target_user: user, force: true })
+            }).then(r => r.json()).then(d => alert(d.message || d.msg || t('msg_done')))
+                .catch(e => { console.error(e); alert(t('msg_server_err') || "Server Error"); });
+        }
+
+        function runMassWaBilling() {
+            var pass = localStorage.getItem('nms_auth_session');
+            if (!confirm(t('conf_mass_wa_billing'))) return;
+
+            fetch('/api/debug/run_billing', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass },
+                body: JSON.stringify({ notify_only: true, force: true })
+            }).then(r => r.json()).then(d => alert(d.message || d.msg || t('msg_processing')))
+                .catch(e => { console.error(e); alert(t('msg_server_err') || "Server Error"); });
+        }
+
+        function checkWaStatus() {
+            var pass = localStorage.getItem('nms_auth_session');
+            fetch('/api/whatsapp/qr', { headers: { 'X-Auth-Token': pass } }).then(r => r.json()).then(d => {
+                var badges = document.querySelectorAll('.wa-status-badge');
+                var text = (d.status === 'connected') ? t('msg_wa_connected') : (d.status === 'pairing' ? t('msg_wa_pairing') : t('msg_wa_offline'));
+                var cls = (d.status === 'connected') ? "wa-status-badge status-badge status-connected" : (d.status === 'pairing' ? "wa-status-badge status-badge status-pairing" : "wa-status-badge status-disconnected");
+                badges.forEach(b => { b.innerText = text; b.className = cls; });
+            }).catch(e => {
+                console.error(e);
+                var badges = document.querySelectorAll('.wa-status-badge');
+                badges.forEach(b => { b.innerText = t('msg_wa_offline'); b.className = "wa-status-badge status-disconnected"; });
+            });
+        }
+
+        function safeText(v) {
+            if (v === undefined || v === null) return '';
+            var s = String(v);
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+        function normalizeWa(n) {
+            var s = safeText(n).replace(/\D/g, '');
+            if (!s) return '';
+            if (s.startsWith('0')) return '62' + s.slice(1);
+            return s;
+        }
+
+        function sendWaReminder(id, name, phone, bill = 0) {
+            if (!phone) { alert(t('err_no_phone').replace('{name}', name)); return; }
+            if (bill <= 0) {
+                alert(t('msg_no_arrears_rem').replace('{name}', name));
+                return;
+            }
+            if (!confirm(t('conf_send_bill').replace('{bill}', bill.toLocaleString('id-ID')).replace('{name}', name))) return;
+            var pass = localStorage.getItem('nms_auth_session');
+            fetch('/api/whatsapp/test', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass }, body: JSON.stringify({ target: phone, name: name, bill: bill }) })
+                .then(r => r.json()).then(d => alert(d.msg || t('msg_processing')))
+                .catch(e => { console.error(e); alert(t('msg_server_err') || "Server Error"); });
+        }
+
+        function populatePppoeList() {
+            var datalist = document.getElementById('pppoeList');
+            if (!datalist) return;
+            datalist.innerHTML = '';
+            (APP.topology?.clients || []).forEach(c => {
+                if (c.credentials?.pppoe_user) {
+                    var opt = document.createElement('option');
+                    opt.value = c.credentials.pppoe_user;
+                    datalist.appendChild(opt);
+                }
+            });
+        }
+
+        function loadData() {
+            loadBillingSettings();
+            loadTodaySchedule();
+            var pass = localStorage.getItem('nms_auth_session');
+            fetch('/api/data', { headers: { 'X-Auth-Token': pass } }).then(r => r.json()).then(d => {
+                if (d.error) { window.location.href = '/'; return; }
+                APP.topology = d.topology || {}; APP.role = d.role;
+                populatePppoeList();
+                fetch('/api/finance/data', { headers: { 'X-Auth-Token': pass } }).then(r => r.json()).then(f => {
+                    APP.financeData = f || { transactions: [] };
+                    renderArrearsTable();
+                }).catch(() => { APP.financeData = { transactions: [] }; renderArrearsTable(); });
+                if (d.system_settings && d.system_settings.web_title) {
+                    document.title = d.system_settings.web_title;
+                    if (document.getElementById('brandText')) document.getElementById('brandText').innerText = d.system_settings.web_title;
+                }
+                applyLanguage();
+            });
+        }
+
+        function loadTodaySchedule() {
+            var pass = localStorage.getItem('nms_auth_session');
+            fetch('/api/billing/today_schedule', { headers: { 'X-Auth-Token': pass } })
+                .then(r => r.json())
+                .then(d => {
+                    var container = document.getElementById('card-today-schedule');
+                    var tbody = document.getElementById('tbl-today-schedule');
+                    var countBadge = document.getElementById('schedule-count-badge');
+                    var pagingContainer = document.getElementById('schedule-pagination');
+
+                    // Update Title to reflect "Today"
+                    var titleEl = container.querySelector('h3 span[data-lang="lbl_schedule_today"]');
+                    if (titleEl) titleEl.innerText = t('lbl_schedule_today');
+                    else container.querySelector('h3').innerHTML = '<i class="fas fa-calendar-alt me-2"></i> ' + t('lbl_schedule_today');
+
+                    // Only show container if there is something for today
+                    if (!d.schedule || d.schedule.length === 0) {
+                        container.style.display = 'none';
+                        APP.scheduleData = [];
+                        return;
+                    }
+
+                    container.style.display = 'block';
+                    APP.scheduleData = d.schedule; // Store for paging
+                    countBadge.innerText = d.schedule.length + " " + t('lbl_unit_schedule');
+
+                    // PAGINATION LOGIC
+                    var totalItems = d.schedule.length;
+                    var totalPages = Math.ceil(totalItems / APP.scheduleLimit);
+
+                    if (totalPages > 1) {
+                        pagingContainer.style.display = 'flex';
+                        if (APP.schedulePage > totalPages) APP.schedulePage = totalPages;
+                        if (APP.schedulePage < 1) APP.schedulePage = 1;
+
+                        var start = (APP.schedulePage - 1) * APP.scheduleLimit;
+                        var end = start + APP.scheduleLimit;
+                        var paginatedData = d.schedule.slice(start, end);
+
+                        document.getElementById('sch-page-info').innerText = `Page ${APP.schedulePage} of ${totalPages} (${totalItems} items)`;
+                        document.getElementById('btn-sch-prev').disabled = (APP.schedulePage === 1);
+                        document.getElementById('btn-sch-next').disabled = (APP.schedulePage === totalPages);
+                        document.getElementById('btn-sch-prev').style.opacity = (APP.schedulePage === 1) ? '0.3' : '1';
+                        document.getElementById('btn-sch-next').style.opacity = (APP.schedulePage === totalPages) ? '0.3' : '1';
+                    } else {
+                        pagingContainer.style.display = 'none';
+                        var paginatedData = d.schedule;
+                    }
+
+                    tbody.innerHTML = '';
+                    paginatedData.forEach(row => {
+                        var tr = document.createElement('tr');
+                        tr.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
+
+                        var statusCls = row.status === 'Terkirim' ? 'color:#10b981;' : (row.status === 'Terisolir' ? 'color:#ef4444;' : (row.status === 'Selesai / Lunas' ? 'color:#22c55e;' : 'color:#fbbf24;'));
+                        var statusIcon = row.status === 'Terkirim' ? '<i class="fas fa-check-circle"></i> ' : (row.status === 'Terisolir' ? '<i class="fas fa-lock"></i> ' : (row.status === 'Selesai / Lunas' ? '<i class="fas fa-check-double"></i> ' : '<i class="fas fa-clock"></i> '));
+
+                        // Translate status if it's one of our keys
+                        var displayStatus = row.status;
+                        if (row.status === 'Terkirim') displayStatus = t('lbl_status_sent');
+                        else if (row.status === 'Terisolir') displayStatus = t('lbl_status_isolated');
+                        else if (row.status === 'Menunggu') displayStatus = t('lbl_status_waiting');
+                        else if (row.status === 'Selesai / Lunas') displayStatus = t('lbl_status_done');
+
+                        var displayReason = row.reason;
+                        if (row.reason_key === 'h3') displayReason = t('lbl_reason_h3');
+                        else if (row.reason_key === 'eom') displayReason = t('lbl_reason_eom');
+                        else if (row.reason_key === 'pre_isolir') displayReason = t('lbl_reason_pre_isolir');
+                        else if (row.reason_key === 'isolir') displayReason = t('lbl_reason_isolir');
+
+                        tr.innerHTML = `
+                            <td style="padding:10px; color:#38bdf8; white-space:nowrap;">${t('lbl_today')}</td>
+                            <td style="padding:10px; font-weight:bold; color:#f1f5f9;">${safeText(row.name)}</td>
+                            <td style="padding:10px; color:#cbd5e1;">${safeText(row.phone)}</td>
+                            <td style="padding:10px;"><span style="background:rgba(59,130,246,0.1); color:#3b82f6; padding:2px 6px; border-radius:4px; font-size:10px;">${safeText(displayReason)}</span></td>
+                            <td style="padding:10px; font-weight:bold; ${statusCls}">${statusIcon}${safeText(displayStatus)}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }).catch(e => console.error("Schedule error:", e));
+        }
+
+        function changeSchedulePage(delta) {
+            APP.schedulePage += delta;
+            // Immediate re-render from stored data for speed
+            var d = { schedule: APP.scheduleData };
+            // Simulate fetch results to reuse same logic
+            var mockEvent = { schedule: APP.scheduleData };
+            // We can just call loadTodaySchedule because it fetches, but for better UX:
+            // Let's modify loadTodaySchedule to accept data or just re-fetch.
+            // Re-fetching is safer and ensures status is fresh.
+            loadTodaySchedule();
+            document.getElementById('card-today-schedule').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function runNotifyManual() {
+            var mode = document.getElementById('tplModeSelect').value;
+            var modeLabel = (mode === 'auto') ? t('lbl_mode_auto') : t('lbl_mode_manual');
+            if (!confirm(t('msg_confirm_notify') + modeLabel)) return;
+
+            var pass = localStorage.getItem('nms_auth_session');
+            fetch('/api/billing/run_notify_manual', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Auth-Token': pass },
+                body: JSON.stringify({ template_mode: mode })
+            })
+                .then(r => r.json()).then(d => {
+                    if (d.status === 'ok') {
+                        alert(d.msg || t('msg_notify_start'));
+                        loadTodaySchedule();
+                        // START RAPID LOG REFRESH (Visual Feedback)
+                        loadWaLogs(); // Load immediately
+                        var rapidInt = setInterval(loadWaLogs, 1000); // Check every 1s
+                        setTimeout(() => clearInterval(rapidInt), 60000); // Stop rapid check after 1 min
+                    } else {
+                        alert(t('msg_error') + ": " + (d.error || t('msg_notify_fail')));
+                    }
+                }).catch(e => alert(t('alert_conn_failed')));
+        }
+
+
+
+        function loadWaLogs() {
+            var container = document.getElementById('wa-log-container');
+            if (!container) return;
+            // Only show loading on initial empty state to avoid flickering
+            if (container.innerText === t('msg_loading_logs')) container.innerHTML = '<div style="text-align:center; color:#64748b; padding:20px;">' + t('msg_loading_logs') + '</div>';
+
+            var pass = localStorage.getItem('nms_auth_session');
+            // Fetch from NEW dedicated endpoint
+            fetch('/api/logs/wa', { headers: { 'X-Auth-Token': pass } })
+                .then(r => r.json())
+                .then(d => {
+                    container.innerHTML = '';
+                    if (!d || d.length === 0) {
+                        container.innerHTML = '<div style="text-align:center; color:#64748b; padding:10px;">' + t('msg_no_logs') + '</div>';
+                        return;
+                    }
+
+                    // d is array of strings: ["[TIME] Msg", ...]
+                    // Normal Chronological Order (Oldest Top, Newest Bottom)
+                    d.forEach(logStr => {
+                        var status = 'info';
+                        var color = '#cbd5e1';
+                        var text = logStr;
+                        var time = '';
+
+                        // Simple Parsing
+                        // Format: [YYYY-MM-DD HH:MM:SS] Msg...
+                        var match = logStr.match(/^\[(.*?)\]\s*(.*)/);
+                        if (match) {
+                            time = match[1]; // Timestamp
+                            text = match[2]; // Message content
+                        }
+
+                        // Determine status color
+                        if (text.includes('SUCCESS') || text.includes('berhasil')) { status = 'success'; color = '#22c55e'; }
+                        else if (text.includes('ERROR') || text.includes('CRITICAL') || text.includes('shutdown')) { status = 'error'; color = '#ef4444'; }
+                        else if (text.includes('START')) { status = 'start'; color = '#3b82f6'; }
+                        else if (text.includes('SEND')) { status = 'sent'; color = '#eab308'; }
+
+                        var item = document.createElement('div');
+                        item.style.padding = '4px 0';
+                        item.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                        item.innerHTML = `<span style="color:#64748b; margin-right:8px; font-size:10px;">${safeText(time)}</span> 
+                                          <span style="color:${color}; font-weight:bold; margin-right:8px;">[${status.toUpperCase()}]</span> 
+                                          <span style="color:#e2e8f0;">${safeText(text)}</span>`;
+                        container.appendChild(item);
+                    });
+
+                    // Auto-Scroll to Bottom (Terminal Style)
+                    container.scrollTop = container.scrollHeight;
+                })
+                .catch(e => {
+                    // Fail silently on refresh to avoid annoying user
+                    console.log("Log fetch error: " + e);
+                });
+        }
+
+        function goToDash(t) { if (t === 'dash') window.location.href = '/dashboard'; }
+        function doLogout() { localStorage.removeItem('nms_auth_session'); window.location.href = '/'; }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            loadWaLogs();
+            // Auto Refresh Log every 10s
+            setInterval(loadWaLogs, 10000);
+        });
+    </script>
+
+</body>
+
+</html>

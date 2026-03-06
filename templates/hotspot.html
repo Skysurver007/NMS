@@ -1,0 +1,2213 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script>try { var t = localStorage.getItem('nms_web_title'); if (t) document.title = t; } catch (e) { }</script>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="/static/css/all.min.css"
+        onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="/static/js/lang_dict.js"></script>
+    <script>initAntiFlicker();</script>
+    <style>
+        /* Sorting Styles */
+        .sortable {
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .sortable:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .sort-icon {
+            font-size: 10px;
+            margin-left: 5px;
+            opacity: 0.5;
+        }
+
+        .sort-icon.active {
+            opacity: 1;
+            color: #38bdf8;
+        }
+
+        /* Flexible Table Fix */
+        .table-wrap {
+            width: 100%;
+            border-radius: 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Compact Generator */
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            margin-bottom: 4px;
+            display: block;
+            color: #94a3b8;
+        }
+
+        .input,
+        .select {
+            padding: 8px 10px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 768px) {
+
+            .table th,
+            .table td {
+                padding: 8px 6px;
+                font-size: 11px;
+            }
+
+            .form-group {
+                min-width: 45%;
+            }
+
+            .table {
+                min-width: 400px;
+            }
+
+            .btn {
+                padding: 10px;
+                font-size: 12px;
+            }
+        }
+
+        /* Pagination Styles */
+        .pagination-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .pagination-btns {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-page {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-page:hover:not(:disabled) {
+            border-color: #38bdf8;
+            color: #38bdf8;
+        }
+
+        .btn-page:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn-page.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .modal-tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 15px;
+        }
+
+        .modal-tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            color: #94a3b8;
+            border-bottom: 2px solid transparent;
+            transition: 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .modal-tab:hover {
+            color: #fff;
+        }
+
+        .modal-tab.active {
+            color: #38bdf8;
+            border-bottom-color: #38bdf8;
+        }
+
+        .modal-tab-pane {
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-tab-pane.active {
+            display: flex;
+        }
+
+        /* --- PREMIUM TOAST NOTIFICATION --- */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast-msg {
+            min-width: 250px;
+            background: #1e293b;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border-left: 5px solid #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            animation: toast-slide-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .toast-msg.success {
+            border-left-color: #10b981;
+        }
+
+        .toast-msg.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast-msg.warning {
+            border-left-color: #f59e0b;
+        }
+
+        @keyframes toast-slide-in {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-fade-out {
+            animation: toast-fade-out 0.4s ease-in forwards !important;
+        }
+
+        @keyframes toast-fade-out {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(40px);
+                opacity: 0;
+            }
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: #e2e8f0;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .form-check input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            width: 100%;
+        }
+
+        /* Professional Hotspot UI Styles */
+        .card {
+            background: rgba(30, 41, 59, 0.7) !important;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input,
+        .select {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #f1f5f9;
+            border-radius: 6px;
+        }
+
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .status-online {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        .status-offline {
+            background: rgba(148, 163, 184, 0.2);
+            color: #cbd5e1;
+        }
+
+        .status-disabled {
+            background: rgba(239, 68, 68, 0.2);
+            color: #f87171;
+        }
+
+        /* Updated Professional Table Styles */
+        .table th {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748b;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+            padding: 18px 15px;
+            background: rgba(15, 23, 42, 0.2);
+            font-weight: 800;
+            vertical-align: middle;
+        }
+
+        .table td {
+            padding: 14px 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .table tbody tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.015);
+        }
+
+        .table tr:hover td {
+            background: rgba(56, 189, 248, 0.04) !important;
+        }
+
+        .user-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px 12px 0 0;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box-wrap {
+            position: relative;
+            flex: 1 1 400px;
+            max-width: 500px;
+        }
+
+        .search-box-wrap i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .search-input-premium {
+            width: 100%;
+            padding-left: 35px !important;
+            height: 40px;
+            background: rgba(15, 23, 42, 0.6) !important;
+            border-color: rgba(255, 255, 255, 0.1) !important;
+            border-radius: 10px !important;
+        }
+
+        .search-input-premium:focus {
+            border-color: #38bdf8 !important;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.1);
+        }
+
+        .batch-action-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .prof-badge-premium {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+            display: inline-block;
+        }
+
+        .limit-badge-premium {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbd38d;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            display: inline-block;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+        }
+
+        .btn-icon:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #38bdf8;
+            color: #38bdf8;
+            transform: translateY(-1px);
+        }
+
+        .modal-nms {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-nms.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content-nms {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            padding: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .modal-nms.active .modal-content-nms {
+            transform: scale(1) translateY(0);
+        }
+
+        /* Empty State Table */
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: 15px;
+            opacity: 0.3;
+            display: block;
+        }
+
+        .btn {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+
+<body data-page-key="sb_hotspot">
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <div id="loginBranding" style="text-align:center; margin-bottom:20px;">
+                <h2 id="loginTitle" style="margin:0;"></h2>
+            </div>
+            <input type="password" id="passInput" data-lang="ph_password" data-lang-target="placeholder"
+                onkeyup="if(event.key==='Enter') doLogin()">
+            <button class="btn btn-primary" onclick="doLogin()" data-lang="btn_login"></button>
+            <div id="loginMsg" data-lang="msg_pwd_wrong"></div>
+        </div>
+    </div>
+
+    <div class="overlay-bg" onclick="toggleSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="brand-wrapper"
+            style="display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; margin-bottom: 20px;">
+            <button class="btn-sidebar-toggle desktop-only" onclick="toggleMiniSidebar()"
+                style="background:none; border:none; color:white; font-size:20px; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:1001;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="brand-text" id="brandText"
+                style="font-weight:800; color:#3b82f6; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:8px; flex:1; transition: all 0.3s ease;"></span>
+        </div>
+
+        <div class="menu-label" data-lang="sb_h_main"></div>
+
+        <a href="/" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-home me-2"></i> <span data-lang="sb_dash"></span>
+        </a>
+
+        <a href="/maps" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-map-marked-alt me-2"></i> <span data-lang="sb_map"></span>
+        </a>
+
+        <a href="/client" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-users me-2"></i> <span data-lang="sb_client"></span>
+        </a>
+
+        <a href="/pppoe" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_pppoe"></span>
+        </a>
+
+        <!-- HOTSPOT MENU Active -->
+        <div class="menu-item active" onclick="window.location.reload()">
+            <i class="fas fa-wifi me-2"></i> <span data-lang="sb_hotspot"></span>
+        </div>
+
+        <div class="menu-label" data-lang="sb_h_admin"></div>
+
+        <a href="/network" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-boxes me-2"></i> <span data-lang="sb_inv"></span>
+        </a>
+
+        <a href="/network?tab=infra" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_infra"></span>
+        </a>
+
+        <a href="/billing" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-file-invoice-dollar me-2"></i> <span data-lang="sb_bill"></span>
+        </a>
+
+        <a href="/finance" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wallet me-2"></i> <span data-lang="sb_fin"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_mon"></div>
+
+        <a href="/monitor?tab=traffic" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-chart-line me-2"></i> <span data-lang="sb_traffic"></span>
+        </a>
+
+        <a href="/monitor?tab=logs" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-history me-2"></i> <span data-lang="sb_logs"></span>
+        </a>
+
+        <a href="/settings" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-cog me-2"></i> <span data-lang="sb_set"></span>
+        </a>
+
+        <a href="/about" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-info-circle me-2"></i> <span data-lang="sb_about"></span>
+        </a>
+
+        <div class="menu-item menu-danger" onclick="doLogout()">
+            <i class="fas fa-sign-out-alt me-2"></i> <span data-lang="sb_logout"></span>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="mobile-head">
+            <button id="btnToggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="mobile-brand" id="mobileBrandText"></span>
+        </div>
+
+        <div class="row space" style="margin-bottom: 20px; align-items: flex-start;">
+            <div style="display:flex; flex-direction:column">
+                <h2 id="page-title" class="header" data-lang="sb_hotspot"
+                    style="margin:0; border-left:none; padding-left:0; line-height:1;"></h2>
+                <div style="margin-top:5px; display:flex; flex-direction:column">
+                    <h2 id="hs-main-title"
+                        style="margin:0; font-size:16px; color:#f1f5f9; text-transform:uppercase; letter-spacing:1px"
+                        data-lang="pg_hotspot_title"></h2>
+                    <p id="hs-sub-title" style="margin:0; font-size:11px; color:#94a3b8;"
+                        data-lang="pg_hotspot_subtitle"></p>
+                </div>
+                <script>
+                    (function () {
+                        var lang = localStorage.getItem('nms_lang') || 'id';
+                        var dict = (typeof LANG_DICT !== 'undefined' && LANG_DICT[lang]) ? LANG_DICT[lang] : {};
+                        var t1 = document.getElementById('hs-main-title');
+                        var t2 = document.getElementById('hs-sub-title');
+                        if (t1) t1.innerText = dict['pg_hotspot_title'] || (lang === 'en' ? 'HOTSPOT MANAGEMENT' : 'MANAJEMEN HOTSPOT');
+                        if (t2) t2.innerText = dict['pg_hotspot_subtitle'] || (lang === 'en' ? 'Manage vouchers, active users, and MikroTik Hotspot speed profiles.' : 'Kelola voucher, pengguna aktif, dan profil kecepatan Hotspot MikroTik.');
+                    })();
+                </script>
+            </div>
+            <div
+                style="border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; font-size: 11px; color: #94a3b8; background: rgba(15, 23, 42, 0.6);">
+                <span data-lang="lbl_lang_prefix">LANG: </span><span id="currentLangDisplay"
+                    style="color: #38bdf8; font-weight: bold;"></span>
+            </div>
+        </div>
+
+        <!-- HOTSPOT CONTENT -->
+        <div id="pg-hotspot">
+            <div class="card">
+                <!-- Global Router Selector for Hotspot Module -->
+                <div class="row space"
+                    style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                        <label style="min-width:100px;" data-lang="lbl_target_server"></label>
+                        <select id="hsRouter" class="select" onchange="onHotspotRouterChange()"
+                            style="max-width:500px;"></select>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <div id="tabHsGen" class="tab active" onclick="setHotspotTab('gen')" data-lang="hs_u_gen"></div>
+                    <div id="tabHsList" class="tab" onclick="setHotspotTab('list')" data-lang="hs_u_list"></div>
+                    <div id="tabHsActive" class="tab" onclick="setHotspotTab('active')" data-lang="hs_u_act"></div>
+                    <div id="tabHsProflist" class="tab" onclick="setHotspotTab('proflist')" data-lang="hs_u_proflist">
+                    </div>
+                    <div id="tabHsProfadd" class="tab" onclick="setHotspotTab('profadd')" data-lang="hs_u_profadd">
+                    </div>
+                </div>
+
+                <!-- GENERATE TAB -->
+                <div id="paneHsGen">
+                    <p data-lang="hs_desc_gen"
+                        style="margin-top:-5px; margin-bottom:15px; font-size:13px; color:#94a3b8; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:10px;">
+                    </p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-lang="hs_u_prof"></label>
+                            <select id="hsProfile" class="select">
+                                <option value="" data-lang="opt_select_prof"></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_qty"></label>
+                            <input id="hsQty" type="number" class="input" value="10" min="1" max="500">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_limit_uptime"></label>
+                            <input id="hsTime" class="input" data-lang="hs_ph_time" data-lang-target="placeholder">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_limit_data"></label>
+                            <input id="hsData" class="input" data-lang="hs_ph_data" data-lang-target="placeholder">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_prefix"></label>
+                            <input id="hsPrefix" class="input" data-lang="hs_ph_prefix" data-lang-target="placeholder">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_theme"></label>
+                            <select id="hsTheme" class="select">
+                                <option value="modern" data-lang="hs_theme_modern"></option>
+                                <option value="minimal" data-lang="hs_theme_minimal"></option>
+                                <option value="color" data-lang="hs_theme_color"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-top:10px">
+                        <div class="form-group">
+                            <label data-lang="hs_gen_mode"></label>
+                            <select id="hsGenMode" class="select">
+                                <option value="up" data-lang="hs_gen_mode_up"></option>
+                                <option value="vc" data-lang="hs_gen_mode_vc"></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_char_type"></label>
+                            <select id="hsCharType" class="select">
+                                <option value="rand" data-lang="hs_char_num"></option>
+                                <option value="abc" data-lang="hs_char_abc"></option>
+                                <option value="ABC" data-lang="hs_char_ABC"></option>
+                                <option value="mix" data-lang="hs_char_mix"></option>
+                                <option value="MIX" data-lang="hs_char_MIX"></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_char_len"></label>
+                            <input id="hsCharLen" type="number" class="input" value="6" min="3" max="12">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_comment"></label>
+                            <input id="hsComment" class="input" data-lang="hs_ph_comment"
+                                data-lang-target="placeholder">
+                        </div>
+                    </div>
+
+                    <div class="form-row" style="margin-top:10px">
+                        <div class="form-group">
+                            <label data-lang="hs_server_prof"></label>
+                            <select id="hsServerProfile" class="select" onchange="onHsServerProfileChange()">
+                                <option value="" data-lang="opt_select_prof">-- Auto --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_login_url"></label>
+                            <input id="hsDnsName" class="input" data-lang="hs_ph_login_url"
+                                data-lang-target="placeholder">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" style="margin-top:15px; width:100%" onclick="generateVouchers()">⚡
+                        <span data-lang="hs_btn_generate"></span></button>
+
+                    <!-- RESULT AREA -->
+                    <div id="hsGenResultArea" class="hidden"
+                        style="margin-top:20px; border-top:1px dashed #333; padding-top:20px;">
+                        <div class="row space">
+                            <h4 style="margin:0" data-lang="hs_generated_title"></h4>
+                            <button class="btn btn-accent" onclick="printVoucherResult()">🖨️ <span
+                                    data-lang="hs_btn_print_result"></span></button>
+                        </div>
+                        <div class="table-wrap" style="max-height:300px; overflow-y:auto; margin-top:10px">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="sortable" onclick="setGenSort('name')"><span
+                                                data-lang="th_username"></span> <i id="sort-gen-name"
+                                                class="fas fa-sort sort-icon"></i></th>
+                                        <th data-lang="th_password"></th>
+                                        <th class="sortable" onclick="setGenSort('profile')"><span
+                                                data-lang="th_profile"></span> <i id="sort-gen-profile"
+                                                class="fas fa-sort sort-icon"></i></th>
+                                        <th class="sortable" onclick="setGenSort('limit_uptime')"><span
+                                                data-lang="th_limit"></span> <i id="sort-gen-limit_uptime"
+                                                class="fas fa-sort sort-icon"></i></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hsGenResultTable"></tbody>
+                            </table>
+                        </div>
+                        <div id="hsGenPagination" class="pagination-wrapper"></div>
+                    </div>
+                </div>
+
+                <!-- LIST TAB -->
+                <div id="paneHsList" class="hidden">
+                    <p data-lang="hs_desc_list"
+                        style="margin-top:-5px; margin-bottom:15px; font-size:13px; color:#94a3b8; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:10px;">
+                    </p>
+                    <div class="user-header-actions">
+                        <div class="search-box-wrap">
+                            <i class="fas fa-search"></i>
+                            <input id="hsFilterComment" class="input search-input-premium" data-lang="ph_filter_batch"
+                                data-lang-target="placeholder" onkeyup="if(event.key==='Enter') loadHotspotUsers()">
+                        </div>
+                        <div class="batch-action-group">
+                            <button class="btn btn-primary"
+                                style="height:40px; border-radius:12px; padding: 0 20px; font-weight: 700; letter-spacing: 0.5px;"
+                                onclick="openHotspotUserModal()">
+                                <i class="fas fa-plus-circle me-1"></i> <span data-lang="btn_add_user">TAMBAH</span>
+                            </button>
+                            <button class="btn-icon" onclick="loadHotspotUsers()" title="Refresh"><i
+                                    class="fas fa-sync-alt"></i></button>
+                            <button class="btn-icon" onclick="printHotspotBatch()" title="Print"><i
+                                    class="fas fa-print"></i></button>
+                            <button class="btn-icon"
+                                style="color:#ef4444; background: rgba(239, 68, 68, 0.05); border-color: rgba(239, 68, 68, 0.1);"
+                                onclick="deleteHotspotBatch()" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th style="width:30px"><input type="checkbox" id="hsCheckAll"
+                                            onchange="toggleHsCheckAll()"></th>
+                                    <th class="sortable" onclick="setListSort('name')"><span
+                                            data-lang="th_username"></span> <i id="sort-list-name"
+                                            class="fas fa-sort sort-icon"></i></th>
+                                    <th data-lang="th_password"></th>
+                                    <th class="sortable" onclick="setListSort('profile')"><span
+                                            data-lang="th_profile"></span> <i id="sort-list-profile"
+                                            class="fas fa-sort sort-icon"></i></th>
+                                    <th class="sortable" onclick="setListSort('limit_uptime')"><span
+                                            data-lang="th_limit"></span> <i id="sort-list-limit_uptime"
+                                            class="fas fa-sort sort-icon"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="hsListBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="hsListPagination" class="pagination-wrapper"></div>
+                </div>
+
+                <!-- ACTIVE TAB -->
+                <div id="paneHsActive" class="hidden">
+                    <p data-lang="hs_desc_act"
+                        style="margin-top:-5px; margin-bottom:15px; font-size:13px; color:#94a3b8; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:10px;">
+                    </p>
+                    <button class="btn-sm btn-accent" style="margin-bottom:10px" onclick="loadActiveHotspot()"
+                        data-lang="btn_refresh">🔄
+                    </button>
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" onclick="setActiveSort('server')"><span
+                                            data-lang="hs_server"></span> <i id="sort-act-server"
+                                            class="fas fa-sort sort-icon"></i></th>
+                                    <th class="sortable" onclick="setActiveSort('user')"><span
+                                            data-lang="th_user"></span>
+                                        <i id="sort-act-user" class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" onclick="setActiveSort('address')"><span
+                                            data-lang="hs_ip_address"></span> <i id="sort-act-address"
+                                            class="fas fa-sort sort-icon"></i></th>
+                                    <th class="sortable" onclick="setActiveSort('uptime')"><span
+                                            data-lang="lbl_uptime"></span> <i id="sort-act-uptime"
+                                            class="fas fa-sort sort-icon"></i></th>
+                                    <th data-lang="th_bytes"></th>
+                                    <th style="width:60px" data-lang="th_action"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="hsActiveBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="hsActivePagination" class="pagination-wrapper"></div>
+                </div>
+
+                <!-- LIST PROFIL TAB -->
+                <div id="paneHsProflist" class="hidden">
+                    <p data-lang="hs_desc_prof"
+                        style="margin-top:-5px; margin-bottom:15px; font-size:13px; color:#94a3b8; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:10px;">
+                    </p>
+                    <div class="row space" style="margin-bottom:10px">
+                        <h4 style="margin:0" data-lang="hs_u_proflist"></h4>
+                        <button class="btn-sm btn-accent" onclick="loadHotspotProfilesList()"
+                            data-lang="btn_refresh"></button>
+                    </div>
+                    <div class="table-wrap" style="max-height:450px; overflow-y:auto">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" onclick="setProfSort('name')" data-lang="th_name">Nama Profil
+                                        <i id="sort-prof-name" class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" onclick="setProfSort('rate-limit')" data-lang="th_rate_limit">
+                                        Rate Limit <i id="sort-prof-ratelimit" class="fas fa-sort sort-icon"></i></th>
+                                    <th class="sortable" onclick="setProfSort('shared-users')" data-lang="th_shared">
+                                        Shared <i id="sort-prof-sharedusers" class="fas fa-sort sort-icon"></i></th>
+                                    <th style="width:100px" data-lang="th_action">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hsProfileListTable"></tbody>
+                        </table>
+                    </div>
+                    <div id="hsProfPagination" class="pagination-wrapper"></div>
+                </div>
+
+                <!-- TAMBAH PROFIL TAB -->
+                <div id="paneHsProfadd" class="hidden">
+                    <p
+                        style="margin-top:-5px; margin-bottom:15px; font-size:13px; color:#94a3b8; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:10px;">
+                        Atur profil kecepatan dan masa aktif untuk paket voucher hotspot.
+                    </p>
+                    <div style="width:100%; display: flex; flex-direction: column; gap: 20px;">
+                        <h4 style="margin-top:0; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px"
+                            data-lang="hs_create_prof">Buat Profil Baru</h4>
+
+                        <div class="form-grid" style="margin-top:10px">
+                            <div class="form-group">
+                                <label data-lang="hs_prof_name">Nama Profil</label>
+                                <input id="hspName" class="input" placeholder="Wajib (cth: 5Mbps)">
+                            </div>
+                            <div class="form-grid" style="margin-top:10px">
+                                <div class="form-group">
+                                    <label data-lang="hs_addr_pool"></label>
+                                    <select id="hspPool" class="select" style="width:100%"></select>
+                                </div>
+                            </div>
+
+                            <div class="form-grid" style="margin-top:10px">
+                                <div class="form-group">
+                                    <label data-lang="hs_shared_users"></label>
+                                    <input id="hspShared" type="number" class="input" value="1">
+                                </div>
+                                <div class="form-group">
+                                    <label data-lang="hs_rate_limit"></label>
+                                    <input id="hspRate" class="input" data-lang="hsp_ph_rate"
+                                        data-lang-target="placeholder">
+                                </div>
+                            </div>
+
+                            <div class="form-grid" style="margin-top:10px">
+                                <div class="form-group">
+                                    <label data-lang="hs_session_timeout"></label>
+                                    <input id="hspTimeout" class="input" data-lang="hsp_ph_timeout"
+                                        data-lang-target="placeholder">
+                                </div>
+                                <div class="form-group">
+                                    <label data-lang="hs_idle_timeout"></label>
+                                    <input id="hspIdle" class="input" data-lang="lbl_none"
+                                        data-lang-target="placeholder">
+                                </div>
+                            </div>
+
+                            <div class="form-grid" style="margin-top:10px">
+                                <div class="form-group">
+                                    <label data-lang="hs_parent_queue"></label>
+                                    <select id="hspParent" class="select" style="width:100%"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label data-lang="hs_queue_type"></label>
+                                    <select id="hspQueueType" class="select" style="width:100%"></select>
+                                </div>
+                            </div>
+
+                            <button class="btn btn-primary" style="margin-top:20px; width:100%; font-weight:bold"
+                                onclick="addHotspotProfile()" data-lang="hs_prof_btn_create"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL ADD/EDIT USER -->
+        <div id="modalHsUser" class="modal-nms">
+            <div class="modal-content-nms" style="max-width:600px;">
+                <div class="row space"
+                    style="margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
+                    <h3 id="modalHsUserTitle" style="margin:0;" data-lang="hs_u_title_add"></h3>
+                    <button class="btn-icon" onclick="closeHotspotUserModal()">✕</button>
+                </div>
+                <input type="hidden" id="editHsUserId">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label data-lang="hs_server_prof"></label>
+                        <select id="formHsServer" class="select" style="width:100%">
+                            <option value="all">all</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label data-lang="hs_gen_mode"></label>
+                        <select id="formHsMode" class="select" style="width:100%" onchange="onModalHsModeChange()">
+                            <option value="up" data-lang="hs_gen_mode_up"></option>
+                            <option value="vc" data-lang="hs_gen_mode_vc"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-grid" style="margin-top:10px">
+                    <div class="form-group">
+                        <label data-lang="th_username"></label>
+                        <input id="formHsName" class="input" style="width:100%" data-lang="th_username"
+                            data-lang-target="placeholder"
+                            onkeyup="if(document.getElementById('formHsMode').value === 'up') document.getElementById('formHsPass').value = this.value">
+                    </div>
+                    <div class="form-group">
+                        <label id="lblFormHsPass" data-lang="th_password"></label>
+                        <input id="formHsPass" class="input" style="width:100%" data-lang="th_password"
+                            data-lang-target="placeholder">
+                    </div>
+                </div>
+
+                <div class="form-grid" style="margin-top:10px">
+                    <div class="form-group">
+                        <label data-lang="th_profile"></label>
+                        <select id="formHsProfile" class="select" style="width:100%"></select>
+                    </div>
+                    <div class="form-group">
+                        <label data-lang="hs_comment"></label>
+                        <input id="formHsComment" class="input" style="width:100%" data-lang="hs_comment"
+                            data-lang-target="placeholder">
+                    </div>
+                </div>
+
+                <div class="form-grid" style="margin-top:10px">
+                    <div class="form-group">
+                        <label data-lang="hs_limit_uptime"></label>
+                        <input id="formHsTime" class="input" style="width:100%" data-lang="hs_ph_time"
+                            data-lang-target="placeholder">
+                    </div>
+                    <div class="form-group">
+                        <label data-lang="hs_limit_data"></label>
+                        <input id="formHsData" class="input" style="width:100%" data-lang="hs_ph_data"
+                            data-lang-target="placeholder">
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top:25px; text-align:right; border-top:1px solid rgba(255,255,255,0.05); padding-top:15px">
+                    <button class="btn" onclick="closeHotspotUserModal()" data-lang="btn_cancel"></button>
+                    <button class="btn btn-primary" onclick="saveHotspotUser()"
+                        style="padding: 10px 25px; font-weight:bold" data-lang="btn_save"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL EDIT PROFILE -->
+        <div id="modalHsProfile" class="modal-nms">
+            <div class="modal-content-nms" style="min-width:600px">
+                <div class="row space"
+                    style="margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px;">
+                    <h3 id="modalHsProfileTitle" style="margin:0;">Edit Profile</h3>
+                    <button class="btn-icon" onclick="closeHotspotProfileModal()">✕</button>
+                </div>
+                <input type="hidden" id="editHsProfId">
+
+                <div class="modal-tabs">
+                    <div id="mTabProfGen" class="modal-tab active" onclick="setModalProfTab('gen')"
+                        data-lang="hs_prof_tab_gen"></div>
+                    <div id="mTabProfQueue" class="modal-tab" onclick="setModalProfTab('queue')"
+                        data-lang="hs_prof_tab_queue"></div>
+                </div>
+
+                <!-- Tab General -->
+                <div id="mPaneProfGen" class="modal-tab-pane active">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-lang="hs_prof_name"></label>
+                            <input id="formHspNameModal" class="input" style="width:100%" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_addr_pool"></label>
+                            <select id="formHspPoolModal" class="select" style="width:100%"></select>
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-lang="hs_shared_users"></label>
+                            <input id="formHspSharedModal" type="number" class="input" style="width:100%" value="1">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_rate_limit"></label>
+                            <input id="formHspRateModal" class="input" style="width:100%" data-lang="hsp_ph_rate"
+                                data-lang-target="placeholder">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-lang="hs_session_timeout"></label>
+                            <input id="formHspSessionModal" class="input" style="width:100%" data-lang="hsp_ph_timeout"
+                                data-lang-target="placeholder">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_idle_timeout"></label>
+                            <input id="formHspIdleModal" class="input" style="width:100%" data-lang="lbl_none"
+                                data-lang-target="placeholder">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-lang="hs_keepalive_timeout"></label>
+                            <input id="formHspKeepModal" class="input" style="width:100%" placeholder="00:02:00">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_status_autorefresh"></label>
+                            <input id="formHspRefreshModal" class="input" style="width:100%" placeholder="00:01:00">
+                        </div>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-lang="hs_addr_list"></label>
+                            <input id="formHspAddrListModal" class="input" style="width:100%" placeholder="cth: isolir">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_mac_cookie_timeout"></label>
+                            <input id="formHspCookieTimeModal" class="input" style="width:100%"
+                                placeholder="3d 00:00:00">
+                        </div>
+                    </div>
+                    <label class="form-check">
+                        <input type="checkbox" id="formHspCookieModal"> Add MAC Cookie
+                    </label>
+                </div>
+
+                <!-- Tab Queue -->
+                <div id="mPaneProfQueue" class="modal-tab-pane">
+                    <div class="form-group">
+                        <label data-lang="hs_parent_queue"></label>
+                        <select id="formHspParentModal" class="select" style="width:100%"></select>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-lang="hs_queue_type"></label>
+                            <select id="formHspQueueTypeModal" class="select" style="width:100%"></select>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_insert_before"></label>
+                            <select id="formHspInsertBeforeModal" class="select" style="width:100%">
+                                <option value="first" data-lang="hs_first"></option>
+                                <option value="last" data-lang="hs_last"></option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top:20px; text-align:right; border-top:1px solid rgba(255,255,255,0.05); padding-top:15px">
+                    <button class="btn" onclick="closeHotspotProfileModal()" data-lang="btn_cancel"></button>
+                    <button class="btn btn-primary" onclick="saveHotspotProfileChanges()"
+                        data-lang="hs_prof_btn_save"></button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // --- UI UTILS ---
+            function showToast(msg, type = 'success') {
+                const container = document.getElementById('toast-container');
+                if (!container) {
+                    const div = document.createElement('div');
+                    div.id = 'toast-container';
+                    document.body.appendChild(div);
+                }
+                const toast = document.createElement('div');
+                toast.className = `toast-msg ${type}`;
+                const icon = type === 'success' ? 'check-circle' : (type === 'error' ? 'exclamation-circle' : 'exclamation-triangle');
+                toast.innerHTML = `<i class="fas fa-${icon}"></i> <span>${msg}</span>`;
+                document.getElementById('toast-container').appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.add('toast-fade-out');
+                    setTimeout(() => toast.remove(), 400);
+                }, 3000);
+            }
+
+            function toggleSidebar() {
+                const sidebar = document.querySelector('.sidebar');
+                const overlay = document.querySelector('.overlay-bg');
+                if (sidebar) sidebar.classList.toggle('active');
+                if (overlay) overlay.classList.toggle('active');
+            }
+
+            function onModalHsModeChange() {
+                var mode = document.getElementById('formHsMode').value;
+                var name = document.getElementById('formHsName').value;
+                var passEl = document.getElementById('formHsPass');
+                if (mode === 'up') {
+                    passEl.value = name;
+                    passEl.readOnly = true;
+                    passEl.style.opacity = '0.5';
+                } else {
+                    passEl.readOnly = false;
+                    passEl.style.opacity = '1';
+                    if (passEl.value === name) passEl.value = '';
+                }
+            }
+
+            // --- HOTSPOT USER MODAL ---
+            function openHotspotUserModal(userId = null) {
+                const modal = document.getElementById('modalHsUser');
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('active'), 10);
+                const title = document.getElementById('modalHsUserTitle');
+
+                // Fill selects from generator
+                document.getElementById('formHsProfile').innerHTML = document.getElementById('hsProfile').innerHTML;
+                document.getElementById('formHsServer').innerHTML = document.getElementById('hsServerProfile').innerHTML;
+
+                if (userId) {
+                    title.setAttribute('data-lang', 'hs_u_title_edit');
+                    const user = APP.hsList.find(u => u.id === userId);
+                    if (user) {
+                        document.getElementById('editHsUserId').value = user.id;
+                        document.getElementById('formHsName').value = user.name;
+                        document.getElementById('formHsPass').value = user.password || '';
+                        document.getElementById('formHsProfile').value = user.profile;
+                        document.getElementById('formHsServer').value = user.server || 'all';
+                        document.getElementById('formHsTime').value = user.limit_uptime || '';
+                        document.getElementById('formHsData').value = user.limit_bytes || '';
+                        document.getElementById('formHsComment').value = user.comment || '';
+
+                        // Detect mode
+                        var mode = (user.name === user.password || !user.password) ? 'up' : 'vc';
+                        document.getElementById('formHsMode').value = mode;
+                    }
+                } else {
+                    title.setAttribute('data-lang', 'hs_u_title_add');
+                    document.getElementById('editHsUserId').value = '';
+                    document.getElementById('formHsName').value = '';
+                    document.getElementById('formHsPass').value = '';
+                    document.getElementById('formHsComment').value = '';
+                    document.getElementById('formHsTime').value = '';
+                    document.getElementById('formHsData').value = '';
+                    document.getElementById('formHsServer').value = 'all';
+                    document.getElementById('formHsMode').value = 'up';
+                }
+                if (window.applyLanguage) applyLanguage(modal);
+                onModalHsModeChange();
+            }
+
+            function closeHotspotUserModal() {
+                const modal = document.getElementById('modalHsUser');
+                modal.classList.remove('active');
+                setTimeout(() => modal.style.display = 'none', 300);
+            }
+
+            function saveHotspotUser() {
+                const routerId = document.getElementById('hsRouter').value;
+                const userId = document.getElementById('editHsUserId').value;
+
+                var name = document.getElementById('formHsName').value;
+                var mode = document.getElementById('formHsMode').value;
+                var pass = (mode === 'up') ? name : document.getElementById('formHsPass').value;
+
+                const data = {
+                    router_id: routerId,
+                    id: userId,
+                    name: name,
+                    password: pass,
+                    profile: document.getElementById('formHsProfile').value,
+                    server: document.getElementById('formHsServer').value,
+                    limit_uptime: document.getElementById('formHsTime').value,
+                    limit_bytes: document.getElementById('formHsData').value,
+                    comment: document.getElementById('formHsComment').value
+                };
+
+                const url = userId ? '/api/hotspot/user/update' : '/api/hotspot/user/create';
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(data)
+                }).then(r => r.json()).then(res => {
+                    if (res.status === 'ok') {
+                        showToast(t('alert_saved'), 'success');
+                        closeHotspotUserModal();
+                        loadHotspotUsers();
+                    } else showToast(res.error || "Gagal menyimpan", 'error');
+                }).catch(e => showToast("Error: " + e, 'error'));
+            }
+
+            function toggleHotspotUserStatus(id, currentDisabled) {
+                const routerId = document.getElementById('hsRouter').value;
+                fetch('/api/hotspot/user/toggle', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ router_id: routerId, id: id, disabled: !currentDisabled })
+                }).then(r => r.json()).then(res => {
+                    if (res.status === 'ok') {
+                        showToast(t('alert_saved'), 'success');
+                        loadHotspotUsers();
+                    } else showToast(res.error, 'error');
+                }).catch(e => {
+                    console.error(e);
+                    showToast(t('msg_error') || 'Gagal mengubah status', 'error');
+                });
+            }
+
+            // --- HOTSPOT PROFILE MODAL ---
+            function setModalProfTab(t) {
+                document.querySelectorAll('#modalHsProfile .modal-tab').forEach(el => el.classList.remove('active'));
+                document.querySelectorAll('#modalHsProfile .modal-tab-pane').forEach(el => el.classList.remove('active'));
+                if (t === 'gen') {
+                    document.getElementById('mTabProfGen').classList.add('active');
+                    document.getElementById('mPaneProfGen').classList.add('active');
+                } else {
+                    document.getElementById('mTabProfQueue').classList.add('active');
+                    document.getElementById('mPaneProfQueue').classList.add('active');
+                }
+            }
+
+            function populateResourceDropdowns() {
+                // Pools
+                const poolOptions = '<option value="none">none</option>' + APP.resources.pools.map(p => `<option value="${p}">${p}</option>`).join('');
+                document.getElementById('hspPool').innerHTML = poolOptions;
+                document.getElementById('formHspPoolModal').innerHTML = poolOptions;
+
+                // Parent Queue
+                const queueOptions = '<option value="none">none</option>' + APP.resources.queues.map(q => `<option value="${q}">${q}</option>`).join('');
+                document.getElementById('hspParent').innerHTML = queueOptions;
+                document.getElementById('formHspParentModal').innerHTML = queueOptions;
+
+                // Queue Type
+                const qtypeOptions = APP.resources.qtypes.map(t => `<option value="${t}">${t}</option>`).join('');
+                document.getElementById('hspQueueType').innerHTML = qtypeOptions;
+                document.getElementById('formHspQueueTypeModal').innerHTML = qtypeOptions;
+            }
+
+            function openHotspotProfileModal(id) {
+                const modal = document.getElementById('modalHsProfile');
+                modal.style.display = 'flex';
+                setTimeout(() => modal.classList.add('active'), 10);
+                const prof = APP.hsProfiles.find(p => p.id === id);
+                if (!prof) return;
+
+                setModalProfTab('gen');
+                document.getElementById('editHsProfId').value = prof.id;
+                document.getElementById('formHspNameModal').value = prof.name;
+                document.getElementById('formHspRateModal').value = prof['rate-limit'] || '';
+                document.getElementById('formHspSharedModal').value = prof['shared-users'] || 1;
+
+                document.getElementById('formHspPoolModal').value = prof['address-pool'] || 'none';
+                document.getElementById('formHspSessionModal').value = prof['session-timeout'] || '';
+                document.getElementById('formHspIdleModal').value = prof['idle-timeout'] || 'none';
+                document.getElementById('formHspKeepModal').value = prof['keepalive-timeout'] || '00:02:00';
+                document.getElementById('formHspRefreshModal').value = prof['status-autorefresh'] || '00:01:00';
+                document.getElementById('formHspAddrListModal').value = prof['address-list'] || '';
+                document.getElementById('formHspCookieModal').checked = prof['add-mac-cookie'] === 'yes';
+                document.getElementById('formHspCookieTimeModal').value = prof['mac-cookie-timeout'] || '3d 00:00:00';
+
+                document.getElementById('formHspParentModal').value = prof['parent-queue'] || 'none';
+                document.getElementById('formHspQueueTypeModal').value = prof['queue-type'] || 'default-small';
+                document.getElementById('formHspInsertBeforeModal').value = prof['insert-queue-before'] || 'first';
+
+            }
+
+            function closeHotspotProfileModal() {
+                const modal = document.getElementById('modalHsProfile');
+                modal.classList.remove('active');
+                setTimeout(() => modal.style.display = 'none', 300);
+            }
+
+            function saveHotspotProfileChanges() {
+                const routerId = document.getElementById('hsRouter').value;
+                const data = {
+                    router_id: routerId,
+                    id: document.getElementById('editHsProfId').value,
+                    rate_limit: document.getElementById('formHspRateModal').value,
+                    shared_users: document.getElementById('formHspSharedModal').value,
+                    address_pool: document.getElementById('formHspPoolModal').value,
+                    session_timeout: document.getElementById('formHspSessionModal').value,
+                    idle_timeout: document.getElementById('formHspIdleModal').value,
+                    keepalive_timeout: document.getElementById('formHspKeepModal').value,
+                    status_autorefresh: document.getElementById('formHspRefreshModal').value,
+                    address_list: document.getElementById('formHspAddrListModal').value,
+                    add_mac_cookie: document.getElementById('formHspCookieModal').checked,
+                    mac_cookie_timeout: document.getElementById('formHspCookieTimeModal').value,
+                    parent_queue: document.getElementById('formHspParentModal').value,
+                    queue_type: document.getElementById('formHspQueueTypeModal').value,
+                    insert_queue_before: document.getElementById('formHspInsertBeforeModal').value
+                };
+
+                fetch('/api/hotspot/profile/update', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(data)
+                }).then(r => r.json()).then(res => {
+                    if (res.status === 'ok') {
+                        showToast(t('alert_saved'), 'success');
+                        closeHotspotProfileModal();
+                        loadHotspotProfilesList();
+                    } else showToast(res.error || res.msg, 'error');
+                }).catch(e => {
+                    console.error(e);
+                    showToast(t('msg_error') || 'Gagal menyimpan profil', 'error');
+                });
+            }
+
+            // --- TRANSLATION & AUTH ---
+            function getAuthHeaders() {
+                var pass = localStorage.getItem('nms_auth_session');
+                var h = { 'Content-Type': 'application/json' };
+                if (pass) h['X-Auth-Token'] = pass;
+                return h;
+            }
+
+            function doLogin() {
+                var p = document.getElementById('passInput').value;
+                fetch('/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: p }) })
+                    .then(r => {
+                        if (r.ok) { localStorage.setItem('nms_auth_session', p); location.reload(); }
+                        else document.getElementById('loginMsg').style.display = 'block';
+                    }).catch(() => showToast(t('alert_conn_failed'), 'error'));
+            }
+
+            function doLogout() {
+                if (!confirm(t('conf_logout'))) return;
+                localStorage.removeItem('nms_auth_session');
+                fetch('/api/logout', { method: 'POST' }).finally(() => window.location.href = '/');
+            }
+
+            function formatBytes(bytes) {
+                if (!bytes || bytes === '0') return '0 B';
+                const k = 1024;
+                const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+            }
+
+            function safeText(t) {
+                if (t === undefined || t === null) return '';
+                var s = String(t);
+                return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+            }
+
+            // --- GLOBAL VARIABLES ---
+            var APP = {
+                topology: {},
+                mikrotik: {},
+                hsList: [],
+                hsActive: [],
+                hsProfiles: [],
+                selectedHsIds: [],
+                itemsPerPage: 20,
+                pages: {
+                    gen: 1,
+                    list: 1,
+                    active: 1,
+                    proflist: 1
+                },
+                sorts: {
+                    gen: { key: 'name', dir: 'asc' },
+                    list: { key: 'name', dir: 'asc' },
+                    active: { key: 'user', dir: 'asc' },
+                    prof: { key: 'name', dir: 'asc' }
+                },
+                resources: { pools: [], queues: [], qtypes: [], addr_lists: [] }
+            };
+            var currentHsTab = 'gen';
+            var latestGenBatch = [];
+            var hotspotDnsMap = {};
+
+            // --- INIT ---
+            document.addEventListener('DOMContentLoaded', () => {
+                applyLanguage();
+                syncSettings();
+
+                var pass = localStorage.getItem('nms_auth_session');
+                if (pass) {
+                    document.getElementById('login-overlay').style.display = 'none';
+                    loadRequiredData();
+                } else {
+                    document.getElementById('login-overlay').style.display = 'flex';
+                }
+            });
+
+            function syncSettings() {
+                fetch('/api/settings', { headers: getAuthHeaders() })
+                    .then(r => r.json())
+                    .then(s => {
+                        if (s) {
+                            if (s.web_title) {
+                                localStorage.setItem('nms_web_title', s.web_title);
+                                document.querySelectorAll('.brand-text, #brandText, .mobile-brand').forEach(e => {
+                                    e.innerText = s.web_title;
+                                    e.removeAttribute('data-lang');
+                                });
+                                document.title = (t('sb_hotspot') || "HOTSPOT").toUpperCase() + " - " + s.web_title.toUpperCase();
+                            }
+                            if (s.is_licensed) {
+                                localStorage.setItem('nms_is_licensed', 'true');
+                                var b = document.getElementById('licBadge');
+                                if (b) {
+                                    b.innerHTML = '<i class="fas fa-check-circle me-1"></i> LICENSED (PRO)';
+                                    b.style.background = 'rgba(16, 185, 129, 0.1)';
+                                    b.style.color = '#10b981';
+                                    b.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                                    b.href = '/license';
+                                    b.style.cursor = 'pointer';
+                                }
+                            } else {
+                                localStorage.removeItem('nms_is_licensed');
+                            }
+                        }
+                    }).catch(() => { });
+            }
+
+            function loadRequiredData() {
+                // Load Topology & Settings for Branding
+                fetch('/api/data', { headers: getAuthHeaders() }).then(r => r.json()).then(d => {
+                    if (!d) return;
+                    APP.topology = d.topology || {};
+                    APP.mikrotik = d.mikrotik_data || {};
+                    initHotspotUI();
+                    initLoginBranding();
+                }).catch(() => { });
+            }
+
+            function initLoginBranding() {
+                const branding = document.getElementById('loginBranding');
+                if (!branding) return;
+                const title = document.getElementById('loginTitle');
+                const img = new Image();
+                img.src = '/static/logo.png?t=' + new Date().getTime();
+                img.style.maxWidth = '200px'; img.style.maxHeight = '100px'; img.style.display = 'inline-block';
+                img.onload = function () { branding.innerHTML = ''; branding.appendChild(img); };
+                img.onerror = function () {
+                    var savedTitle = localStorage.getItem('nms_web_title');
+                    if (savedTitle && title) title.innerText = savedTitle;
+                };
+            }
+
+            // --- HOTSPOT UI LOGIC ---
+            function initHotspotUI() {
+                var sel = document.getElementById('hsRouter');
+                sel.innerHTML = '<option value="">' + t('opt_select_server') + '</option>';
+
+
+                var topo = APP.topology;
+                var mk = APP.mikrotik;
+                var identityMain = (mk['server_utama'] && mk['server_utama'].identity) ? mk['server_utama'].identity : "";
+                var showNameMain = identityMain || (topo.server && topo.server.name) || t('lbl_main_server');
+
+                sel.add(new Option(showNameMain + " " + t('lbl_main'), 'server_utama'));
+
+
+                if (topo.extra_routers && Array.isArray(topo.extra_routers)) {
+                    topo.extra_routers.forEach(r => {
+                        var mkRes = (mk || {})[r.id];
+                        var dName = (mkRes && mkRes.identity) ? mkRes.identity : (r.name || r.id);
+                        sel.add(new Option(dName + " " + t('lbl_branch'), r.id));
+                    });
+                }
+
+                if (sel.options.length > 1) sel.selectedIndex = 1;
+                onHotspotRouterChange();
+            }
+
+            function onHotspotRouterChange() {
+                var routerId = document.getElementById('hsRouter').value;
+                if (!routerId) return;
+
+                // Reset semua data stale dari router sebelumnya
+                APP.hsList = [];
+                APP.hsActive = [];
+                APP.hsProfiles = [];
+                latestGenBatch = [];
+                APP.selectedHsIds = [];
+                APP.pages = { gen: 1, list: 1, active: 1, proflist: 1 };
+
+                // Render tabel kosong langsung (bersihkan data lama)
+                if (currentHsTab === 'gen') renderGenTable();
+                if (currentHsTab === 'list') renderHsListTable();
+                if (currentHsTab === 'active') renderHsActiveTable();
+                if (currentHsTab === 'proflist') renderHsProfTable();
+
+                // Selalu reload profil (dipakai di Generator & tab lain)
+                loadHotspotProfiles(routerId);
+
+                // Reload data sesuai tab aktif saat ini
+                if (currentHsTab === 'list') loadHotspotUsers();
+                if (currentHsTab === 'active') loadActiveHotspot();
+                if (currentHsTab === 'proflist') loadHotspotProfilesList();
+            }
+
+            function setHotspotTab(tabName) {
+                currentHsTab = tabName;
+                var routerId = document.getElementById('hsRouter').value;
+                ['gen', 'list', 'active', 'proflist', 'profadd'].forEach(x => {
+                    var p = document.getElementById('paneHs' + (x.charAt(0).toUpperCase() + x.slice(1)));
+                    var b = document.getElementById('tabHs' + (x.charAt(0).toUpperCase() + x.slice(1)));
+                    if (p) x === tabName ? p.classList.remove('hidden') : p.classList.add('hidden');
+                    if (b) x === tabName ? b.classList.add('active') : b.classList.remove('active');
+                });
+                // Hanya load data jika belum ada dan router sudah dipilih
+                // TIDAK reset semua data (itu hanya dilakukan saat router DIGANTI)
+                if (!routerId) return;
+                if (tabName === 'gen' && APP.resources.pools.length === 0) loadHotspotProfiles(routerId);
+                if (tabName === 'list' && APP.hsList.length === 0) loadHotspotUsers();
+                if (tabName === 'active') loadActiveHotspot(); // Selalu refresh sesi aktif
+                if (tabName === 'proflist' && APP.hsProfiles.length === 0) loadHotspotProfilesList();
+            }
+
+            // --- PROFILE LOADING ---
+            function loadHotspotProfiles(routerId) {
+                if (!routerId) return;
+                var pSel = document.getElementById('hsProfile');
+                pSel.innerHTML = '<option value="">' + t('msg_loading') + '</option>';
+                pSel.disabled = true;
+
+                fetch('/api/hotspot/profiles/' + routerId, { headers: getAuthHeaders() })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (document.getElementById('hsRouter').value !== routerId) return;
+                        if (d.error) { console.error(d.error); return; }
+                        pSel.disabled = false;
+                        pSel.innerHTML = '<option value="">' + t('opt_select_prof') + '</option>';
+                        if (d.user_profiles && Array.isArray(d.user_profiles)) {
+                            [...new Set(d.user_profiles)].sort().forEach(p => pSel.add(new Option(p, p)));
+                        }
+
+                        APP.resources.pools = d.pools || [];
+                        APP.resources.queues = d.queues || [];
+                        APP.resources.qtypes = d.queue_types || [];
+                        APP.resources.addr_lists = d.address_lists || [];
+                        populateResourceDropdowns();
+
+                        var sSel = document.getElementById('hsServerProfile');
+                        sSel.innerHTML = '<option value="">' + t('lbl_auto') + '</option>';
+                        hotspotDnsMap = d.server_dns_map || {};
+                        if (d.server_profiles && Array.isArray(d.server_profiles)) {
+                            d.server_profiles.forEach(p => sSel.add(new Option(p, p)));
+                        }
+                        onHsServerProfileChange();
+                    })
+                    .catch(err => {
+                        if (document.getElementById('hsRouter').value !== routerId) return;
+                        pSel.disabled = false; pSel.innerHTML = '<option value="">(' + t('msg_error') + ')</option>';
+                    });
+            }
+
+            function onHsServerProfileChange() {
+                var sSel = document.getElementById('hsServerProfile');
+                var prof = sSel.value;
+                var dnsName = "";
+
+                if (prof && hotspotDnsMap[prof]) dnsName = hotspotDnsMap[prof];
+                else {
+                    var keys = Object.keys(hotspotDnsMap);
+                    if (keys.length > 0) dnsName = hotspotDnsMap[keys[0]];
+                }
+
+                if (!dnsName) {
+                    var routerId = document.getElementById('hsRouter').value;
+                    if (routerId === 'server_utama' && APP.topology.server) dnsName = APP.topology.server.ip_address || APP.topology.server.host;
+                    else if (APP.topology.extra_routers) {
+                        var r = APP.topology.extra_routers.find(x => x.id === routerId);
+                        if (r) dnsName = r.ip_address || r.host;
+                    }
+                }
+                if (!dnsName) dnsName = "wifi.login";
+                var dnsInput = document.getElementById('hsDnsName');
+                if (dnsInput) dnsInput.value = dnsName;
+            }
+
+            // --- GENERATE ---
+            function generateVouchers() {
+                var routerId = document.getElementById('hsRouter').value;
+                var qty = document.getElementById('hsQty').value;
+                var profile = document.getElementById('hsProfile').value;
+                var time = document.getElementById('hsTime').value;
+                var datalimit = document.getElementById('hsData').value;
+                var server = document.getElementById('hsServerProfile').value;
+                var comment = document.getElementById('hsComment').value;
+                var prefix = document.getElementById('hsPrefix').value;
+                var mode = document.getElementById('hsGenMode').value;
+                var charType = document.getElementById('hsCharType').value;
+                var charLen = document.getElementById('hsCharLen').value;
+
+                if (!profile || !comment) { showToast(t('hs_err_req'), 'warning'); return; }
+                if (!confirm(t('hs_confirm_gen').replace('{qty}', qty))) return;
+
+                var resultArea = document.getElementById('hsGenResultArea');
+                resultArea.classList.add('hidden');
+                var btn = document.querySelector('#paneHsGen .btn-primary');
+                var oldText = btn.innerHTML;
+                btn.disabled = true; btn.innerHTML = t('msg_saving');
+
+                fetch('/api/hotspot/generate', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        router_id: routerId, qty: qty, server: server, profile: profile,
+                        timelimit: time, datalimit: datalimit, comment: comment, prefix: prefix,
+                        mode: mode, char_type: charType, char_len: charLen
+                    })
+                }).then(r => r.json()).then(d => {
+                    btn.disabled = false; btn.innerHTML = oldText;
+                    if (d.status === 'ok') {
+                        latestGenBatch = d.users || [];
+                        renderGenTable();
+                        showToast(t('hs_msg_success').replace('{count}', d.generated), 'success');
+                        loadHotspotUsers(); // Refresh main list
+                    } else showToast((d.error || d.message || "Failed"), 'error');
+                }).catch(e => {
+                    btn.disabled = false; btn.innerHTML = oldText; showToast(t('msg_error') + ": " + e, 'error');
+                });
+            }
+
+            function fetchUsersByComment(routerId, comment) {
+                if (!routerId) return;
+                fetch('/api/hotspot/users/' + routerId + '?comment=' + encodeURIComponent(comment), { headers: getAuthHeaders() })
+                    .then(r => r.json()).then(users => {
+                        if (!Array.isArray(users)) return;
+                        latestGenBatch = users;
+                        renderGenTable();
+                    }).catch(() => showToast(t('msg_error'), 'error'));
+            }
+
+            function renderGenTable() {
+                var users = latestGenBatch || [];
+                var tbody = document.getElementById('hsGenResultTable');
+                if (users.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="4" class="empty-state"><i class="fas fa-search"></i><div data-lang="lbl_no_data"></div></td></tr>`;
+                    if (window.applyLanguage) applyLanguage(tbody);
+                    return;
+                }
+                var s = APP.sorts.gen;
+                users.sort((a, b) => {
+                    var vA = a[s.key], vB = b[s.key];
+                    if (typeof vA === 'string') vA = vA.toLowerCase();
+                    if (typeof vB === 'string') vB = vB.toLowerCase();
+
+                    // Numeric Sort for certain keys
+                    if (['shared-users', 'limit-bytes-total', 'limit_bytes'].includes(s.key)) {
+                        var nA = parseFloat(vA) || 0, nB = parseFloat(vB) || 0;
+                        return s.dir === 'asc' ? nA - nB : nB - nA;
+                    }
+
+                    if (vA < vB) return s.dir === 'asc' ? -1 : 1;
+                    if (vA > vB) return s.dir === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                var totalItems = users.length;
+                var start = (APP.pages.gen - 1) * APP.itemsPerPage;
+                var paginated = users.slice(start, start + APP.itemsPerPage);
+
+                var html = '';
+                paginated.forEach(u => {
+                    var lim = [u.limit_uptime, u.limit_bytes].filter(x => x && x !== '-').join(' / ') || '-';
+                    html += `<tr><td style="font-weight:bold">${safeText(u.name)}</td><td>${safeText(u.password || '-')}</td><td>${safeText(u.profile)}</td><td>${safeText(lim)}</td></tr>`;
+                });
+                tbody.innerHTML = html;
+                document.getElementById('hsGenResultArea').classList.remove('hidden');
+                renderPagination('gen', 'hsGenPagination', totalItems);
+                updateHsSortIcons();
+            }
+
+            function setGenSort(key) {
+                if (APP.sorts.gen.key === key) APP.sorts.gen.dir = APP.sorts.gen.dir === 'asc' ? 'desc' : 'asc';
+                else { APP.sorts.gen.key = key; APP.sorts.gen.dir = 'asc'; }
+                renderGenTable();
+            }
+
+            function printVoucherResult() {
+                var dns = document.getElementById('hsDnsName').value || "wifi.login";
+                var users = (latestGenBatch || []).map(u => {
+                    var lim = [u.limit_uptime, u.limit_bytes].filter(x => x && x !== '-').join(' / ') || '-';
+                    return { user: u.name, pass: u.password || '', dur: lim, dns: dns };
+                });
+                if (users.length === 0) {
+                    showToast(t('msg_no_data') || 'Tidak ada data untuk dicetak', 'warning');
+                    return;
+                }
+                doPrintVouchers(users);
+            }
+
+            // --- MANAGE USERS ---
+            function loadHotspotUsers() {
+                var routerId = document.getElementById('hsRouter').value;
+                var comment = document.getElementById('hsFilterComment').value;
+                if (!routerId) return;
+                var url = '/api/hotspot/users/' + routerId;
+                if (comment) url += '?comment=' + encodeURIComponent(comment);
+
+                fetch(url, { headers: getAuthHeaders() }).then(r => r.json()).then(d => {
+                    if (document.getElementById('hsRouter').value !== routerId) return;
+                    if (d.error) {
+                        APP.hsList = [];
+                        renderHsListTable();
+                        return;
+                    }
+                    APP.hsList = Array.isArray(d) ? d : [];
+                    APP.selectedHsIds = []; // Clear selection
+                    if (document.getElementById('hsCheckAll')) document.getElementById('hsCheckAll').checked = false;
+                    APP.pages.list = 1; // Reset page
+                    renderHsListTable();
+                }).catch(() => {
+                    if (document.getElementById('hsRouter').value !== routerId) return;
+                    APP.hsList = [];
+                    renderHsListTable();
+                    showToast(t('msg_error'), 'error');
+                });
+            }
+
+            function renderHsListTable() {
+                var list = APP.hsList || [];
+                var tbody = document.getElementById('hsListBody');
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="fas fa-users-slash"></i><div data-lang="msg_no_data"></div></td></tr>`;
+                    if (window.applyLanguage) applyLanguage(tbody);
+                    renderPagination('list', 'hsListPagination', 0);
+                    return;
+                }
+
+                var s = APP.sorts.list;
+                list.sort((a, b) => {
+                    var vA = a[s.key], vB = b[s.key];
+                    if (typeof vA === 'string') vA = vA.toLowerCase();
+                    if (typeof vB === 'string') vB = vB.toLowerCase();
+                    if (['shared-users', 'limit-bytes-total', 'limit_bytes'].includes(s.key)) {
+                        var nA = parseFloat(vA) || 0, nB = parseFloat(vB) || 0;
+                        return s.dir === 'asc' ? nA - nB : nB - nA;
+                    }
+                    if (vA < vB) return s.dir === 'asc' ? -1 : 1;
+                    if (vA > vB) return s.dir === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                var totalItems = list.length;
+                var start = (APP.pages.list - 1) * APP.itemsPerPage;
+                var paginated = list.slice(start, start + APP.itemsPerPage);
+
+                var html = '';
+                paginated.forEach(u => {
+                    var lim = [u.limit_uptime, u.limit_bytes].filter(x => x && x !== '-').join(' / ') || '-';
+                    var isChecked = APP.selectedHsIds.includes(u.id) ? 'checked' : '';
+                    var limitHtml = lim === '-' ? `<span style="color:#64748b">-</span>` : `<span class="limit-badge-premium">${safeText(lim)}</span>`;
+
+                    html += `<tr>
+                    <td style="text-align:center"><input type="checkbox" class="hs-check" value="${u.id}" ${isChecked} onchange="handleHsCheck(this)" data-user="${safeText(u.name)}" data-pass="${safeText(u.password || '')}" data-dur="${safeText(lim)}" data-dns="${safeText(document.getElementById('hsDnsName').value || '')}"></td>
+                    <td>
+                        <div style="font-weight:700; color:#f8fafc; font-size:15px; letter-spacing:0.3px;">${safeText(u.name)}</div>
+                        <div style="font-size:11px; color:#94a3b8; margin-top:4px; font-weight:500;">${safeText(u.comment || '')}</div>
+                    </td>
+                    <td><code style="font-size:12px; color:#cbd5e1; background:rgba(15, 23, 42, 0.4); padding:4px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">${safeText(u.password || '-')}</code></td>
+                    <td><span class="prof-badge-premium">${safeText(u.profile)}</span></td>
+                    <td>${limitHtml}</td>
+                    <td>
+                        <div class="action-btns" style="display:flex; gap:10px; justify-content: flex-end;">
+                            <button class="btn-icon" style="width:36px; height:36px;" onclick="toggleHotspotUserStatus('${safeText(u.id)}', ${u.disabled})" title="${u.disabled ? 'Enable' : 'Disable'}">
+                                <i class="fas ${u.disabled ? 'fa-play' : 'fa-pause'}" style="color:${u.disabled ? '#4ade80' : '#fbbf24'}; font-size:14px;"></i>
+                            </button>
+                            <button class="btn-icon" style="width:36px; height:36px;" onclick="openHotspotUserModal('${safeText(u.id)}')" title="Edit">
+                                <i class="fas fa-pen" style="color:#38bdf8; font-size:14px;"></i>
+                            </button>
+                            <button class="btn-icon" style="width:36px; height:36px;" onclick="deleteHotspotUser('${safeText(u.id)}', '${safeText(u.name)}')" title="Delete">
+                                <i class="fas fa-trash-alt" style="color:#ef4444; font-size:14px;"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+                });
+                tbody.innerHTML = html;
+                if (window.applyLanguage) applyLanguage(tbody);
+                renderPagination('list', 'hsListPagination', totalItems);
+                updateHsSortIcons();
+            }
+
+            function setListSort(key) {
+                if (APP.sorts.list.key === key) APP.sorts.list.dir = APP.sorts.list.dir === 'asc' ? 'desc' : 'asc';
+                else { APP.sorts.list.key = key; APP.sorts.list.dir = 'asc'; }
+                renderHsListTable();
+            }
+
+            function toggleHsCheckAll() {
+                var c = document.getElementById('hsCheckAll').checked;
+                if (c) {
+                    APP.selectedHsIds = APP.hsList.map(u => u.id);
+                } else {
+                    APP.selectedHsIds = [];
+                }
+                renderHsListTable();
+            }
+
+            function handleHsCheck(el) {
+                var id = el.value;
+                if (el.checked) {
+                    if (!APP.selectedHsIds.includes(id)) APP.selectedHsIds.push(id);
+                } else {
+                    APP.selectedHsIds = APP.selectedHsIds.filter(x => x !== id);
+                    document.getElementById('hsCheckAll').checked = false;
+                }
+            }
+
+            function printHotspotBatch() {
+                var dns = document.getElementById('hsDnsName').value || "wifi.login";
+                var selectedUsers = APP.hsList.filter(u => APP.selectedHsIds.includes(u.id));
+                var users = selectedUsers.map(u => {
+                    var lim = [u.limit_uptime, u.limit_bytes].filter(x => x && x !== '-').join(' / ') || '-';
+                    return { user: u.name, pass: u.password || '', dur: lim, dns: dns };
+                });
+                if (users.length === 0) {
+                    showToast(t('msg_sel_vouchers') || 'Pilih voucher terlebih dahulu', 'warning');
+                    return;
+                }
+                doPrintVouchers(users);
+            }
+
+            function deleteHotspotBatch() {
+                var routerId = document.getElementById('hsRouter').value;
+                var ids = APP.selectedHsIds;
+                if (ids.length === 0) return showToast(t('msg_sel_vouchers'), 'warning');
+                if (!confirm(t('hs_confirm_del').replace('{count}', ids.length))) return;
+
+                fetch('/api/hotspot/delete', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ router_id: routerId, ids: ids })
+                }).then(r => r.json()).then(d => {
+                    if (d.deleted > 0) {
+                        showToast(t('hs_msg_del_success').replace('{count}', d.deleted), 'success');
+                        APP.selectedHsIds = [];
+                        loadHotspotUsers();
+                    } else showToast(t('alert_save_failed'), 'error');
+                }).catch(e => showToast(t('msg_error') + ': ' + e, 'error'));
+            }
+
+            function deleteHotspotUser(id, name) {
+                if (!confirm(t('hs_confirm_del_user').replace('{name}', name))) return;
+                var routerId = document.getElementById('hsRouter').value;
+                fetch('/api/hotspot/delete', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ router_id: routerId, ids: [id] })
+                }).then(r => r.json()).then(d => {
+                    if (d.deleted > 0) {
+                        showToast(t('hs_msg_del_success').replace('{count}', d.deleted), 'success');
+                        loadHotspotUsers();
+                    } else showToast(t('alert_save_failed'), 'error');
+                }).catch(e => showToast(t('msg_error') + ': ' + e, 'error'));
+            }
+
+            function loadActiveHotspot() {
+                var routerId = document.getElementById('hsRouter').value;
+                if (!routerId) return;
+                var url = '/api/hotspot/active/' + routerId;
+
+                fetch(url, { headers: getAuthHeaders() }).then(r => r.json()).then(d => {
+                    if (document.getElementById('hsRouter').value !== routerId) return;
+                    if (d.error) {
+                        APP.hsActive = [];
+                        renderHsActiveTable();
+                        return;
+                    }
+                    APP.hsActive = Array.isArray(d) ? d : [];
+                    APP.pages.active = 1;
+                    renderHsActiveTable();
+                }).catch(() => {
+                    if (document.getElementById('hsRouter').value !== routerId) return;
+                    APP.hsActive = [];
+                    renderHsActiveTable();
+                    showToast(t('msg_error') || 'Gagal memuat sesi aktif', 'error');
+                });
+            }
+
+            function renderHsActiveTable() {
+                var list = APP.hsActive || [];
+                var tbody = document.getElementById('hsActiveBody');
+                if (list.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="fas fa-signal"></i><div data-lang="hs_no_active"></div></td></tr>`;
+                    if (window.applyLanguage) applyLanguage(tbody);
+                    renderPagination('active', 'hsActivePagination', 0);
+                    return;
+                }
+
+                var s = APP.sorts.active;
+                list.sort((a, b) => {
+                    var vA = a[s.key], vB = b[s.key];
+                    if (typeof vA === 'string') vA = vA.toLowerCase();
+                    if (typeof vB === 'string') vB = vB.toLowerCase();
+                    if (vA < vB) return s.dir === 'asc' ? -1 : 1;
+                    if (vA > vB) return s.dir === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                var totalItems = list.length;
+                var start = (APP.pages.active - 1) * APP.itemsPerPage;
+                var paginated = list.slice(start, start + APP.itemsPerPage);
+
+                var html = '';
+                paginated.forEach(u => {
+                    var bi = formatBytes(u['bytes-in']);
+                    var bo = formatBytes(u['bytes-out']);
+                    html += `<tr><td>${safeText(u.server)}</td><td>${safeText(u.user)}</td><td>${safeText(u['address'])}</td><td>${safeText(u.uptime)}</td><td><span title="${u['bytes-in']} bytes">${bi}</span> / <span title="${u['bytes-out']} bytes">${bo}</span></td><td><button class="btn-xs btn-danger" onclick="kickHotspot('${u['.id']}')"><i class="fas fa-user-times"></i></button></td></tr>`;
+                });
+                tbody.innerHTML = html;
+                renderPagination('active', 'hsActivePagination', totalItems);
+                updateHsSortIcons();
+            }
+
+            function setActiveSort(key) {
+                if (APP.sorts.active.key === key) APP.sorts.active.dir = APP.sorts.active.dir === 'asc' ? 'desc' : 'asc';
+                else { APP.sorts.active.key = key; APP.sorts.active.dir = 'asc'; }
+                renderHsActiveTable();
+            }
+
+            function kickHotspot(id) {
+                if (!confirm(t('hs_confirm_kick'))) return;
+                fetch('/api/hotspot/kick', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ router_id: document.getElementById('hsRouter').value, id: id }) })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d && d.status === 'ok') {
+                            showToast(t('alert_saved'), 'success');
+                        } else {
+                            showToast(d && d.msg ? d.msg : t('alert_save_failed'), 'warning');
+                        }
+                        loadActiveHotspot();
+                    })
+                    .catch(e => showToast(t('msg_error') + ': ' + e, 'error'));
+            }
+
+            // --- PROFILES ---
+            function loadHotspotProfilesList() {
+                var routerId = document.getElementById('hsRouter').value;
+                var tbody = document.getElementById('hsProfileListTable');
+                tbody.innerHTML = '<tr><td colspan="4">' + t('msg_loading') + '</td></tr>';
+                fetch('/api/hotspot/profile/list/' + routerId, { headers: getAuthHeaders() }).then(r => r.json()).then(data => {
+                    if (document.getElementById('hsRouter').value !== routerId) return;
+                    if (data.error) {
+                        APP.hsProfiles = [];
+                        renderHsProfTable();
+                        return;
+                    }
+                    APP.hsProfiles = Array.isArray(data) ? data : [];
+                    renderHsProfTable();
+                }).catch(() => {
+                    if (document.getElementById('hsRouter').value !== routerId) return;
+                    APP.hsProfiles = [];
+                    renderHsProfTable();
+                    showToast(t('msg_error'), 'error');
+                });
+            }
+
+            function renderHsProfTable() {
+                var list = APP.hsProfiles || [];
+                var s = APP.sorts.prof;
+                list.sort((a, b) => {
+                    var vA = a[s.key], vB = b[s.key];
+                    if (typeof vA === 'string') vA = vA.toLowerCase();
+                    if (typeof vB === 'string') vB = vB.toLowerCase();
+                    if (['shared-users', 'rate-limit'].includes(s.key)) {
+                        var nA = parseFloat(vA) || 0, nB = parseFloat(vB) || 0;
+                        return s.dir === 'asc' ? nA - nB : nB - nA;
+                    }
+                    if (vA < vB) return s.dir === 'asc' ? -1 : 1;
+                    if (vA > vB) return s.dir === 'asc' ? 1 : -1;
+                    return 0;
+                });
+
+                var totalItems = list.length;
+                var start = (APP.pages.proflist - 1) * APP.itemsPerPage;
+                var paginated = list.slice(start, start + APP.itemsPerPage);
+
+                var tbody = document.getElementById('hsProfileListTable');
+                var html = '';
+                if (list.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4">' + t('msg_no_data') + '</td></tr>';
+                    renderPagination('proflist', 'hsProfPagination', 0);
+                    return;
+                }
+                paginated.forEach(p => {
+                    html += `<tr>
+                    <td><div style="font-weight:600">${safeText(p.name)}</div></td>
+                    <td><code>${safeText(p['rate-limit'] || '-')}</code></td>
+                    <td>${safeText(p['shared-users'] || '1')}</td>
+                    <td>
+                        <div class="action-btns" style="display:flex; gap:10px; justify-content: flex-end;">
+                            <button class="btn-icon" style="width:36px; height:36px;" onclick="openHotspotProfileModal('${p.id}')" title="Edit">
+                                <i class="fas fa-edit" style="color:#38bdf8; font-size:14px;"></i>
+                            </button>
+                            <button class="btn-icon delete" style="width:36px; height:36px;" onclick="deleteHotspotProfile('${p.id}')" title="Remove">
+                                <i class="fas fa-trash" style="color:#ef4444; font-size:14px;"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>`;
+                });
+                tbody.innerHTML = html;
+                renderPagination('proflist', 'hsProfPagination', totalItems);
+                updateHsSortIcons();
+            }
+
+            function setProfSort(key) {
+                if (APP.sorts.prof.key === key) APP.sorts.prof.dir = APP.sorts.prof.dir === 'asc' ? 'desc' : 'asc';
+                else { APP.sorts.prof.key = key; APP.sorts.prof.dir = 'asc'; }
+                renderHsProfTable();
+            }
+
+            function updateHsSortIcons() {
+                var icons = {
+                    'gen': ['name', 'profile', 'limit_uptime'],
+                    'list': ['name', 'profile', 'limit_uptime'],
+                    'act': ['server', 'user', 'address', 'uptime'],
+                    'prof': ['name', 'rate-limit', 'shared-users']
+                };
+                Object.keys(icons).forEach(type => {
+                    icons[type].forEach(key => {
+                        var el = document.getElementById(`sort-${type}-${key.replace('-', '')}`);
+                        if (!el) return;
+                        var sort = APP.sorts[type === 'act' ? 'active' : type];
+                        el.className = 'fas sort-icon';
+                        if (sort.key === key) {
+                            el.classList.add('active');
+                            el.classList.add(sort.dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+                        } else {
+                            el.classList.add('fa-sort');
+                        }
+                    });
+                });
+            }
+
+            function addHotspotProfile() {
+                const routerId = document.getElementById('hsRouter').value;
+                const name = document.getElementById('hspName').value;
+                if (!name) return showToast(t('alert_name_required'), 'warning');
+
+                const data = {
+                    router_id: routerId,
+                    name: name,
+                    rate_limit: document.getElementById('hspRate').value,
+                    shared_users: document.getElementById('hspShared').value,
+                    session_timeout: document.getElementById('hspTimeout').value,
+                    idle_timeout: document.getElementById('hspIdle').value,
+                    address_pool: document.getElementById('hspPool').value,
+                    parent_queue: document.getElementById('hspParent').value,
+                    queue_type: document.getElementById('hspQueueType').value,
+                    insert_queue_before: 'first' // Default for new
+                };
+
+                fetch('/api/hotspot/profile/add', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(data)
+                }).then(r => r.json()).then(d => {
+                    if (d.status === 'ok') {
+                        showToast(t('alert_saved'), 'success');
+                        closeModalHsProfile();
+                        loadHotspotProfilesList();
+                    }
+                    else showToast('Error: ' + d.msg, 'error');
+                }).catch(e => showToast(t('msg_error') + ': ' + e, 'error'));
+            }
+
+            function deleteHotspotProfile(id) {
+                if (!confirm(t('hs_confirm_del_prof'))) return;
+                fetch('/api/hotspot/profile/remove', { method: 'POST', headers: getAuthHeaders(), body: JSON.stringify({ router_id: document.getElementById('hsRouter').value, id: id }) })
+                    .then(r => r.json()).then(d => {
+                        if (d.status === 'ok') { showToast(t('alert_saved'), 'success'); loadHotspotProfilesList(); }
+                        else showToast('Error: ' + d.msg, 'error');
+                    }).catch(e => showToast(t('msg_error') + ': ' + e, 'error'));
+            }
+
+            // --- PAGINATION HELPERS ---
+            function changePage(tab, page) {
+                APP.pages[tab] = page;
+                if (tab === 'gen') renderGenTable();
+                if (tab === 'list') renderHsListTable();
+                if (tab === 'active') renderHsActiveTable();
+                if (tab === 'proflist') renderHsProfTable();
+            }
+
+            function renderPagination(tab, containerId, totalItems) {
+                const container = document.getElementById(containerId);
+                if (!container) return;
+                const totalPages = Math.ceil(totalItems / APP.itemsPerPage);
+                if (totalPages <= 1) { container.innerHTML = ''; return; }
+                const curr = APP.pages[tab];
+                let html = `<div>${t('lbl_showing')} <b>${Math.min(totalItems, (curr - 1) * APP.itemsPerPage + 1)} - ${Math.min(totalItems, curr * APP.itemsPerPage)}</b> ${t('lbl_of')} <b>${totalItems}</b></div>`;
+                html += '<div class="pagination-btns">';
+                html += `<button class="btn-page" ${curr === 1 ? 'disabled' : ''} onclick="changePage('${tab}', ${curr - 1})">${t('lbl_prev')}</button>`;
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= curr - 1 && i <= curr + 1)) {
+                        html += `<button class="btn-page ${i === curr ? 'active' : ''}" onclick="changePage('${tab}', ${i})">${i}</button>`;
+                    } else if (i === curr - 2 || i === curr + 2) {
+                        html += `<span style="padding: 0 5px;">...</span>`;
+                    }
+                }
+                html += `<button class="btn-page" ${curr === totalPages ? 'disabled' : ''} onclick="changePage('${tab}', ${curr + 1})">${t('lbl_next')}</button>`;
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+            // --- PRINT ---
+            function doPrintVouchers(users) {
+                var theme = document.getElementById('hsTheme').value || 'modern';
+                var w = window.open('', '_blank');
+                var qrLib = '<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></scr' + 'ipt>';
+                var css = `
+            @page { size: A4; margin: 0; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-print-color-adjust: exact; margin: 10mm; background: #fff; }
+            .sheet { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 5px; }
+            .card { width: 200px; height: 110px; border: 1px solid #ccc; position: relative; overflow: hidden; page-break-inside: avoid; border-radius: 8px; float:left; margin: 2px; }
+            .modern { background: #1e293b; color: white; border-color: #334155; }
+            .modern .head { background: #0f172a; padding: 5px; font-weight: bold; text-align: center; font-size: 12px; letter-spacing: 1px; color: #38bdf8; border-bottom: 1px solid #334155; }
+            .modern .body { padding: 8px; font-size: 11px; }
+            .modern .code { font-size: 14px; font-weight: bold; color: #fff; background: rgba(255,255,255,0.1); padding: 2px 5px; border-radius: 4px; display:inline-block; margin-bottom: 3px; }
+            .modern .label { color: #94a3b8; font-size: 9px; }
+            .modern .qr { position: absolute; right: 5px; bottom: 5px; background: white; padding: 2px; border-radius: 4px; }
+            .minimal { background: #fff; color: #000; border: 1px dashed #000; }
+            .minimal .head { border-bottom: 1px solid #000; padding: 5px; font-weight: bold; text-align: center; }
+            .minimal .body { padding: 5px; font-size: 11px; }
+            .minimal .code { font-size: 14px; font-weight: bold; font-family: monospace; }
+            .minimal .qr { position: absolute; right: 5px; bottom: 5px; }
+            .color { background: linear-gradient(135deg, #4f46e5, #06b6d4); color: white; border: none; }
+            .color .head { background: rgba(0,0,0,0.2); padding: 5px; text-align: center; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }
+            .color .body { padding: 8px; font-size: 11px; }
+            .color .code { background: #fff; color: #4f46e5; padding: 2px 6px; border-radius: 10px; font-weight: bold; display: inline-block; margin: 2px 0; }
+            .color .qr { position: absolute; right: 5px; bottom: 5px; background: white; padding: 3px; border-radius: 4px; }
+            `;
+
+                var html = `<html><head><title>Print Voucher</title>${qrLib}<style>${css}</style></head><body><div class="sheet">`;
+                users.forEach((u, idx) => {
+                    html += `<div class="card ${theme}">
+                    <div class="head">WIFI VOUCHER</div>
+                    <div class="body">
+                        <span class="label">${t('th_username').toUpperCase()}:</span><br>
+                        <span class="code">${safeText(u.user)}</span><br>
+                        <span class="label">${t('th_password').toUpperCase()}: ${safeText(u.pass || '-')}</span><br>
+                        <span class="label">${t('th_limit').toUpperCase()}: ${safeText(u.dur || '-')}</span>
+                    </div>
+                    <div class="qr"><canvas id="qr_${idx}"></canvas></div>
+                </div>`;
+                });
+                html += `</div><script>window.onload = function() { var users = ${JSON.stringify(users)}; users.forEach((u, i) => { var loginUrl = u.dns.startsWith('http') ? u.dns : 'http://' + u.dns; if (!loginUrl.endsWith('/login')) loginUrl += '/login'; var qrData = loginUrl + '?username=' + encodeURIComponent(u.user) + '&password=' + encodeURIComponent(u.pass || ''); try { new QRious({ element: document.getElementById('qr_' + i), value: qrData, size: 50 }); } catch(e) {} }); setTimeout(() => window.print(), 1000); };</scr` + `ipt></body></html>`;
+                w.document.write(html);
+                w.document.close();
+            }
+        </script>
+</body>
+
+</html>

@@ -1,0 +1,2292 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script>try { var t = localStorage.getItem('nms_web_title'); if (t) document.title = t; } catch (e) { }</script>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="/static/css/all.min.css"
+        onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script>window.NMS_WAIT_FOR_AUTH = true;</script>
+    <script src="/static/js/lang_dict.js"></script>
+    <script>
+        function initTheme() {
+            var theme = localStorage.getItem('nms_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        }
+        initTheme();
+        initAntiFlicker();
+    </script>
+    <style>
+        /* Table & Layout Fixes from Hotspot */
+        .table-wrap {
+            width: 100%;
+            border-radius: 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 500px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            margin-bottom: 4px;
+            display: block;
+            color: #94a3b8;
+        }
+
+        .input,
+        .select {
+            padding: 8px 10px;
+            font-size: 13px;
+        }
+
+        .pagination-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .pagination-btns {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-page {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #cbd5e1;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-page.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .btn-page:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        th.sortable {
+            cursor: pointer;
+            position: relative;
+            padding-right: 20px !important;
+        }
+
+        th.sortable:after {
+            content: '\f0dc';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 8px;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 10px;
+        }
+
+        th.sortable.asc:after {
+            content: '\f0de';
+            color: #3b82f6;
+        }
+
+        th.sortable.desc:after {
+            content: '\f0dd';
+            color: #3b82f6;
+        }
+
+        /* Responsive Fixes */
+        @media (max-width: 768px) {
+            .tabs {
+                flex-wrap: wrap !important;
+                display: flex;
+                gap: 8px;
+                padding-bottom: 12px;
+            }
+
+            .tab {
+                flex: 1 1 calc(33.33% - 10px);
+                min-width: 80px;
+                text-align: center;
+                padding: 8px 6px;
+                font-size: 11px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .form-group {
+                min-width: 100% !important;
+            }
+
+            .table th,
+            .table td {
+                padding: 10px 8px;
+                font-size: 11px;
+            }
+
+            .modal-box {
+                max-width: 95%;
+                margin: 10px;
+            }
+
+            .row.space {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 12px;
+            }
+
+            .row.space>div {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                width: 100% !important;
+            }
+
+            .row.space label {
+                min-width: unset !important;
+                margin-bottom: 4px;
+            }
+
+            select#ppRouter {
+                max-width: 100% !important;
+                width: 100% !important;
+            }
+        }
+
+        /* Professional Tools Styles */
+        .input-group {
+            display: flex;
+            gap: 2px;
+        }
+
+        .input-group .input {
+            border-top-right-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+
+        .btn-group-append {
+            display: flex;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-left: none;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+            overflow: hidden;
+        }
+
+        .btn-tool {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            padding: 0 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-tool:hover {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-check {
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 0 8px;
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Premium Toast Notification */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast-msg {
+            min-width: 250px;
+            background: #1e293b;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border-left: 5px solid #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            pointer-events: auto;
+            animation: toast-slide-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            font-size: 13px;
+        }
+
+        .toast-msg.success {
+            border-left-color: #10b981;
+        }
+
+        .toast-msg.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast-msg.warning {
+            border-left-color: #f59e0b;
+        }
+
+        @keyframes toast-slide-in {
+            from {
+                transform: translateX(120%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-fade-out {
+            animation: toast-fade-out 0.4s ease-in forwards !important;
+        }
+
+        @keyframes toast-fade-out {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(40px);
+                opacity: 0;
+            }
+        }
+
+        /* Pro Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 6px 14px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: row;
+            /* Force Horizontal */
+            align-items: center;
+            gap: 10px;
+            min-width: 80px;
+        }
+
+        .stat-card i {
+            font-size: 14px;
+        }
+
+        .stat-card .value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        /* Status Indicators */
+        .dot {
+            height: 8px;
+            width: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .dot-online {
+            background-color: #10b981;
+            box-shadow: 0 0 8px #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        .dot-offline {
+            background-color: #94a3b8;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Modern Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 18px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 18px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #3b82f6;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(16px);
+        }
+
+        /* Status Badges */
+        .badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-map {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .badge-nomap {
+            background: rgba(148, 163, 184, 0.1);
+            color: #94a3b8;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+        }
+
+        .badge-paid {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .badge-expired {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+
+<body data-page-key="sb_pppoe">
+    <div id="toast-container"></div>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <div id="loginBranding" style="text-align:center; margin-bottom:20px;">
+                <h2 id="loginTitle" style="margin:0;"></h2>
+            </div>
+            <input type="password" id="passInput" data-lang="ph_password" data-lang-target="placeholder"
+                onkeyup="if(event.key==='Enter') doLogin()">
+            <button class="btn btn-primary" onclick="doLogin()" data-lang="btn_login"></button>
+            <div id="loginMsg" data-lang="msg_pwd_wrong"></div>
+        </div>
+    </div>
+
+    <div class="overlay-bg" onclick="toggleSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="brand-wrapper"
+            style="display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; margin-bottom: 20px;">
+            <button class="btn-sidebar-toggle desktop-only" onclick="toggleMiniSidebar()"
+                style="background:none; border:none; color:white; font-size:20px; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:1001;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="brand-text" id="brandText" data-lang="sb_brand"
+                style="font-weight:800; color:#3b82f6; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:8px; flex:1;"></span>
+        </div>
+        <div class="menu-label" data-lang="sb_h_main"></div>
+        <a href="/" class="menu-item"><i class="fas fa-home me-2"></i> <span data-lang="sb_dash"></span></a>
+        <a href="/maps" class="menu-item"><i class="fas fa-map-marked-alt me-2"></i> <span
+                data-lang="sb_map"></span></a>
+        <a href="/client" class="menu-item"><i class="fas fa-users me-2"></i> <span data-lang="sb_client"></span></a>
+        <!-- PPPoE Active -->
+        <div class="menu-item active" onclick="window.location.reload()"><i class="fas fa-network-wired me-2"></i> <span
+                data-lang="sb_pppoe"></span></div>
+        <a href="/hotspot" class="menu-item"><i class="fas fa-wifi me-2"></i> <span data-lang="sb_hotspot"></span></a>
+        <div class="menu-label" data-lang="sb_h_admin"></div>
+        <a href="/network" class="menu-item"><i class="fas fa-boxes me-2"></i> <span data-lang="sb_inv"></span></a>
+        <a href="/network?tab=infra" class="menu-item"><i class="fas fa-network-wired me-2"></i> <span
+                data-lang="sb_infra"></span></a>
+        <a href="/billing" class="menu-item"><i class="fas fa-file-invoice-dollar me-2"></i> <span
+                data-lang="sb_bill"></span></a>
+        <a href="/finance" class="menu-item"><i class="fas fa-wallet me-2"></i> <span data-lang="sb_fin"></span></a>
+        <div class="menu-label" data-lang="sb_h_mon"></div>
+        <a href="/monitor?tab=traffic" class="menu-item"><i class="fas fa-chart-line me-2"></i> <span
+                data-lang="sb_traffic"></span></a>
+        <a href="/monitor?tab=logs" class="menu-item"><i class="fas fa-history me-2"></i> <span
+                data-lang="sb_logs"></span></a>
+        <a href="/settings" class="menu-item"><i class="fas fa-cog me-2"></i> <span data-lang="sb_set"></span></a>
+        <a href="/about" class="menu-item"><i class="fas fa-info-circle me-2"></i> <span
+                data-lang="sb_about"></span></a>
+        <div class="menu-item menu-danger" onclick="doLogout()"><i class="fas fa-sign-out-alt me-2"></i> <span
+                data-lang="sb_logout"></span></div>
+    </div>
+
+    <div class="main">
+        <div class="mobile-head">
+            <button id="btnToggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <span class="mobile-brand" data-lang="sb_pppoe" id="mobileBrandText"></span>
+        </div>
+
+        <div class="row space" style="margin-bottom: 20px; align-items: flex-start;">
+            <div style="display:flex; flex-direction:column">
+                <h2 id="page-title" class="header" data-lang="sb_pppoe"
+                    style="margin:0; border-left:none; padding-left:0; line-height:1;"></h2>
+                <div style="margin-top:5px; display:flex; flex-direction:column">
+                    <h2 style="margin:0; font-size:16px; color:#f1f5f9; text-transform:uppercase; letter-spacing:1px"
+                        data-lang="pp_title_main">Manajemen PPPoE</h2>
+                    <p style="margin:0; font-size:11px; color:#94a3b8;" data-lang="pp_subtitle_main">Kelola data
+                        pelanggan, masa aktif, isolir, dan status peta.</p>
+                </div>
+            </div>
+            <div
+                style="border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; font-size: 11px; color: #94a3b8; background: rgba(15, 23, 42, 0.6);">
+                <span data-lang="lbl_lang_prefix">LANG: </span><span id="currentLangDisplay"
+                    style="color: #38bdf8; font-weight: bold;"></span>
+            </div>
+        </div>
+
+        <div id="pg-pppoe">
+            <div class="card">
+                <div class="row space"
+                    style="margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                    <div style="display:flex; align-items:center; gap:10px; flex:1;">
+                        <label style="min-width:100px;" data-lang="lbl_target_server"></label>
+                        <select id="ppRouter" class="select" onchange="onPppoeRouterChange()"
+                            style="max-width:300px;"></select>
+                    </div>
+                </div>
+
+                <div class="tabs">
+                    <div id="tabPpCreate" class="tab active" onclick="setPppoeTab('create')" data-lang="pp_u_create">
+                    </div>
+                    <div id="tabPpList" class="tab" onclick="setPppoeTab('list')" data-lang="pp_u_list"></div>
+                    <div id="tabPpActive" class="tab" onclick="setPppoeTab('active')" data-lang="pp_u_act"></div>
+                    <div id="tabPpProfiles" class="tab" onclick="setPppoeTab('profiles')" data-lang="pp_u_prof"></div>
+                    <div id="tabPpAddprof" class="tab" onclick="setPppoeTab('addprof')" data-lang="pp_u_addprof"></div>
+                </div>
+
+                <!-- CREATE TAB -->
+                <div id="panePpCreate">
+                    <p data-lang="pp_desc_create"
+                        style="margin-top:-5px; margin-bottom:15px; font-size:13px; color:#94a3b8;"></p>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label data-lang="pp_user"></label>
+                            <div class="input-group">
+                                <input id="ppUser" class="input" data-lang="pp_ph_user" data-lang-target="placeholder">
+                                <div class="btn-group-append">
+                                    <button class="btn-tool btn-check" onclick="checkPppoeUser()"
+                                        data-lang="pp_tt_check" data-lang-target="title"><span
+                                            data-lang="pp_btn_check">Check</span></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="pp_pass"></label>
+                            <div class="input-group">
+                                <input id="ppPass" type="password" class="input" data-lang="pp_ph_pass"
+                                    data-lang-target="placeholder">
+                                <div class="btn-group-append">
+                                    <button id="btnTogglePass" class="btn-tool" onclick="togglePpPass()"
+                                        data-lang="pp_tt_toggle_pass" data-lang-target="title"><i
+                                            class="fas fa-eye"></i></button>
+                                    <button class="btn-tool" onclick="generatePpPass()" data-lang="pp_tt_gen_pass"
+                                        data-lang-target="title"><i class="fas fa-dice"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="pp_u_prof"></label>
+                            <select id="ppProfile" class="select">
+                                <option value="" data-lang="opt_select_prof"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top:10px">
+                        <div class="form-group">
+                            <label data-lang="pp_service"></label>
+                            <select id="ppService" class="select">
+                                <option value="pppoe">pppoe</option>
+                                <option value="any">any</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:2">
+                            <label data-lang="hs_comment"></label>
+                            <input id="ppComment" class="input" data-lang="pp_ph_comment" data-lang-target="placeholder"
+                                value="created-via-nms">
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top:10px">
+                        <div class="form-group">
+                            <label data-lang="pp_local_addr"></label>
+                            <input id="ppLocalAddr" class="input" data-lang="pp_ph_local_addr"
+                                data-lang-target="placeholder">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="pp_remote_addr"></label>
+                            <input id="ppRemoteAddr" class="input" data-lang="pp_ph_remote_addr"
+                                data-lang-target="placeholder">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="margin-top:15px; width:100%"
+                        onclick="createPppoeUser(event)">
+                        <i class="fas fa-plus"></i> <span data-lang="pp_btn_create"></span>
+                    </button>
+                </div>
+
+                <!-- LIST TAB -->
+                <div id="panePpList" class="hidden">
+                    <p data-lang="pp_desc_list"
+                        style="margin-top:-5px; margin-bottom:15px; font-size:13px; color:#94a3b8;"></p>
+
+                    <!-- Professional Stats Bar -->
+                    <div class="stats-bar">
+                        <div class="stat-card" style="border-bottom: 2px solid #3b82f6;">
+                            <i class="fas fa-users" style="color:#3b82f6;"></i>
+                            <span class="value" id="statPpTotal">0</span>
+                        </div>
+                        <div class="stat-card" style="border-bottom: 2px solid #10b981;">
+                            <i class="fas fa-signal" style="color:#10b981;"></i>
+                            <span class="value" id="statPpOnline">0</span>
+                        </div>
+                        <div class="stat-card" style="border-bottom: 2px solid #94a3b8;">
+                            <i class="fas fa-plug-circle-xmark" style="color:#94a3b8;"></i>
+                            <span class="value" id="statPpOffline">0</span>
+                        </div>
+                        <div class="stat-card" style="border-bottom: 2px solid #ef4444;">
+                            <i class="fas fa-ban" style="color:#ef4444;"></i>
+                            <span class="value" id="statPpDisabled">0</span>
+                        </div>
+                        <div class="stat-card" style="border-bottom: 2px solid #f59e0b;">
+                            <i class="fas fa-clock" style="color:#f59e0b;"></i>
+                            <span class="value" id="statPpExpired">0</span>
+                        </div>
+                    </div>
+
+                    <div class="row space" style="margin-bottom:15px">
+                        <input id="ppListSearch" class="input" style="max-width:300px" data-lang="ph_search"
+                            data-lang-target="placeholder"
+                            onkeyup="APP_PP.secretState.search=this.value.toLowerCase(); APP_PP.secretState.page=1; renderUserList()">
+                        <div style="display:flex; gap:10px; align-items:center">
+                            <button class="btn btn-sm btn-outline-accent"
+                                onclick="APP_PP.showPasswords = !APP_PP.showPasswords; renderUserList()">
+                                <i class="fas" id="btnShowPassIcon"></i> <span id="btnShowPassText"
+                                    data-lang="pp_toggle_pass_show">Tampilkan Password</span>
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="loadPppoeUsers()"><i
+                                    class="fas fa-sync-alt me-1"></i> <span
+                                    data-lang="btn_refresh">REFRESH</span></button>
+                            <button class="btn btn-sm btn-success" onclick="exportPppoeCsv()"><i
+                                    class="fas fa-file-csv me-1"></i> <span data-lang="pp_btn_export">EXPORT
+                                    CSV</span></button>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-danger" onclick="deletePppoeBatch()"><i
+                                        class="fas fa-trash me-1"></i> <span
+                                        data-lang="btn_delete">Hapus</span></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th width="30">#</th>
+                                    <th width="30"><input type="checkbox" id="ppCheckAll" onclick="togglePpCheckAll()">
+                                    </th>
+                                    <th class="sortable" onclick="sortPpList('name')" data-lang="pp_user">
+                                        USERNAME</th>
+                                    <th class="sortable" onclick="sortPpList('password')" data-lang="pp_pass">
+                                        PASSWORD</th>
+                                    <th class="sortable" onclick="sortPpList('profile')" data-lang="pp_profile">
+                                        PROFILE</th>
+                                    <th class="sortable" onclick="sortPpList('status')" data-lang="pp_th_status">STATUS
+                                    </th>
+                                    <th class="sortable" onclick="sortPpList('comment')" data-lang="hs_comment">
+                                        COMMENT</th>
+                                    <th style="text-align:center" data-lang="pp_th_maps">MAPS</th>
+                                    <th style="text-align:center" data-lang="pp_th_billing">BILLING</th>
+                                    <th style="text-align:center" data-lang="th_action">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ppListBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="ppListPagination" class="pagination-wrapper"></div>
+                </div>
+
+                <!-- ACTIVE TAB -->
+                <div id="panePpActive" class="hidden">
+                    <p data-lang="pp_desc_act"
+                        style="margin-top:-5px; margin-bottom:15px; font-size:13px; color:#94a3b8;">
+                    </p>
+                    <div class="stats-bar" style="margin-bottom: 20px;">
+                        <div class="stat-card" style="border-bottom: 2px solid #3b82f6;">
+                            <i class="fas fa-satellite-dish" style="color:#3b82f6;"></i>
+                            <span class="value" id="statActTotal">0</span>
+                        </div>
+                        <div class="stat-card" style="border-bottom: 2px solid #8b5cf6;">
+                            <i class="fas fa-network-wired" style="color:#8b5cf6;"></i>
+                            <span class="value" id="statActPppoe">0</span>
+                        </div>
+                    </div>
+
+                    <div class="row space" style="margin-bottom:15px">
+                        <input id="ppSearchActive" class="input" style="max-width:300px"
+                            placeholder="Search Active User..."
+                            onkeyup="APP_PP.activeState.search=this.value.toLowerCase(); APP_PP.activeState.page=1; renderActiveList()">
+                        <div style="display:flex; gap:10px; align-items:center">
+                            <button class="btn btn-sm btn-primary" onclick="loadActivePppoe()"><i
+                                    class="fas fa-sync-alt me-1"></i> <span
+                                    data-lang="btn_refresh">REFRESH</span></button>
+                            <button class="btn btn-sm btn-danger" onclick="kickAllActivePppoe()"><i
+                                    class="fas fa-sign-out-alt me-1"></i> <span>PUTUS SEMUA</span></button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th style="width:30px">#</th>
+                                    <th class="sortable" onclick="sortActive('name')" data-lang="pp_user">
+                                    </th>
+                                    <th class="sortable" onclick="sortActive('service')" data-lang="pp_service"></th>
+                                    <th class="sortable" onclick="sortActive('address')" data-lang="pp_remote_addr">
+                                    </th>
+                                    <th class="sortable" onclick="sortActive('uptime')" data-lang="lbl_uptime"></th>
+                                    <th class="sortable" onclick="sortActive('caller_id')" data-lang="pp_caller_id">
+                                    </th>
+                                    <th style="width:60px" data-lang="th_action"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="ppActiveBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="ppActivePagination" class="pagination-wrapper"></div>
+                </div>
+
+                <!-- PROFILES TAB -->
+                <div id="panePpProfiles" class="hidden">
+                    <p data-lang="pp_desc_prof"
+                        style="margin-top:-5px; margin-bottom:15px; font-size:13px; color:#94a3b8;">
+                    </p>
+
+                    <div class="stats-bar" style="margin-bottom: 20px;">
+                        <div class="stat-card" style="border-bottom: 2px solid #3b82f6;">
+                            <i class="fas fa-layer-group" style="color:#3b82f6;"></i>
+                            <span class="value" id="statProfTotal">0</span>
+                        </div>
+                    </div>
+
+                    <div class="row space" style="margin-bottom:15px">
+                        <input id="ppSearchProfile" class="input" style="max-width:300px"
+                            placeholder="Search Profile..."
+                            onkeyup="APP_PP.profState.search=this.value.toLowerCase(); renderProfileList()">
+                        <div style="display:flex; gap:10px; align-items:center">
+                            <button class="btn btn-sm btn-primary"
+                                onclick="loadPppoeProfiles(document.getElementById('ppRouter').value)"><i
+                                    class="fas fa-sync-alt me-1"></i> <span
+                                    data-lang="btn_refresh">REFRESH</span></button>
+                        </div>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th style="width:30px">#</th>
+                                    <th data-lang="th_name"></th>
+                                    <th data-lang="pp_local_addr"></th>
+                                    <th data-lang="pp_remote_addr"></th>
+                                    <th data-lang="hs_rate_limit"></th>
+                                    <th data-lang="pp_only_one"></th>
+                                    <th style="width:100px" data-lang="th_action"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="ppProfileBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- DATALISTS FOR ADDRESSES -->
+                <datalist id="listApPools"></datalist>
+
+                <!-- ADD PROFILE TAB -->
+                <div id="panePpAddprof" class="hidden">
+                    <p data-lang="pp_addprof_desc"
+                        style="margin-top:-5px; margin-bottom:20px; font-size:13px; color:#94a3b8;"></p>
+
+                    <div
+                        style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 25px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                        <h4
+                            style="margin-top: 0; margin-bottom: 20px; font-size: 15px; color: #3b82f6; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(59, 130, 246, 0.2); padding-bottom: 10px;">
+                            <i class="fas fa-id-card"></i> <span>Informasi Profil Utama</span>
+                        </h4>
+
+                        <div class="form-row">
+                            <div class="form-group" style="flex:1">
+                                <label data-lang="pp_addprof_name"></label>
+                                <input id="apName" class="input"
+                                    style="font-size: 16px; padding-block: 10px; background: rgba(0,0,0,0.2);"
+                                    data-lang="pp_addprof_ph_name" data-lang-target="placeholder">
+                            </div>
+                        </div>
+
+                        <div class="form-row" style="margin-top:20px">
+                            <div class="form-group">
+                                <label data-lang="pp_local_addr"></label>
+                                <input id="apLocalManual" class="input" list="listApPools" data-lang="pp_ph_local_addr"
+                                    data-lang-target="placeholder">
+                                <small style="color: #64748b; font-size: 10px; margin-top: 4px; display: block;">IP
+                                    Lokal Gateway router</small>
+                            </div>
+                            <div class="form-group">
+                                <label data-lang="pp_remote_addr"></label>
+                                <input id="apRemoteManual" class="input" list="listApPools"
+                                    data-lang="pp_ph_remote_addr" data-lang-target="placeholder">
+                                <small style="color: #64748b; font-size: 10px; margin-top: 4px; display: block;">Pool /
+                                    Alamat IP Client</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row" style="margin-top:20px">
+                            <div class="form-group">
+                                <label data-lang="pp_addprof_rate"></label>
+                                <input id="apRateLimit" class="input" style="font-family: monospace; color: #10b981;"
+                                    placeholder="Upload/Download (e.g. 5M/10M)">
+                                <small style="color: #64748b; font-size: 10px; margin-top: 4px; display: block;">Format:
+                                    1M/2M atau 512k/1M</small>
+                            </div>
+                            <div class="form-group">
+                                <label data-lang="pp_only_one"></label>
+                                <select id="apOnlyOne" class="select">
+                                    <option value="default" data-lang="pp_addprof_opt_def"></option>
+                                    <option value="yes">yes (Satu akun satu login)</option>
+                                    <option value="no">no (Boleh multi login)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row" style="margin-top:20px">
+                            <div class="form-group">
+                                <label data-lang="pp_addprof_dns"></label>
+                                <input id="apDns" class="input" placeholder="8.8.8.8, 1.1.1.1">
+                                <small
+                                    style="color: #64748b; font-size: 10px; margin-top: 4px; display: block;">Pisahkan
+                                    dengan koma jika lebih dari satu</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 25px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+                        <h4
+                            style="margin-top: 0; margin-bottom: 20px; font-size: 15px; color: #8b5cf6; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid rgba(139, 92, 246, 0.2); padding-bottom: 10px;">
+                            <i class="fas fa-network-wired"></i> <span>Konfigurasi Queue (Advanced)</span>
+                        </h4>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-lang="pp_addprof_pq"></label>
+                                <select id="apParentQueue" class="select">
+                                    <option value="" data-lang="pp_addprof_opt_none"></option>
+                                </select>
+                                <small style="color: #64748b; font-size: 10px; margin-top: 4px; display: block;">Induk
+                                    queue untuk limitasi global</small>
+                            </div>
+                            <div class="form-group">
+                                <label data-lang="pp_addprof_iq"></label>
+                                <select id="apInsertBefore" class="select">
+                                    <option value="" data-lang="pp_addprof_opt_none"></option>
+                                </select>
+                                <small style="color: #64748b; font-size: 10px; margin-top: 4px; display: block;">Urutan
+                                    penempatan di simple queue</small>
+                            </div>
+                        </div>
+
+                        <div class="form-row" style="margin-top:20px">
+                            <div class="form-group">
+                                <label data-lang="pp_addprof_qtu"></label>
+                                <select id="apQTypeUp" class="select">
+                                    <option value="" data-lang="pp_addprof_opt_def"></option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label data-lang="pp_addprof_qtd"></label>
+                                <select id="apQTypeDn" class="select">
+                                    <option value="" data-lang="pp_addprof_opt_def"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="padding: 0 10px;">
+                        <button class="btn btn-primary"
+                            style="width:100%; padding-block: 15px; font-size: 16px; font-weight: bold; border-radius: 12px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); border: none; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);"
+                            onclick="createPppoeProfile(event)">
+                            <i class="fas fa-save me-2"></i> <span data-lang="pp_addprof_btn">SIMPAN PROFIL</span>
+                        </button>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+        <!-- EDIT MODAL -->
+        <div id="modalPpEdit" class="modal">
+            <div class="modal-box"
+                style="max-width:600px; padding:0; background: #0f172a; border: 1px solid rgba(255,255,255,0.1);">
+                <div class="modal-head"
+                    style="padding:20px 25px; border-bottom:1px solid rgba(255,255,255,0.05); background:rgba(255,255,255,0.02);">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <div
+                            style="width:35px; height:35px; border-radius:10px; background:rgba(59, 130, 246, 0.1); display:flex; align-items:center; justify-content:center; color:#3b82f6;">
+                            <i class="fas fa-user-edit"></i>
+                        </div>
+                        <b data-lang="pp_title_edit" style="font-size:16px; letter-spacing:0.5px;">EDIT PPPoE USER</b>
+                    </div>
+                    <div class="modal-close" onclick="closePpEditModal()"
+                        style="font-size:20px; opacity:0.5; cursor:pointer;">&times;</div>
+                </div>
+                <div class="modal-body" style="padding:25px;">
+                    <input type="hidden" id="editPpNameOriginal">
+
+                    <!-- Section: Account -->
+                    <div style="margin-bottom:25px;">
+                        <div
+                            style="display:flex; align-items:center; gap:8px; margin-bottom:15px; color:#3b82f6; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px;">
+                            <i class="fas fa-id-card"></i> <span>Informasi Akun</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-lang="pp_user">USERNAME</label>
+                                <div style="position:relative;">
+                                    <i class="fas fa-user"
+                                        style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#475569; font-size:12px;"></i>
+                                    <input id="editPpName" class="input" disabled
+                                        style="opacity:0.6; padding-left:35px; width:100%; cursor:not-allowed; background:rgba(0,0,0,0.2);">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label data-lang="pp_pass">PASSWORD</label>
+                                <div style="position:relative;">
+                                    <i class="fas fa-key"
+                                        style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#475569; font-size:12px;"></i>
+                                    <input id="editPpPass" class="input" type="text"
+                                        style="padding-left:35px; width:100%;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Service & Network -->
+                    <div style="margin-bottom:25px;">
+                        <div
+                            style="display:flex; align-items:center; gap:8px; margin-bottom:15px; color:#8b5cf6; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px;">
+                            <i class="fas fa-network-wired"></i> <span>Konfigurasi Jaringan</span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label data-lang="pp_u_prof">PROFILE</label>
+                                <select id="editPpProfile" class="select" style="width:100%;"></select>
+                            </div>
+                            <div class="form-group">
+                                <label data-lang="pp_service">SERVICE</label>
+                                <select id="editPpService" class="select" style="width:100%;">
+                                    <option value="any">any</option>
+                                    <option value="pppoe">pppoe</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row" style="margin-top:15px;">
+                            <div class="form-group">
+                                <label data-lang="pp_local_addr">LOCAL ADDRESS</label>
+                                <input id="editPpLocalAddr" class="input" style="width:100%; font-family:monospace;">
+                            </div>
+                            <div class="form-group">
+                                <label data-lang="pp_remote_addr">REMOTE ADDRESS</label>
+                                <input id="editPpRemoteAddr" class="input" style="width:100%; font-family:monospace;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section: Additional -->
+                    <div style="margin-bottom:25px;">
+                        <div
+                            style="display:flex; align-items:center; gap:8px; margin-bottom:15px; color:#10b981; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px;">
+                            <i class="fas fa-info-circle"></i> <span>Informasi Tambahan</span>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="hs_comment">COMMENT / CATATAN</label>
+                            <input id="editPpComment" class="input" style="width:100%;">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary"
+                        style="margin-top:10px; width:100%; padding: 12px; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); border:none; box-shadow: 0 4px 12px rgba(37,99,235,0.2);"
+                        onclick="savePppoeEdit()">
+                        <i class="fas fa-save me-2"></i> <span data-lang="pp_btn_save">SIMPAN PERUBAHAN</span>
+                    </button>
+                    <button class="btn"
+                        style="margin-top:10px; width:100%; background:transparent; border:1px solid rgba(255,255,255,0.05); color:#94a3b8;"
+                        onclick="closePpEditModal()">
+                        BATAL
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- EDIT PROFILE MODAL -->
+        <div id="modalPpProfEdit" class="modal">
+            <div class="modal-box" style="max-width:600px">
+                <div class="modal-head">
+                    <b data-lang="pp_prof_title_edit"></b>
+                    <div class="modal-close" onclick="closePpProfEditModal()">×</div>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editApNameOriginal">
+
+                    <!-- Row 1: Name + Only One -->
+                    <div class="form-row">
+                        <div class="form-group" style="flex:2">
+                            <label data-lang="pp_addprof_name"></label>
+                            <input id="editApName" class="input">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="pp_only_one"></label>
+                            <select id="editApOnlyOne" class="select">
+                                <option value="default" data-lang="pp_addprof_opt_def"></option>
+                                <option value="yes">yes</option>
+                                <option value="no">no</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Local + Remote Address (Combo-box Style) -->
+                    <div class="form-row" style="margin-top:12px">
+                        <div class="form-group">
+                            <label data-lang="pp_local_addr"></label>
+                            <input id="editApLocal" class="input" list="listApPools" data-lang="pp_ph_local_addr"
+                                data-lang-target="placeholder">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="pp_remote_addr"></label>
+                            <input id="editApRemote" class="input" list="listApPools" data-lang="pp_ph_remote_addr"
+                                data-lang-target="placeholder">
+                        </div>
+                    </div>
+
+                    <!-- Row 3: DNS + Rate Limit -->
+                    <div class="form-row" style="margin-top:12px">
+                        <div class="form-group">
+                            <label data-lang="pp_addprof_dns"></label>
+                            <input id="editApDns" class="input" data-lang="pp_addprof_ph_dns"
+                                data-lang-target="placeholder">
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="pp_addprof_rate"></label>
+                            <input id="editApRateLimit" class="input" data-lang="pp_addprof_ph_rate"
+                                data-lang-target="placeholder">
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Insert Queue Before + Parent Queue -->
+                    <div class="form-row" style="margin-top:12px">
+                        <div class="form-group">
+                            <label data-lang="pp_addprof_iq"></label>
+                            <select id="editApInsertBefore" class="select">
+                                <option value="" data-lang="pp_addprof_opt_none"></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="pp_addprof_pq"></label>
+                            <select id="editApParentQueue" class="select">
+                                <option value="" data-lang="pp_addprof_opt_none"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Row 5: Queue Type Upload + Download -->
+                    <div class="form-row" style="margin-top:12px">
+                        <div class="form-group">
+                            <label data-lang="pp_addprof_qtu"></label>
+                            <select id="editApQTypeUp" class="select">
+                                <option value="" data-lang="pp_addprof_opt_def"></option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-lang="pp_addprof_qtd"></label>
+                            <select id="editApQTypeDn" class="select">
+                                <option value="" data-lang="pp_addprof_opt_def"></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" style="margin-top:20px; width:100%" onclick="savePppoeProfEdit()">
+                        <i class="fas fa-save"></i> <span data-lang="pp_btn_save"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Overrides or extra logic for PPPoE
+            var APP_PP = {
+                users: [],
+                active: [],
+                profiles: [],
+                showPasswords: false,
+                secretState: { page: 1, limit: 20, search: '', sortCol: 'name', sortDir: 1 },
+                activeState: { page: 1, limit: 20, search: '', sortCol: 'name', sortDir: 1 },
+                profState: { search: '' }
+            };
+            var currentTab = 'create';
+
+            function toggleShowPasswords() {
+                APP_PP.showPasswords = !APP_PP.showPasswords;
+                var icon = document.getElementById('iconTogglePass');
+                var lbl = document.getElementById('lblTogglePass');
+                if (APP_PP.showPasswords) {
+                    if (icon) icon.className = 'fas fa-eye';
+                    if (lbl) { lbl.setAttribute('data-lang', 'pp_toggle_pass_hide'); lbl.innerText = t('pp_toggle_pass_hide'); }
+                } else {
+                    if (icon) icon.className = 'fas fa-eye-slash';
+                    if (lbl) { lbl.setAttribute('data-lang', 'pp_toggle_pass_show'); lbl.innerText = t('pp_toggle_pass_show'); }
+                }
+                renderUserList();
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                applyLanguage();
+                syncSettings();
+                initLoginBranding();
+                // initPppoeUI will be called from the IIFE at the bottom
+            });
+
+            function syncSettings() {
+                fetch('/api/settings', { headers: getAuthHeaders() })
+                    .then(r => r.json())
+                    .then(s => {
+                        if (s) {
+                            if (s.web_title) {
+                                localStorage.setItem('nms_web_title', s.web_title);
+                                document.querySelectorAll('.brand-text, #brandText, .mobile-brand').forEach(e => {
+                                    e.innerText = s.web_title;
+                                    e.removeAttribute('data-lang'); // Prevent translation overwrite
+                                });
+                                document.title = (t('sb_pppoe') || "PPPOE").toUpperCase() + " - " + s.web_title.toUpperCase();
+                            }
+                            if (s.is_licensed) {
+                                localStorage.setItem('nms_is_licensed', 'true');
+                                var b = document.getElementById('licBadge');
+                                if (b) {
+                                    b.innerHTML = '<i class="fas fa-check-circle me-1"></i> LICENSED (PRO)';
+                                    b.style.background = 'rgba(16, 185, 129, 0.1)';
+                                    b.style.color = '#10b981';
+                                    b.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                                    b.href = '/license';
+                                    b.style.cursor = 'pointer';
+                                }
+                            } else {
+                                localStorage.removeItem('nms_is_licensed');
+                            }
+                        }
+                    }).catch(() => { });
+            }
+
+            function initLoginBranding() {
+                const branding = document.getElementById('loginBranding');
+                if (!branding) return;
+
+                const title = document.getElementById('loginTitle');
+                const img = new Image();
+                img.src = '/static/logo.png?t=' + new Date().getTime();
+                img.style.maxWidth = '200px';
+                img.style.maxHeight = '100px';
+                img.style.display = 'inline-block';
+
+                img.onload = function () {
+                    branding.innerHTML = '';
+                    branding.appendChild(img);
+                };
+
+                img.onerror = function () {
+                    var savedTitle = localStorage.getItem('nms_web_title');
+                    if (savedTitle && title) title.innerText = savedTitle;
+                };
+            }
+
+            function doLogin() {
+                var p = document.getElementById('passInput').value;
+                fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password: p })
+                }).then(r => {
+                    if (r.ok) {
+                        localStorage.setItem('nms_auth_session', p);
+                        document.getElementById('login-overlay').style.display = 'none';
+                        initPppoeUI();
+                        return;
+                    }
+                    document.getElementById('loginMsg').style.display = 'block';
+                }).catch(() => { alert(t('msg_conn_fail') || "Connection Failed"); });
+            }
+
+            function getAuthHeaders() {
+                var pass = localStorage.getItem('nms_auth_session');
+                return { 'Content-Type': 'application/json', 'X-Auth-Token': pass };
+            }
+
+            function toggleSidebar() {
+                document.querySelector('.sidebar').classList.toggle('active');
+                document.querySelector('.overlay-bg').classList.toggle('active');
+            }
+
+            function safeText(str) {
+                if (!str) return '';
+                var div = document.createElement('div');
+                div.innerText = str;
+                return div.innerHTML;
+            }
+
+            function toast(msg, type = 'success') {
+                const container = document.getElementById('toast-container');
+                if (!container) return;
+                const t = document.createElement('div');
+                t.className = `toast-msg ${type}`;
+                const icon = type === 'success' ? 'check-circle' : (type === 'error' ? 'exclamation-circle' : 'exclamation-triangle');
+                t.innerHTML = `<i class="fas fa-${icon}"></i> <span>${msg}</span>`;
+                container.appendChild(t);
+                setTimeout(() => {
+                    t.classList.add('toast-fade-out');
+                    setTimeout(() => t.remove(), 400);
+                }, 3000);
+            }
+
+            function togglePpPass() {
+                var p = document.getElementById('ppPass');
+                var icon = document.querySelector('#btnTogglePass i');
+                if (p.type === 'password') {
+                    p.type = 'text';
+                    icon.className = 'fas fa-eye-slash';
+                } else {
+                    p.type = 'password';
+                    icon.className = 'fas fa-eye';
+                }
+            }
+
+            function generatePpPass() {
+                var chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+                var pass = "";
+                for (var i = 0; i < 8; i++) {
+                    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                document.getElementById('ppPass').value = pass;
+                document.getElementById('ppPass').type = 'text';
+                document.querySelector('#btnTogglePass i').className = 'fas fa-eye-slash';
+                toast("Password Generated!");
+            }
+
+            function checkPppoeUser() {
+                var u = document.getElementById('ppUser').value.trim();
+                if (!u) { toast("Masukkan username dahulu", "warning"); return; }
+                if (u.includes('{')) { toast("Batch syntax detected: Check tidak tersedia untuk batch", "warning"); return; }
+
+                var exists = (APP_PP.users || []).some(x => x.name === u);
+                if (exists) {
+                    toast("Username '" + u + "' SUDAH ADA di MikroTik ini!", "error");
+                } else {
+                    toast("Username '" + u + "' TERSEDIA", "success");
+                }
+            }
+
+            function initPppoeUI(d) {
+                var sel = document.getElementById('ppRouter');
+                sel.innerHTML = '<option value="">' + t('pp_ph_select_server') + '</option>';
+                var topo = d.topology || {};
+                var mk = d.mikrotik_data || {};
+
+                var mainIdent = mk['server_utama'] ? mk['server_utama'].identity : null;
+                var mainName = (mainIdent && mainIdent !== '-') ? mainIdent : ((topo.server && topo.server.name) || 'Server Utama');
+                sel.add(new Option(mainName + " (Utama)", 'server_utama'));
+
+                if (topo.extra_routers) {
+                    topo.extra_routers.forEach(r => {
+                        var ident = mk[r.id] ? mk[r.id].identity : null;
+                        var dName = (ident && ident !== '-') ? ident : (r.name || r.id);
+                        sel.add(new Option(dName + " (Cabang)", r.id));
+                    });
+                }
+
+                // Index clients for fast lookup (Map Status)
+                APP_PP.clientMap = {};
+                if (topo.clients) {
+                    topo.clients.forEach(c => {
+                        // Priority 1: Specific PPPoE User field
+                        let pUser = (c.data && c.data.pppoe_user) || (c.credentials && c.credentials.pppoe_user);
+                        if (pUser) APP_PP.clientMap[pUser.toLowerCase()] = c;
+
+                        // Priority 2: Also index by name as fallback (user might use name as pppoe user)
+                        if (c.name) APP_PP.clientMap[c.name.toLowerCase()] = c;
+                    });
+                }
+
+                if (sel.options.length > 1) sel.selectedIndex = 1;
+                onPppoeRouterChange();
+            }
+
+            function onPppoeRouterChange() {
+                var routerId = document.getElementById('ppRouter').value;
+                if (!routerId) return;
+
+                // Clear stale data immediately so old router's data doesn't linger
+                APP_PP.users = [];
+                APP_PP.active = [];
+                document.getElementById('ppListBody').innerHTML = '';
+                document.getElementById('ppActiveBody').innerHTML = '';
+                document.getElementById('ppProfileBody').innerHTML = '';
+
+                // Always reload profiles (powers create-form dropdown + profiles tab)
+                loadPppoeProfiles(routerId);
+
+                // Reload data for whichever tab is currently active
+                if (currentTab === 'list') loadPppoeUsers();
+                else if (currentTab === 'active') loadActivePppoe();
+                else if (currentTab === 'addprof' || currentTab === 'profiles') loadPppoeProfileOptions(routerId);
+            }
+
+            function setPppoeTab(tabName) {
+                currentTab = tabName;
+                ['create', 'list', 'active', 'profiles', 'addprof'].forEach(x => {
+                    var p = document.getElementById('panePp' + x.charAt(0).toUpperCase() + x.slice(1));
+                    var b = document.getElementById('tabPp' + x.charAt(0).toUpperCase() + x.slice(1));
+                    if (p) x === tabName ? p.classList.remove('hidden') : p.classList.add('hidden');
+                    if (b) x === tabName ? b.classList.add('active') : b.classList.remove('active');
+                });
+                if (tabName === 'addprof' || tabName === 'profiles') {
+                    var routerId = document.getElementById('ppRouter').value;
+                    if (routerId) loadPppoeProfileOptions(routerId);
+                } else {
+                    onPppoeRouterChange();
+                }
+            }
+
+            function renderProfileList() {
+                var tbody = document.getElementById('ppProfileBody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                // Filter
+                var filtered = (APP_PP.profiles || []).filter(p => {
+                    var s = APP_PP.profState.search;
+                    if (!s) return true;
+                    return (p.name || '').toLowerCase().includes(s) ||
+                        (p.rate_limit || '').toLowerCase().includes(s);
+                });
+
+                // Update Stats
+                var stTotal = document.getElementById('statProfTotal');
+                if (stTotal) stTotal.innerText = (APP_PP.profiles || []).length;
+
+                filtered.forEach((p, i) => {
+                    var editBtn = `<button class="btn btn-sm btn-outline-primary" style="padding:4px 8px; font-size:11px;" onclick="openPpProfEditModal('${safeText(p.name)}')"><i class="fas fa-edit"></i> EDIT</button>`;
+                    var delBtn = `<button class="btn btn-sm btn-outline-danger" style="padding:4px 8px; font-size:11px;" onclick="deletePppoeProfile('${safeText(p.name)}')"><i class="fas fa-trash"></i> HAPUS</button>`;
+
+                    // Don't allow delete default profile
+                    if (p.name === 'default' || p.name === 'default-encryption') delBtn = '';
+
+                    var rateLimit = p.rate_limit
+                        ? `<span class="badge" style="background:rgba(16, 185, 129, 0.1); color:#10b981; border:1px solid rgba(16, 185, 129, 0.2); font-family:monospace; font-size:12px;">${safeText(p.rate_limit)}</span>`
+                        : '-';
+                    var onlyOne = p.only_one === 'yes'
+                        ? `<span class="badge" style="background:rgba(59,130,246,0.1); color:#3b82f6; border:1px solid rgba(59,130,246,0.2);">YES</span>`
+                        : `<span style="color:#94a3b8; font-size:11px;">${safeText(p.only_one || 'DEFAULT')}</span>`;
+
+                    tbody.innerHTML += `<tr>
+                    <td>${i + 1}</td>
+                    <td><b style="color:#f1f5f9;">${safeText(p.name)}</b></td>
+                    <td style="font-family:monospace; font-size:12px; color:#cbd5e1;">${safeText(p.local_address || '-')}</td>
+                    <td style="font-family:monospace; font-size:12px; color:#60a5fa;">${safeText(p.remote_address || '-')}</td>
+                    <td>${rateLimit}</td>
+                    <td style="text-align:center;">${onlyOne}</td>
+                    <td><div style="display:flex; gap:5px; flex-wrap:nowrap;">${editBtn}${delBtn}</div></td>
+                </tr>`;
+                });
+            }
+
+            function updateRouterDisplayName(routerId, identity) {
+                if (!identity || identity === '-') return;
+                var rSel = document.getElementById('ppRouter');
+                if (!rSel) return;
+                var opt = Array.from(rSel.options).find(o => o.value === routerId);
+                if (opt) {
+                    var suffix = routerId === 'server_utama' ? ' (Utama)' : ' (Cabang)';
+                    opt.text = identity + suffix;
+                }
+            }
+
+            function loadPppoeProfiles(routerId) {
+                var pSel = document.getElementById('ppProfile');
+                fetch('/api/pppoe/profiles/' + routerId, { headers: getAuthHeaders() })
+                    .then(r => r.json()).then(d => {
+                        if (d.status === 'ok') {
+                            updateRouterDisplayName(routerId, d.router_identity);
+                            APP_PP.profiles = d.profiles || [];
+                            if (pSel) {
+                                pSel.innerHTML = '<option value="">' + t('pp_ph_select_profile') + '</option>';
+                                APP_PP.profiles.forEach(p => pSel.add(new Option(p.name, p.name)));
+                            }
+                            renderProfileList();
+                        }
+                    }).catch(() => {
+                        if (pSel) pSel.innerHTML = '<option value="">(' + (t('msg_error') || 'Error') + ')</option>';
+                    });
+            }
+
+            function loadPppoeProfileOptions(routerId) {
+                fetch('/api/pppoe/profile_options/' + routerId, { headers: getAuthHeaders() })
+                    .then(r => r.json()).then(d => {
+                        if (d.status !== 'ok') return;
+                        updateRouterDisplayName(routerId, d.router_identity);
+                        var defOpt = '<option value="">' + t('pp_addprof_opt_def') + '</option>';
+                        var noneOpt = '<option value="">' + t('pp_addprof_opt_none') + '</option>';
+
+                        // Populate Datalist for Pool addresses
+                        var datalist = document.getElementById('listApPools');
+                        if (datalist) {
+                            datalist.innerHTML = d.pools.map(p => `<option value="${p}">`).join('');
+                        }
+
+                        // Populate ADD form dropdowns
+                        var iqSel = document.getElementById('apInsertBefore');
+                        iqSel.innerHTML = noneOpt;
+                        d.queues_simple.forEach(q => iqSel.add(new Option(q, q)));
+
+                        var pqSel = document.getElementById('apParentQueue');
+                        pqSel.innerHTML = noneOpt;
+                        var simpleQsFiltered = d.queues_simple.filter(q => q !== 'first' && q !== 'bottom');
+                        [...simpleQsFiltered, ...d.queues_tree].forEach(q => pqSel.add(new Option(q, q)));
+
+                        var quOpts = defOpt + d.queue_types.map(q => `<option value="${q}">${q}</option>`).join('');
+                        document.getElementById('apQTypeUp').innerHTML = quOpts;
+                        document.getElementById('apQTypeDn').innerHTML = quOpts;
+
+                        // Populate EDIT modal dropdowns
+                        var restoreVal = (el) => {
+                            if (el && el.dataset.val !== undefined) {
+                                var v = el.dataset.val;
+                                let optionExists = Array.from(el.options).some(opt => opt.value === v || opt.value.toLowerCase() === v.toLowerCase());
+                                if (!optionExists && v !== '') el.add(new Option(v, v));
+                                el.value = Array.from(el.options).find(opt => opt.value.toLowerCase() === v.toLowerCase())?.value || v;
+                            }
+                        };
+
+                        var eIqSel = document.getElementById('editApInsertBefore');
+                        if (eIqSel) {
+                            eIqSel.innerHTML = noneOpt;
+                            d.queues_simple.forEach(q => eIqSel.add(new Option(q, q)));
+                            restoreVal(eIqSel);
+                        }
+                        var ePqSel = document.getElementById('editApParentQueue');
+                        if (ePqSel) {
+                            ePqSel.innerHTML = noneOpt;
+                            var simpleQsFiltered = d.queues_simple.filter(q => q !== 'first' && q !== 'bottom');
+                            [...simpleQsFiltered, ...d.queues_tree].forEach(q => ePqSel.add(new Option(q, q)));
+                            restoreVal(ePqSel);
+                        }
+                        var eQuUp = document.getElementById('editApQTypeUp');
+                        var eQuDn = document.getElementById('editApQTypeDn');
+                        if (eQuUp && eQuDn) {
+                            eQuUp.innerHTML = quOpts;
+                            restoreVal(eQuUp);
+                            eQuDn.innerHTML = quOpts;
+                            restoreVal(eQuDn);
+                        }
+                    }).catch(() => toast(t('msg_error') || 'Error memuat opsi', 'error'));
+            }
+
+            function createPppoeProfile(event) {
+                var routerId = document.getElementById('ppRouter').value;
+                var name = document.getElementById('apName').value.trim();
+                if (!name) { alert(t('pp_addprof_err_name')); return; }
+
+                var payload = {
+                    router_id: routerId,
+                    name: name,
+                    local_address: document.getElementById('apLocalManual').value.trim(),
+                    remote_address: document.getElementById('apRemoteManual').value.trim(),
+                    dns_server: document.getElementById('apDns').value.trim(),
+                    rate_limit: document.getElementById('apRateLimit').value.trim(),
+                    only_one: document.getElementById('apOnlyOne').value,
+                    insert_queue_before: document.getElementById('apInsertBefore').value,
+                    parent_queue: document.getElementById('apParentQueue').value,
+                    queue_type_upload: document.getElementById('apQTypeUp').value,
+                    queue_type_download: document.getElementById('apQTypeDn').value,
+                };
+
+                var btn = event.target.closest('button');
+                if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+
+                fetch('/api/pppoe/profile/create', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                }).then(r => r.json()).then(d => {
+                    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                    if (d.status === 'ok') {
+                        toast(t('pp_addprof_ok'));
+                        // Reset form
+                        ['apName', 'apLocalManual', 'apRemoteManual', 'apDns', 'apRateLimit'].forEach(id => {
+                            var el = document.getElementById(id);
+                            if (el) { el.value = ''; }
+                        });
+                        document.getElementById('apOnlyOne').value = 'default';
+                        // Refresh profile lists
+                        loadPppoeProfiles(routerId);
+                    } else {
+                        alert(d.msg || 'Error');
+                    }
+                }).catch(() => { if (btn) { btn.disabled = false; btn.style.opacity = '1'; } });
+            }
+
+            function openPpProfEditModal(name) {
+                var prof = APP_PP.profiles.find(p => p.name === name);
+                if (!prof) return;
+
+                document.getElementById('editApNameOriginal').value = name;
+                document.getElementById('editApName').value = name;
+
+                // Map values with fallbacks to handle different MikroTik key versions
+                var val = (p, keys) => {
+                    // Try specific keys first
+                    for (let k of keys) if (p[k] !== undefined && p[k] !== '') return p[k];
+                    // Try from raw MikroTik data if available
+                    if (p.raw) {
+                        for (let k of keys) {
+                            if (p.raw[k] !== undefined) return p.raw[k];
+                            let mk = k.replace(/_/g, '-');
+                            if (p.raw[mk] !== undefined) return p.raw[mk];
+                        }
+                    }
+                    return '';
+                };
+
+                var onlyOne = val(prof, ['only_one', 'only-one']);
+                document.getElementById('editApOnlyOne').value = (onlyOne === 'yes' || onlyOne === 'no') ? onlyOne : 'default';
+
+                document.getElementById('editApLocal').value = val(prof, ['local_address', 'local-address']);
+                document.getElementById('editApRemote').value = val(prof, ['remote_address', 'remote-address']);
+                document.getElementById('editApDns').value = val(prof, ['dns_server', 'dns-server']);
+                document.getElementById('editApRateLimit').value = val(prof, ['rate_limit', 'rate-limit']);
+
+                // Handle dropdowns with '*none' or empty strings
+                var setDropdown = (id, value) => {
+                    var el = document.getElementById(id);
+                    if (!el) return;
+
+                    var v = (value === '*none' || value === 'none' || !value) ? '' : String(value).trim();
+
+                    el.dataset.val = v; // save for async restore in loadPppoeProfileOptions
+
+                    let optionExists = Array.from(el.options).some(opt => opt.value.toLowerCase() === v.toLowerCase());
+                    if (!optionExists && v !== '') {
+                        el.add(new Option(v, v)); // Temporarily add so it is never blank
+                    }
+
+                    // Find correct case and select it
+                    var finalVal = v;
+                    for (var i = 0; i < el.options.length; i++) {
+                        if (el.options[i].value.toLowerCase() === v.toLowerCase()) {
+                            finalVal = el.options[i].value;
+                            break;
+                        }
+                    }
+                    el.value = finalVal;
+                };
+
+                setDropdown('editApInsertBefore', val(prof, ['insert_queue_before', 'insert-queue-before']));
+                setDropdown('editApParentQueue', val(prof, ['parent_queue', 'parent-queue']));
+
+                // Queue Type mapping for separate upload/download
+                var qUp = val(prof, ['queue_type', 'queue-type']);
+                var qDn = val(prof, ['download_queue_type', 'download-queue-type']);
+
+                // Defensive split: if qUp contains a slash and qDn is empty, split them
+                if (qUp.includes('/') && (!qDn || qDn === '')) {
+                    var parts = qUp.split('/');
+                    qUp = parts[0];
+                    qDn = parts[1] || '';
+                }
+
+                setDropdown('editApQTypeUp', qUp);
+                setDropdown('editApQTypeDn', qDn);
+
+                document.getElementById('modalPpProfEdit').classList.add('show');
+            }
+
+            function closePpProfEditModal() {
+                document.getElementById('modalPpProfEdit').classList.remove('show');
+            }
+
+            function savePppoeProfEdit() {
+                var routerId = document.getElementById('ppRouter').value;
+                var oldName = document.getElementById('editApNameOriginal').value;
+                var newName = document.getElementById('editApName').value.trim();
+
+                if (!newName) {
+                    alert(t('pp_addprof_err_name')); return;
+                }
+
+                var payload = {
+                    router_id: routerId,
+                    old_name: oldName,
+                    name: newName,
+                    local_address: document.getElementById('editApLocal').value.trim(),
+                    remote_address: document.getElementById('editApRemote').value.trim(),
+                    dns_server: document.getElementById('editApDns').value.trim(),
+                    rate_limit: document.getElementById('editApRateLimit').value.trim(),
+                    only_one: document.getElementById('editApOnlyOne').value,
+                    insert_queue_before: document.getElementById('editApInsertBefore').value,
+                    parent_queue: document.getElementById('editApParentQueue').value,
+                    queue_type_upload: document.getElementById('editApQTypeUp').value,
+                    queue_type_download: document.getElementById('editApQTypeDn').value,
+                };
+
+                fetch('/api/pppoe/profile/update', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                })
+                    .then(r => r.json()).then(d => {
+                        if (d.status === 'ok') {
+                            toast(t('pp_msg_prof_update_success'));
+                            closePpProfEditModal();
+                            loadPppoeProfiles(routerId);
+                        } else {
+                            alert(d.msg || "Error");
+                        }
+                    }).catch(() => toast(t('msg_error') || 'Gagal menyimpan', 'error'));
+            }
+
+            function deletePppoeProfile(name) {
+                var msg = t('pp_delprof_confirm').replace('{name}', name);
+                if (!confirm(msg)) return;
+                var routerId = document.getElementById('ppRouter').value;
+                fetch('/api/pppoe/profile/delete', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({ router_id: routerId, name: name })
+                }).then(r => r.json()).then(d => {
+                    if (d.status === 'ok') {
+                        toast(t('pp_delprof_ok'));
+                        loadPppoeProfiles(routerId);
+                    } else {
+                        toast(d.msg || 'Error', 'error');
+                    }
+                }).catch(e => {
+                    console.error(e);
+                    toast(t('msg_error') || 'Gagal menghapus', 'error');
+                });
+            }
+
+            function togglePppoeUser(name) {
+                let routerId = document.getElementById('ppRouter').value;
+                if (!routerId || !name) return;
+
+                fetch('/api/pppoe/toggle', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ router_id: routerId, name: name })
+                })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.status === 'ok') {
+                            let statusText = res.disabled ? t('pp_toast_disabled') : t('pp_toast_activated');
+                            let msg = t('pp_toast_toggle').replace('{name}', name).replace('{status}', statusText);
+                            toast(msg, res.disabled ? 'warning' : 'success');
+                            loadPppoeUsers();
+                        } else {
+                            toast(res.msg || t('msg_error'), 'error');
+                        }
+                    })
+                    .catch(() => toast(t('alert_conn_failed'), 'error'));
+            }
+
+            function exportPppoeCsv() {
+                if (!APP_PP.users || APP_PP.users.length === 0) {
+                    toast('Daftar kosong, tidak ada yang bisa di-export', 'warning');
+                    return;
+                }
+
+                let headers = ["Username", "Password", "Profile", "Status", "Comment", "Map Status", "Last Logout"];
+                let csvRows = [headers.join(",")];
+
+                APP_PP.users.forEach(u => {
+                    let mapped = APP_PP.clientMap && APP_PP.clientMap[u.name.toLowerCase()] ? t('pp_badge_mapped') : t('pp_badge_nomap');
+                    let row = [
+                        u.name || '',
+                        u.password || '',
+                        u.profile || '',
+                        u.disabled ? 'Disabled' : 'Enabled',
+                        safeText(u.comment || ''),
+                        mapped,
+                        u.last_logged_out || '-'
+                    ];
+                    // Wrap in quotes and escape existing quotes
+                    let escapedRow = row.map(v => '"' + (v.toString().replace(/"/g, '""')) + '"');
+                    csvRows.push(escapedRow.join(","));
+                });
+
+                let csvString = csvRows.join("\n");
+                let blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+                let url = URL.createObjectURL(blob);
+                let link = document.createElement("a");
+                link.setAttribute("href", url);
+                link.setAttribute("download", `PPPoE_Secrets_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+            function createPppoeUser(event) {
+                var routerId = document.getElementById('ppRouter').value;
+                var user = document.getElementById('ppUser').value;
+                var pass = document.getElementById('ppPass').value;
+                var prof = document.getElementById('ppProfile').value;
+                var service = document.getElementById('ppService').value;
+                var comment = document.getElementById('ppComment').value;
+                var localAddr = document.getElementById('ppLocalAddr').value.trim();
+                var remoteAddr = document.getElementById('ppRemoteAddr').value.trim();
+
+                if (!user || !pass || !prof) { toast(t('pp_msg_req') || "Username, Password, and Profile required", 'error'); return; }
+
+                var btn = event.target.closest('button');
+                if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+
+                // Support Batch Creation: user{1..5}
+                var usernames = [user];
+                var match = user.match(/^(.*)\{(\d+)\.\.(\d+)\}(.*)$/);
+                if (match) {
+                    usernames = [];
+                    var prefix = match[1], startNum = parseInt(match[2]), endNum = parseInt(match[3]), suffix = match[4];
+                    var step = startNum <= endNum ? 1 : -1;
+                    for (var i = startNum; ; i += step) {
+                        usernames.push(prefix + i + suffix);
+                        if (i === endNum) break;
+                        if (usernames.length > 100) break; // Safety cap
+                    }
+                }
+
+                var successCount = 0;
+                var errorMsgs = [];
+
+                var promises = usernames.map(u => {
+                    return fetch('/api/pppoe/create', {
+                        method: 'POST', headers: getAuthHeaders(),
+                        body: JSON.stringify({ router_id: routerId, name: u, password: pass, profile: prof, service: service, comment: comment, local_address: localAddr, remote_address: remoteAddr })
+                    }).then(r => r.json()).then(d => {
+                        if (d.status === 'ok') successCount++;
+                        else errorMsgs.push(u + ": " + (d.msg || "Error"));
+                    }).catch(e => errorMsgs.push(u + ": Connection Error"));
+                });
+
+                Promise.all(promises).then(() => {
+                    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                    if (successCount > 0) {
+                        toast(successCount + " User Created Successfully");
+                        if (usernames.length === 1) {
+                            document.getElementById('ppUser').value = '';
+                            document.getElementById('ppPass').value = '';
+                        }
+                        loadPppoeUsers();
+                    }
+                    if (errorMsgs.length > 0) {
+                        alert("Issues:\n" + errorMsgs.join("\n"));
+                    }
+                });
+            }
+
+            function loadPppoeUsers() {
+                var routerId = document.getElementById('ppRouter').value;
+
+                // Fetch Users and Active Sessions concurrently
+                Promise.all([
+                    fetch('/api/pppoe/users/' + routerId, { headers: getAuthHeaders() }).then(r => r.json()),
+                    fetch('/api/pppoe/active/' + routerId, { headers: getAuthHeaders() }).then(r => r.json())
+                ]).then(([uRes, aRes]) => {
+                    if (uRes.status === 'ok') {
+                        APP_PP.users = uRes.users || [];
+                        updateRouterDisplayName(routerId, uRes.router_identity);
+                    } else {
+                        APP_PP.users = Array.isArray(uRes) ? uRes : [];
+                    }
+
+                    if (aRes.status === 'ok') {
+                        APP_PP.active = aRes.active || [];
+                        updateRouterDisplayName(routerId, aRes.router_identity);
+                    } else {
+                        APP_PP.active = Array.isArray(aRes) ? aRes : [];
+                    }
+
+                    APP_PP.secretState.page = 1;
+                    renderUserList();
+                }).catch(err => {
+                    console.error("Fetch Error:", err);
+                    toast("Gagal memuat data PPPoE", "error");
+                    APP_PP.users = [];
+                    APP_PP.active = [];
+                    renderUserList();
+                });
+            }
+
+            function onSecretSearch() {
+                APP_PP.secretState.search = document.getElementById('ppSearchSecret').value.toLowerCase();
+                APP_PP.secretState.page = 1;
+                renderUserList();
+            }
+
+            function sortPpList(col) {
+                if (APP_PP.secretState.sortCol === col) {
+                    APP_PP.secretState.sortDir *= -1;
+                } else {
+                    APP_PP.secretState.sortCol = col;
+                    APP_PP.secretState.sortDir = 1;
+                }
+                renderUserList();
+            }
+
+            function renderUserList() {
+                var tbody = document.getElementById('ppListBody');
+                var pg = document.getElementById('ppListPagination');
+                tbody.innerHTML = '';
+
+                // Filter
+                var filtered = APP_PP.users.filter(u => {
+                    var s = APP_PP.secretState.search;
+                    if (!s) return true;
+                    return (u.name || '').toLowerCase().includes(s) ||
+                        (u.comment || '').toLowerCase().includes(s) ||
+                        (u.profile || '').toLowerCase().includes(s);
+                });
+
+                // Sort
+                var col = APP_PP.secretState.sortCol;
+                var dir = APP_PP.secretState.sortDir;
+                filtered.sort((a, b) => {
+                    var va = (a[col] || '').toString().toLowerCase();
+                    var vb = (b[col] || '').toString().toLowerCase();
+                    return va.localeCompare(vb, undefined, { numeric: true, sensitivity: 'base' }) * dir;
+                });
+
+                // Update Headers Visual
+                document.querySelectorAll('#panePpList th.sortable').forEach(th => {
+                    th.classList.remove('asc', 'desc');
+                    if (th.getAttribute('onclick').includes("'" + col + "'")) {
+                        th.classList.add(dir === 1 ? 'asc' : 'desc');
+                    }
+                });
+
+                // Pagination & Stats
+                var total = filtered.length;
+                var start = (APP_PP.secretState.page - 1) * APP_PP.secretState.limit;
+                var paged = filtered.slice(start, start + APP_PP.secretState.limit);
+
+                // Update Stats Bar
+                var onlineCount = APP_PP.active.length;
+                var totalCount = APP_PP.users.length;
+                var disabledCount = APP_PP.users.filter(u => u.disabled).length;
+                var offlineCount = totalCount - onlineCount - disabledCount;
+                if (offlineCount < 0) offlineCount = 0;
+
+                document.getElementById('statPpTotal').innerText = totalCount;
+                document.getElementById('statPpOnline').innerText = onlineCount;
+                document.getElementById('statPpOffline').innerText = offlineCount;
+                document.getElementById('statPpDisabled').innerText = disabledCount;
+                document.getElementById('statPpExpired').innerText = APP_PP.users.filter(u => {
+                    let c = (u.comment || '').toLowerCase();
+                    return c.includes('expired') || c.includes('isolir');
+                }).length;
+
+                // Update Pass Toggle Button
+                document.getElementById('btnShowPassIcon').className = APP_PP.showPasswords ? 'fas fa-eye-slash' : 'fas fa-eye';
+                document.getElementById('btnShowPassText').innerText = APP_PP.showPasswords ? t('pp_toggle_pass_hide') : t('pp_toggle_pass_show');
+
+                paged.forEach((u, i) => {
+                    var index = start + i + 1;
+                    var isOnline = APP_PP.active.some(a => a.name.toLowerCase() === u.name.toLowerCase());
+                    var passDisplay = APP_PP.showPasswords ? safeText(u.password || '') : '<span style="letter-spacing:2px;color:#94a3b8;">••••••</span>';
+
+                    // Map Status
+                    var clientNode = APP_PP.clientMap ? APP_PP.clientMap[u.name.toLowerCase()] : null;
+                    var mapBadge = clientNode ? `<span class="badge badge-map">${t('pp_badge_mapped')}</span>` : `<span class="badge badge-nomap">${t('pp_badge_nomap')}</span>`;
+
+                    // Online Dot
+                    var onlineDot = isOnline ? '<span class="dot dot-online"></span>' : '<span class="dot dot-offline"></span>';
+
+                    // Billing Status (Mock/Simple Logic based on comment)
+                    var billBadge = '';
+                    if ((u.comment || '').toLowerCase().includes('isolir')) billBadge = `<br><span class="badge badge-expired">${t('pp_badge_expired')}</span>`;
+                    else if ((u.comment || '').toLowerCase().includes('lunas')) billBadge = `<br><span class="badge badge-paid">${t('pp_badge_paid')}</span>`;
+
+                    // Primary Display: Masa Aktif (if mapped)
+                    var billingContent = '';
+                    if (clientNode && clientNode.paid_until) {
+                        var pDate = clientNode.paid_until;
+                        var isExp = new Date(pDate) < new Date().setHours(0, 0, 0, 0);
+                        var color = isExp ? '#ef4444' : '#10b981';
+                        billingContent = `<b style="color:${color}; cursor:help;" title="Terakhir Logout: ${safeText(u.last_logged_out || '-')}">${safeText(pDate)}</b>`;
+                    } else {
+                        billingContent = `<span style="color:#475569; font-size:10px; cursor:help;" title="Akun Belum Terhubung ke Data Client">${safeText(u.last_logged_out || '-')}</span>`;
+                    }
+
+                    tbody.innerHTML += `<tr>
+                                <td>${index}</td>
+                                <td><input type="checkbox" class="pp-check" data-id="${u.id}" data-name="${safeText(u.name)}"></td>
+                                <td>${onlineDot}<b style="color:#f1f5f9;">${safeText(u.name)}</b>${billBadge}</td>
+                                <td style="font-family:monospace; font-size:12px;">${passDisplay}</td>
+                                <td><span style="color:#94a3b8; font-size:12px;">${safeText(u.profile)}</span></td>
+                                <td>
+                                    <label class="switch">
+                                        <input type="checkbox" ${!u.disabled ? 'checked' : ''} onchange="togglePppoeUser('${safeText(u.name)}')">
+                                        <span class="slider"></span>
+                                    </label>
+                                </td>
+                                <td style="font-size:12px; color:#cbd5e1;">${safeText(u.comment)}</td>
+                                <td style="text-align:center;">${mapBadge}</td>
+                                <td style="text-align:center; font-size:11px;">${billingContent}</td>
+                                <td style="text-align:center;">
+                                    <button class="btn btn-sm btn-outline-primary" style="padding:4px 8px; font-size:11px;" onclick="openPpEditModal('${safeText(u.name)}')">
+                                        <i class="fas fa-edit"></i> EDIT
+                                    </button>
+                                </td>
+                            </tr>`;
+                });
+
+                renderPagination('secret', total, pg);
+            }
+
+            function renderPagination(type, total, el) {
+                var state = type === 'secret' ? APP_PP.secretState : APP_PP.activeState;
+                var maxPage = Math.ceil(total / state.limit) || 1;
+                if (state.page > maxPage) state.page = maxPage;
+
+                var html = `<div>${t('lbl_showing')} ${total > 0 ? (state.page - 1) * state.limit + 1 : 0} - ${Math.min(state.page * state.limit, total)} ${t('lbl_of')} ${total}</div>`;
+                html += `<div class="pagination-btns">`;
+                html += `<button class="btn-page" ${state.page <= 1 ? 'disabled' : ''} onclick="changePage('${type}', ${state.page - 1})"><i class="fas fa-chevron-left"></i></button>`;
+
+                // Show few pages
+                var startP = Math.max(1, state.page - 2);
+                var endP = Math.min(maxPage, startP + 4);
+                if (endP - startP < 4) startP = Math.max(1, endP - 4);
+
+                for (var i = startP; i <= endP; i++) {
+                    html += `<button class="btn-page ${i === state.page ? 'active' : ''}" onclick="changePage('${type}', ${i})">${i}</button>`;
+                }
+
+                html += `<button class="btn-page" ${state.page >= maxPage ? 'disabled' : ''} onclick="changePage('${type}', ${state.page + 1})"><i class="fas fa-chevron-right"></i></button>`;
+                html += `</div>`;
+                el.innerHTML = html;
+            }
+
+            function changePage(type, p) {
+                if (type === 'secret') { APP_PP.secretState.page = p; renderUserList(); }
+                else { APP_PP.activeState.page = p; renderActiveList(); }
+            }
+
+            function togglePpCheckAll() {
+                var chk = document.getElementById('ppCheckAll').checked;
+                document.querySelectorAll('.pp-check').forEach(x => x.checked = chk);
+            }
+
+            function deletePppoeBatch() {
+                var ids = [];
+                document.querySelectorAll('.pp-check:checked').forEach(x => ids.push(x.dataset.id || x.dataset.name));
+                if (ids.length === 0) {
+                    toast('Pilih minimal satu user untuk dihapus', 'warning');
+                    return;
+                }
+                if (!confirm(t('pp_confirm_del').replace('{count}', ids.length))) return;
+
+                var routerId = document.getElementById('ppRouter').value;
+                fetch('/api/pppoe/delete', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({ router_id: routerId, ids: ids })
+                }).then(r => r.json()).then(d => {
+                    if (d.status === 'ok') {
+                        toast(t('pp_msg_del_success').replace('{count}', d.deleted));
+                        loadPppoeUsers();
+                    } else {
+                        toast(d.msg || 'Gagal menghapus', 'error');
+                    }
+                }).catch(() => toast(t('msg_error') || 'Gagal tersambung ke router', 'error'));
+            }
+
+            function openPpEditModal(name) {
+                var user = APP_PP.users.find(u => u.name === name);
+                if (!user) return;
+
+                document.getElementById('editPpNameOriginal').value = user.name;
+                document.getElementById('editPpName').value = user.name;
+                document.getElementById('editPpPass').value = user.password || '';
+                document.getElementById('editPpService').value = user.service || 'any';
+                document.getElementById('editPpComment').value = user.comment || '';
+                document.getElementById('editPpLocalAddr').value = user.local_address || '';
+                document.getElementById('editPpRemoteAddr').value = user.remote_address || '';
+
+                // Populate profiles dropdown in modal
+                var profSel = document.getElementById('editPpProfile');
+                profSel.innerHTML = '';
+                APP_PP.profiles.forEach(p => profSel.add(new Option(p.name, p.name)));
+                profSel.value = user.profile;
+
+                document.getElementById('modalPpEdit').classList.add('show');
+            }
+
+            function closePpEditModal() {
+                document.getElementById('modalPpEdit').classList.remove('show');
+            }
+
+            function savePppoeEdit() {
+                var routerId = document.getElementById('ppRouter').value;
+                var oldName = document.getElementById('editPpNameOriginal').value;
+                var pass = document.getElementById('editPpPass').value;
+                var prof = document.getElementById('editPpProfile').value;
+                var service = document.getElementById('editPpService').value;
+                var comment = document.getElementById('editPpComment').value;
+                var local = document.getElementById('editPpLocalAddr').value.trim();
+                var remote = document.getElementById('editPpRemoteAddr').value.trim();
+
+                fetch('/api/pppoe/update', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({ router_id: routerId, old_name: oldName, name: oldName, password: pass, profile: prof, service: service, comment: comment, local_address: local, remote_address: remote })
+                }).then(r => r.json()).then(d => {
+                    if (d.status === 'ok') {
+                        toast(t('pp_msg_update_success'));
+                        closePpEditModal();
+                        loadPppoeUsers();
+                    } else toast(d.msg || "Error", 'error');
+                }).catch(e => {
+                    console.error(e);
+                    toast(t('msg_error') || 'Gagal menyimpan', 'error');
+                });
+            }
+
+            function loadActivePppoe() {
+                var routerId = document.getElementById('ppRouter').value;
+                if (!routerId) return Promise.resolve([]);
+                return fetch('/api/pppoe/active/' + routerId, { headers: getAuthHeaders() })
+                    .then(r => r.json()).then(d => {
+                        if (d.status === 'ok') {
+                            APP_PP.active = d.active || [];
+                            updateRouterDisplayName(routerId, d.router_identity);
+                        } else {
+                            APP_PP.active = Array.isArray(d) ? d : [];
+                        }
+                        APP_PP.activeState.page = 1;
+                        renderActiveList();
+                        return APP_PP.active;
+                    })
+                    .catch(err => {
+                        console.error("loadActivePppoe error:", err);
+                        APP_PP.active = [];
+                        return [];
+                    });
+            }
+
+            function onActiveSearch() {
+                APP_PP.activeState.search = document.getElementById('ppSearchActive').value.toLowerCase();
+                APP_PP.activeState.page = 1;
+                renderActiveList();
+            }
+
+            // Parse MikroTik uptime string (e.g. "3d2h15m30s" OR "01:20:45") → total seconds
+            function uptimeToSeconds(s) {
+                if (!s) return 0;
+                var total = 0;
+                // Handle digital format HH:MM:SS or HH:MM or MM:SS
+                if (s.includes(':')) {
+                    var p = s.split(':').map(x => parseInt(x) || 0);
+                    if (p.length === 3) {
+                        total += p[0] * 3600 + p[1] * 60 + p[2];
+                    } else if (p.length === 2) {
+                        total += p[0] * 60 + p[1];
+                    }
+                    return total;
+                }
+                // Handle shorthand format (1w2d3h4m5s)
+                var m;
+                m = s.match(/(\d+)w/); if (m) total += parseInt(m[1]) * 604800;
+                m = s.match(/(\d+)d/); if (m) total += parseInt(m[1]) * 86400;
+                m = s.match(/(\d+)h/); if (m) total += parseInt(m[1]) * 3600;
+                m = s.match(/(\d+)m/); if (m) total += parseInt(m[1]) * 60;
+                m = s.match(/(\d+)s/); if (m) total += parseInt(m[1]);
+                return total;
+            }
+
+            function sortActive(col) {
+                if (APP_PP.activeState.sortCol === col) APP_PP.activeState.sortDir *= -1;
+                else { APP_PP.activeState.sortCol = col; APP_PP.activeState.sortDir = 1; }
+                renderActiveList();
+            }
+
+            function renderActiveList() {
+                var tbody = document.getElementById('ppActiveBody');
+                var pg = document.getElementById('ppActivePagination');
+                tbody.innerHTML = '';
+
+                // Filter
+                var filtered = APP_PP.active.filter(a => {
+                    var s = APP_PP.activeState.search;
+                    if (!s) return true;
+                    return (a.name || '').toLowerCase().includes(s) ||
+                        (a.address || '').toLowerCase().includes(s) ||
+                        (a.caller_id || '').toLowerCase().includes(s);
+                });
+
+                // Sort
+                var col = APP_PP.activeState.sortCol;
+                var dir = APP_PP.activeState.sortDir;
+                filtered.sort((a, b) => {
+                    var va, vb;
+                    if (col === 'uptime') {
+                        // Convert to seconds for proper duration comparison
+                        va = uptimeToSeconds(a[col] || '');
+                        vb = uptimeToSeconds(b[col] || '');
+                        return (va - vb) * dir;
+                    }
+                    va = (a[col] || '').toString().toLowerCase();
+                    vb = (b[col] || '').toString().toLowerCase();
+                    return va.localeCompare(vb, undefined, { numeric: true, sensitivity: 'base' }) * dir;
+                });
+
+                // Update Headers Visual
+                document.querySelectorAll('#panePpActive th.sortable').forEach(th => {
+                    th.classList.remove('asc', 'desc');
+                    if (th.getAttribute('onclick').includes("'" + col + "'")) {
+                        th.classList.add(dir === 1 ? 'asc' : 'desc');
+                    }
+                });
+
+                var total = filtered.length;
+                var start = (APP_PP.activeState.page - 1) * APP_PP.activeState.limit;
+                var paged = filtered.slice(start, start + APP_PP.activeState.limit);
+
+                // Update Stats
+                var activePppoe = APP_PP.active.filter(a => a.service === 'pppoe').length;
+                document.getElementById('statActTotal').innerText = APP_PP.active.length;
+                document.getElementById('statActPppoe').innerText = activePppoe;
+
+                paged.forEach((a, i) => {
+                    var index = start + i + 1;
+                    var serviceBadge = a.service === 'pppoe'
+                        ? `<span class="badge" style="background:rgba(139, 92, 246, 0.1); color:#8b5cf6; border:1px solid rgba(139, 92, 246, 0.2);">PPPoE</span>`
+                        : `<span class="badge" style="background:rgba(148, 163, 184, 0.1); color:#94a3b8; border:1px solid rgba(148, 163, 184, 0.2);">${safeText(a.service)}</span>`;
+
+                    tbody.innerHTML += `<tr>
+                    <td>${index}</td>
+                    <td><b style="color:#f1f5f9;">${safeText(a.name || 'unknown')}</b></td>
+                    <td>${serviceBadge}</td>
+                    <td style="font-family:monospace; font-size:12px; color:#60a5fa;">${safeText(a.address || '-')}</td>
+                    <td style="font-size:11px; color:#94a3b8;">${safeText(a.uptime || '00:00:00')}</td>
+                    <td style="font-size:11px; color:#94a3b8;">${safeText(a.caller_id || '-')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-danger" onclick="kickPppoeActive('${safeText(a.id)}')" style="padding: 4px 8px; font-size: 11px;">
+                            <i class="fas fa-sign-out-alt"></i> PUTUS
+                        </button>
+                    </td>
+                </tr>`;
+                });
+
+                renderPagination('active', total, pg);
+            }
+
+            function kickPppoeActive(mid) {
+                if (!confirm("Putus sesi aktif ini?")) return;
+                var routerId = document.getElementById('ppRouter').value;
+                fetch('/api/pppoe/kick', {
+                    method: 'POST', headers: getAuthHeaders(),
+                    body: JSON.stringify({ router_id: routerId, id: mid })
+                }).then(r => r.json()).then(d => {
+                    if (d.status === 'ok') loadActivePppoe();
+                    else alert(d.msg || "Error");
+                }).catch(e => {
+                    console.error(e);
+                    toast(t('msg_conn_fail') || 'Koneksi gagal', 'error');
+                });
+            }
+
+            function kickAllActivePppoe() {
+                // Only target filtered results if search is active
+                var s = APP_PP.activeState.search;
+                var filtered = APP_PP.active.filter(a => {
+                    if (!s) return true;
+                    return (a.name || '').toLowerCase().includes(s) ||
+                        (a.address || '').toLowerCase().includes(s) ||
+                        (a.caller_id || '').toLowerCase().includes(s);
+                });
+
+                if (filtered.length === 0) return toast("Tidak ada sesi aktif yang cocok", "warning");
+
+                var confirmMsg = s
+                    ? `PERINGATAN: Apakah Anda yakin ingin memutus SEMUA sesi aktif yang cocok dengan pencarian '${s}' (${filtered.length} sesi)?`
+                    : `PERINGATAN: Apakah Anda yakin ingin memutus SEMUA sesi aktif PPPoE (${filtered.length} sesi)?`;
+
+                if (!confirm(confirmMsg)) return;
+
+                var routerId = document.getElementById('ppRouter').value;
+                var activeIds = filtered.map(a => a.id);
+
+                toast("Memutus sesi aktif (" + activeIds.length + ")...", "info");
+
+                // Kick sequentially to prevent overwhelming the router API
+                let idx = 0;
+                let success = 0;
+                let fail = 0;
+
+                function next() {
+                    if (idx >= activeIds.length) {
+                        toast(`Selesai: ${success} berhasil diputus, ${fail} gagal.`, success > 0 ? "success" : "warning");
+                        loadActivePppoe();
+                        return;
+                    }
+
+                    fetch('/api/pppoe/kick', {
+                        method: 'POST',
+                        headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                        body: JSON.stringify({ router_id: routerId, id: activeIds[idx] })
+                    }).then(r => r.json()).then(d => {
+                        if (d.status === 'ok') success++;
+                        else fail++;
+                        idx++;
+                        next();
+                    }).catch(() => {
+                        fail++;
+                        idx++;
+                        next();
+                    });
+                }
+
+                next();
+            }
+
+            function doLogout() {
+                localStorage.removeItem('nms_auth_session');
+                window.location.href = '/';
+            }
+        </script>
+        <script>
+            (function init() {
+                var pass = localStorage.getItem('nms_auth_session');
+                if (pass) {
+                    fetch('/api/data', { headers: getAuthHeaders() })
+                        .then(r => {
+                            if (r.status === 401) {
+                                document.getElementById('login-overlay').style.display = 'flex';
+                                localStorage.removeItem('nms_auth_session');
+                                return null;
+                            }
+                            return r.json();
+                        })
+                        .then(d => {
+                            if (!d) return;
+                            if (d.role === 'viewer' || d.role === 'tamu') {
+                                window.location.replace('/maps');
+                                return;
+                            }
+                            document.getElementById('login-overlay').style.display = 'none';
+                            removeAntiFlicker();
+                            initPppoeUI(d);
+                        })
+                        .catch(() => {
+                            document.getElementById('login-overlay').style.display = 'flex';
+                            localStorage.removeItem('nms_auth_session');
+                            removeAntiFlicker();
+                        });
+                } else {
+                    document.getElementById('login-overlay').style.display = 'flex';
+                    removeAntiFlicker();
+                }
+            })();
+        </script>
+</body>
+
+</html>

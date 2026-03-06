@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <script>
+        try { var t = localStorage.getItem('nms_web_title'); if (t) document.title = t; } catch (e) { }
+
+
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('active');
+            document.querySelector('.overlay-bg').classList.toggle('active');
+        }
+    </script>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="/static/css/all.min.css"
+        onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <script src="/static/js/lang_dict.js"></script>
+    <script>initAntiFlicker();</script>
+    <style>
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading Spinner */
+        #page-loader {
+            position: fixed;
+            inset: 0;
+            background: #0f172a;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(56, 189, 248, 0.2);
+            border-top: 5px solid #38bdf8;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .hidden-loader {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Sorting Styles */
+        .sortable {
+            cursor: pointer;
+            transition: background 0.2s;
+            position: relative;
+        }
+
+        .sortable:hover {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .sort-icon {
+            font-size: 10px;
+            margin-left: 5px;
+            opacity: 0.5;
+        }
+
+        .sort-icon.active {
+            opacity: 1;
+            color: #38bdf8;
+        }
+
+        /* Flexible Table Fix */
+        .table-container {
+            width: 100%;
+            border-radius: 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 300px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .input-xs {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            width: 80px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+
+            .table th,
+            .table td {
+                padding: 8px 6px;
+                font-size: 11px;
+            }
+
+            .input-xs {
+                width: 60px;
+                padding: 4px;
+                font-size: 11px;
+            }
+
+            .mobile-hide {
+                display: none;
+            }
+
+            .sort-icon {
+                margin-left: 2px;
+            }
+        }
+    </style>
+</head>
+
+<body data-page-key="sb_infra">
+
+    <!-- PAGE LOADER -->
+    <div id="page-loader">
+        <div class="spinner"></div>
+        <div style="color: #94a3b8; font-size: 14px; letter-spacing: 1px;" data-lang="msg_loading_data"></div>
+    </div>
+
+    <!-- LOGIN OVERLAY -->
+    <div id="login-overlay">
+        <div class="login-box">
+            <div id="loginBranding" style="text-align:center; margin-bottom:20px;">
+                <h2 id="loginTitle" style="margin:0;"></h2>
+            </div>
+            <input type="password" id="passInput" data-lang="ph_password" data-lang-target="placeholder"
+                onkeyup="if(event.key==='Enter') doLogin()">
+            <button class="btn btn-primary" onclick="doLogin()" data-lang="btn_login"></button>
+            <div id="loginMsg" data-lang="msg_pwd_wrong"></div>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="brand-wrapper"
+            style="display: flex; align-items: center; justify-content: space-between; padding: 15px 10px; margin-bottom: 20px;">
+            <button class="btn-sidebar-toggle desktop-only" onclick="toggleMiniSidebar()"
+                style="background:none; border:none; color:white; font-size:20px; cursor:pointer; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:1001;">
+                <i class="fas fa-bars"></i>
+            </button>
+            <span class="brand-text" id="brandText"
+                style="font-weight:800; color:#3b82f6; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:8px; flex:1; transition: all 0.3s ease;"></span>
+        </div>
+
+        <div class="menu-label" data-lang="sb_h_main"></div>
+
+        <a href="/" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-home me-2"></i> <span data-lang="sb_dash"></span>
+        </a>
+
+        <a href="/maps" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-map-marked-alt me-2"></i> <span data-lang="sb_map"></span>
+        </a>
+
+        <a href="/client" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-users me-2"></i> <span data-lang="sb_client"></span>
+        </a>
+
+        <a href="/pppoe" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_pppoe"></span>
+        </a>
+
+        <a href="/hotspot" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wifi me-2"></i> <span data-lang="sb_hotspot"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_admin"></div>
+
+        <div id="sb-inv-link" class="menu-item active" onclick="setPageTab('inventory')">
+            <i class="fas fa-boxes me-2"></i> <span data-lang="sb_inv"></span>
+        </div>
+
+        <div id="sb-infra-link" class="menu-item" onclick="setPageTab('infra')">
+            <i class="fas fa-network-wired me-2"></i> <span data-lang="sb_infra"></span>
+        </div>
+
+        <a href="/billing" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-file-invoice-dollar me-2"></i> <span data-lang="sb_bill"></span>
+        </a>
+
+        <a href="/finance" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-wallet me-2"></i> <span data-lang="sb_fin"></span>
+        </a>
+
+        <div class="menu-label" data-lang="sb_h_mon"></div>
+
+        <a href="/monitor?tab=traffic" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-chart-line me-2"></i> <span data-lang="sb_traffic"></span>
+        </a>
+
+        <a href="/monitor?tab=logs" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-history me-2"></i> <span data-lang="sb_logs"></span>
+        </a>
+
+        <a href="/settings" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-cog me-2"></i> <span data-lang="sb_set"></span>
+        </a>
+
+        <a href="/about" class="menu-item" style="text-decoration:none;">
+            <i class="fas fa-info-circle me-2"></i> <span data-lang="sb_about"></span>
+        </a>
+
+        <div class="menu-item menu-danger" onclick="doLogout()">
+            <i class="fas fa-sign-out-alt me-2"></i> <span data-lang="sb_logout"></span>
+        </div>
+    </div>
+
+    <div class="overlay-bg" onclick="toggleSidebar()"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main">
+        <!-- HEADER MOBILE -->
+        <div class="mobile-head">
+            <button id="btnToggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-brand" id="mobileBrandText"></div>
+        </div>
+
+        <!-- PAGE TITLE -->
+        <div class="row space" style="margin-bottom:20px; min-height: 40px;">
+            <div style="display:flex; align-items:center; gap:5px;">
+                <div>
+                    <h2 id="pageTitleText" class="header" data-lang="pg_infra_title"
+                        style="margin:0; border-left:none; padding-left:0;"></h2>
+                    <div id="pageSubText" class="text-xs muted" style="margin-top:2px;" data-lang="pg_infra_subtitle">
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:15px; align-items:center;">
+
+
+                <div style="display:flex; gap:15px; align-items:center;">
+                    <div
+                        style="border: 1px solid rgba(255,255,255,0.1); padding: 5px 12px; border-radius: 6px; font-size: 11px; color: #94a3b8; background: rgba(15, 23, 42, 0.6);">
+                        <span data-lang="lbl_lang_prefix">LANG: </span><span id="currentLangDisplay"
+                            style="color: #38bdf8; font-weight: bold;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INFRASTRUCTURE PAGE -->
+        <div id="pg-infra" class="hidden">
+            <div class="card">
+                <div class="tabs">
+                    <div id="tabRouters" class="tab active" onclick="setInfraTab('routers')">📡 <span
+                            data-lang="pg_infra_routers"></span> (<span id="routerCount">0</span>)</div>
+                    <div id="tabOdps" class="tab" onclick="setInfraTab('odps')">📦 <span
+                            data-lang="pg_infra_odp"></span> (<span id="odpCount">0</span>)</div>
+                </div>
+                <div class="row" style="margin-bottom: 12px;">
+                    <div style="flex:1; min-width: 240px;">
+                        <input id="infraSearch" class="input" data-lang="ph_infra_search" data-lang-target="placeholder"
+                            onkeyup="renderInfra()">
+                    </div>
+                </div>
+                <div id="infraCards" class="cards"></div>
+            </div>
+        </div>
+
+        <!-- INVENTORY PAGE -->
+        <div id="pg-inventory" class="hidden">
+            <div class="card">
+                <div class="tabs">
+                    <div id="tabInvInstalled" class="tab active" onclick="setInventoryTab('installed')"
+                        data-lang="tab_installed"></div>
+                    <div id="tabInvStock" class="tab" onclick="setInventoryTab('stock')" data-lang="tab_stock"></div>
+                </div>
+
+                <!-- TAB 1: INSTALLED -->
+                <div id="invInstalledPane">
+                    <!-- NEW: Description Area -->
+                    <div
+                        style="margin-bottom: 20px; font-size: 12px; color: #94a3b8; line-height: 1.6; background: rgba(56, 189, 248, 0.05); border-left: 3px solid #38bdf8; padding: 10px 15px; border-radius: 4px;">
+                        <i class="fas fa-info-circle" style="color:#38bdf8; margin-right:6px;"></i>
+                        <span data-lang="desc_inv_installed"></span>
+                    </div>
+
+                    <div class="row space"
+                        style="margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                        <div style="flex:2">
+                            <label style="font-size: 10px; color: #aaa;" data-lang="lbl_item_name_manual">Nama Barang
+                                (Manual)</label>
+                            <input id="invNewName" class="input" placeholder="Contoh: Switch Hub 8 Port"
+                                data-lang="ph_item_manual">
+                        </div>
+                        <div style="flex:1; max-width: 100px; margin-left: 10px;">
+                            <label style="font-size: 10px; color: #aaa;" data-lang="lbl_qty"></label>
+                            <input id="invNewQty" type="number" class="input" value="1">
+                        </div>
+                        <div style="margin-left: 10px; display: flex; align-items: flex-end;">
+                            <button class="btn-sm btn-accent" onclick="addInventoryItem()" data-lang="btn_add"></button>
+                        </div>
+                    </div>
+
+                    <div class="table-container" style="max-height: 480px; overflow-y: auto;">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" onclick="setInvSort('name')" style="text-align:left;">
+                                        <span data-lang="th_item">Nama Barang</span>
+                                        <i id="sort-inv-name" class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" onclick="setInvSort('qty')"
+                                        style="width: 85px; text-align:center;">
+                                        <span data-lang="lbl_qty"></span>
+                                        <i id="sort-inv-qty" class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th style="width: 50px; text-align:center;" data-lang="th_action"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="inventoryTbody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="row" style="margin-top:14px; justify-content: space-between; align-items: center;">
+                        <span class="muted" style="font-size:11px;" data-lang="hint_inv_save"></span>
+                        <button class="btn-sm" onclick="saveInventory()" style="background: #28a745; color: white;"
+                            data-lang="btn_save_change"></button>
+                    </div>
+                </div>
+
+                <!-- TAB 2: STOCK / WAREHOUSE -->
+                <div id="invStockPane" class="hidden">
+                    <!-- NEW: Description Area -->
+                    <div
+                        style="margin-bottom: 20px; font-size: 12px; color: #94a3b8; line-height: 1.6; background: rgba(59, 130, 246, 0.05); border-left: 3px solid #3b82f6; padding: 10px 15px; border-radius: 4px;">
+                        <i class="fas fa-boxes" style="color:#3b82f6; margin-right:6px;"></i>
+                        <span data-lang="desc_inv_stock"></span>
+                    </div>
+
+                    <div class="row space"
+                        style="margin-bottom: 12px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
+                        <div style="flex:2">
+                            <label style="font-size: 10px; color: #aaa;" data-lang="lbl_item_stock"></label>
+                            <input id="stockNewName" class="input" placeholder="Contoh: Kabel Dropcore 1 Roll"
+                                data-lang="ph_item_stock">
+                        </div>
+                        <div style="flex:1; max-width: 100px; margin-left: 10px;">
+                            <label style="font-size: 10px; color: #aaa;" data-lang="lbl_qty"></label>
+                            <input id="stockNewQty" type="number" class="input" value="1">
+                        </div>
+                        <div style="margin-left: 10px; display: flex; align-items: flex-end;">
+                            <button class="btn-sm btn-accent" onclick="addStockItem()"
+                                data-lang="btn_add_stock"></button>
+                        </div>
+                    </div>
+
+                    <div class="table-container" style="max-height: 480px; overflow-y: auto;">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th class="sortable" onclick="setStockSort('name')" style="text-align:left;">
+                                        <span data-lang="th_item_warehouse"></span>
+                                        <i id="sort-stock-name" class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th class="sortable" onclick="setStockSort('qty')"
+                                        style="width: 85px; text-align:center;">
+                                        <span data-lang="lbl_qty"></span>
+                                        <i id="sort-stock-qty" class="fas fa-sort sort-icon"></i>
+                                    </th>
+                                    <th style="width: 50px; text-align:center;" data-lang="th_action"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="stockTbody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="row" style="margin-top:14px; justify-content: space-between; align-items: center;">
+                        <span class="muted" style="font-size:11px;" data-lang="hint_stock_save"></span>
+                        <button class="btn-sm" onclick="saveStock()" style="background: #28a745; color: white;"
+                            data-lang="btn_save_change"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        var APP = {
+            topology: null,
+            settings: null,
+            mikrotik: {},
+            page: 'inventory',
+            infraTab: 'routers',
+            invTab: 'installed',
+            invSort: { key: 'name', dir: 'asc' },
+            stockSort: { key: 'name', dir: 'asc' }
+        };
+
+        var AUTO_COUNTS = {
+            'MIKROTIK': 0, 'OLT': 0, 'ODP': 0, 'TIANG': 0,
+            'CLIENT HTB/SWITCH': 0, 'CLIENT OLT': 0, 'ROUTER/ONT': 0, 'KABEL': 0
+        };
+
+        function haversineKm(a, b) {
+            var toRad = x => x * Math.PI / 180;
+            var R = 6371;
+            var dLat = toRad(b[0] - a[0]);
+            var dLon = toRad(b[1] - a[1]);
+            var lat1 = toRad(a[0]);
+            var lat2 = toRad(b[0]);
+            var s = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+            var c = 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1 - s));
+            return R * c;
+        }
+
+        function calcCableKm(topology) {
+            if (!topology) return 0;
+            var byId = byIdMap(topology);
+            var total = 0;
+            var addObj = function (obj) {
+                if (!obj || !obj.coordinates || !obj.parent) return;
+                var pid = obj.parent;
+                if (Array.isArray(pid)) pid = pid[0];
+                var parent = byId[pid];
+                if (!parent || !parent.coordinates) return;
+
+                var pts = [parent.coordinates];
+                if (Array.isArray(obj.cable_path)) {
+                    obj.cable_path.forEach(p => { if (Array.isArray(p) && p.length === 2) pts.push(p); });
+                }
+                pts.push(obj.coordinates);
+                for (var i = 1; i < pts.length; i++) {
+                    total += haversineKm(pts[i - 1], pts[i]);
+                }
+            };
+            (topology.extra_routers || []).forEach(addObj);
+            (topology.odps || []).forEach(addObj);
+            (topology.clients || []).forEach(addObj);
+            return total;
+        }
+
+        function calcOdpCapacity(topology) {
+            var odps = topology.odps || [];
+            var clients = topology.clients || [];
+            var totalSlots = 0, usedSlots = 0;
+            odps.forEach(o => {
+                var pc = o.port_config || {}, type = (o.odp_type || '').toLowerCase();
+                if (type === 'jb' || type === 'real_olt') return;
+                var cap = (parseInt(pc.lan || 0) || 0) + (parseInt(pc.fo_a || 0) || 0) + (parseInt(pc.fo_b || 0) || 0);
+                if (cap <= 0) return;
+                totalSlots += cap;
+                var used = clients.filter(c => c && c.parent === o.id).length;
+                used += odps.filter(child => child && child.parent === o.id).length;
+                if (o.input_port) used += 1;
+                usedSlots += Math.min(used, cap);
+            });
+            return { totalSlots, usedSlots };
+        }
+
+        function updateAutoCounts(topo) {
+            if (!topo) return;
+            var clients = topo.clients || [];
+            var odps = topo.odps || [];
+            var byId = byIdMap(topo);
+
+            AUTO_COUNTS['MIKROTIK'] = (topo.server ? 1 : 0) + (topo.extra_routers || []).length;
+            AUTO_COUNTS['ODP'] = odps.length;
+            AUTO_COUNTS['OLT'] = odps.filter(o => (o.odp_type || '').toLowerCase() === 'real_olt').length;
+            AUTO_COUNTS['TIANG'] = odps.filter(o => (o.odp_type || '').toLowerCase() === 'olt').length;
+            AUTO_COUNTS['ROUTER/ONT'] = clients.length;
+            AUTO_COUNTS['KABEL'] = parseFloat(calcCableKm(topo).toFixed(1));
+            AUTO_COUNTS['ODP PORT'] = calcOdpCapacity(topo).totalSlots;
+
+            var cHTB = 0;
+            var cOLT = 0;
+
+            var getClientTypeRecursive = function (node) {
+                if (!node || !node.parent) return 'htb';
+                var parent = byId[node.parent];
+                if (!parent) return 'htb';
+                if (parent.type === 'client') return 'htb';
+                var curr = parent;
+                var visited = new Set();
+                var depth = 0;
+                while (curr && depth < 20) {
+                    if (visited.has(curr.id)) break; visited.add(curr.id);
+                    var type = (curr.odp_type || '').toLowerCase();
+                    if (type === 'htb') return 'htb';
+                    if (type === 'real_olt') return 'olt';
+                    var nextPid = curr.parent;
+                    if (!nextPid) break;
+                    var nextParent = byId[nextPid];
+                    if (!nextParent) break;
+                    if (nextParent.type === 'client') return 'htb';
+                    curr = nextParent; depth++;
+                }
+                return 'htb';
+            };
+
+            clients.forEach(c => {
+                if (getClientTypeRecursive(c) === 'olt') cOLT++;
+                else cHTB++;
+            });
+
+            AUTO_COUNTS['CLIENT HTB/SWITCH'] = cHTB;
+            AUTO_COUNTS['CLIENT OLT'] = cOLT;
+        }
+
+        function getAuthHeaders() {
+            return { 'X-Auth-Token': localStorage.getItem('nms_auth_session') || '' };
+        }
+
+        function safeText(v) {
+            if (v === undefined || v === null) return '';
+            var s = String(v);
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function byIdMap(topo) {
+            var m = {};
+            if (!topo) return m;
+            if (topo.server) {
+                var sid = topo.server.id || 'server_utama';
+                m[sid] = topo.server;
+
+                m['server_utama'] = topo.server;
+            }
+            (topo.extra_routers || []).forEach(r => { if (r && r.id) m[r.id] = r; });
+            (topo.odps || []).forEach(o => { if (o && o.id) m[o.id] = o; });
+            (topo.clients || []).forEach(c => { if (c && c.id) m[c.id] = c; });
+            return m;
+        }
+
+        function setPageTab(p) {
+            APP.page = p;
+            document.getElementById('pg-inventory').classList.toggle('hidden', p !== 'inventory');
+            document.getElementById('pg-infra').classList.toggle('hidden', p !== 'infra');
+
+            document.getElementById('sb-inv-link').classList.toggle('active', p === 'inventory');
+            document.getElementById('sb-infra-link').classList.toggle('active', p === 'infra');
+
+            var titleKey = (p === 'inventory') ? 'pg_inv_title' : 'pg_infra_title';
+            var subKey = (p === 'inventory') ? 'pg_inv_subtitle' : 'pg_infra_subtitle';
+
+            var elTitle = document.getElementById('pageTitleText');
+            var elSub = document.getElementById('pageSubText');
+
+            if (elTitle) {
+                elTitle.setAttribute('data-lang', titleKey);
+                elTitle.innerText = t(titleKey);
+            }
+            if (elSub) {
+                elSub.setAttribute('data-lang', subKey);
+                elSub.innerText = t(subKey);
+            }
+
+            var mobileTitle = (p === 'inventory') ? t('sb_inv') : t('sb_infra');
+            document.getElementById('mobileBrandText').innerText = mobileTitle;
+
+            if (p === 'infra') renderInfra();
+            if (p === 'inventory') renderInventoryTable();
+        }
+
+        function setInfraTab(t) {
+            APP.infraTab = t;
+            document.getElementById('tabRouters').classList.toggle('active', t === 'routers');
+            document.getElementById('tabOdps').classList.toggle('active', t === 'odps');
+            renderInfra();
+        }
+
+        function renderInfra() {
+
+            if (!APP.topology) { console.timeEnd("renderInfra"); return; }
+            var topo = APP.topology;
+            var mk = APP.mikrotik || {};
+            var mkLoading = Object.keys(mk).length === 0;
+            var q = safeText(document.getElementById('infraSearch') ? document.getElementById('infraSearch').value : '').trim().toLowerCase();
+
+
+            var usageMap = {};
+            (topo.clients || []).forEach(c => {
+                if (c.parent) usageMap[c.parent] = (usageMap[c.parent] || 0) + 1;
+            });
+            (topo.odps || []).forEach(o => {
+                if (o.parent) usageMap[o.parent] = (usageMap[o.parent] || 0) + 1;
+            });
+
+            var routers = [];
+            if (topo.server) {
+                var sId = topo.server.id || 'server_utama';
+                var sName = topo.server.name || (t('lbl_main_server') === 'lbl_main_server' ? 'Server Utama' : t('lbl_main_server'));
+                routers.push({ id: sId, name: sName, obj: topo.server, kind: 'server' });
+            }
+            (topo.extra_routers || []).forEach(r => routers.push({ id: r.id, name: r.name || r.id, obj: r, kind: 'router' }));
+
+            var odps = topo.odps || [];
+            document.getElementById('routerCount').innerText = routers.length;
+            document.getElementById('odpCount').innerText = odps.length;
+
+            var box = document.getElementById('infraCards');
+            if (box) box.innerHTML = '';
+
+            // Translations
+            var txt_rx = t('lbl_rx') || "RX";
+            var txt_tx = t('lbl_tx') || "TX";
+            var txt_cpu = t('lbl_cpu') || "CPU";
+            var txt_ping = t('lbl_ping') || "PING";
+            var txt_uptime = t('lbl_uptime') || "Uptime";
+            var txt_used = t('lbl_used') || "Terpakai";
+            var txt_cap = t('lbl_cap') || "Kapasitas";
+            var txt_perc = t('lbl_perc') || "Persen";
+            var txt_rem = t('lbl_rem') || "Sisa";
+            var txt_parent = t('lbl_parent') || "Induk";
+
+            if (APP.infraTab === 'routers') {
+                var list = routers;
+                if (q) list = list.filter(x => {
+                    var res = mk[x.id] || null;
+                    var ok = res && !res.error;
+                    var disp = ok ? safeText(res.identity || x.name) : safeText(x.name);
+                    return disp.toLowerCase().includes(q);
+                });
+
+                var frag = document.createDocumentFragment();
+                list.forEach(r => {
+                    var rid = r.id;
+                    var res = mk[rid] || (r.kind === 'server' ? mk['server_utama'] : null);
+                    var ok = res && !res.error;
+
+                    if (mkLoading || (mk && !res)) {
+                        var elLatent = document.createElement('div');
+                        elLatent.className = 'card-item';
+                        elLatent.innerHTML = '<div class="card-head"><b>⏳ ' + safeText(r.name || r.id) + '</b></div>' +
+                            '<div class="card-sub">' + t('msg_sync_data') + '</div>';
+                        frag.appendChild(elLatent);
+                        return;
+                    }
+
+                    var dispName = ok ? safeText(res.identity || r.name) : safeText(r.name);
+                    var wanName = ok ? safeText(res.wan_name || '-') : '-';
+                    var wanRx = ok ? safeText(res.wan_rx || '0') : '0';
+                    var wanTx = ok ? safeText(res.wan_tx || '0') : '0';
+                    var cpu = ok ? safeText(res.cpu || '0') + '%' : '-';
+                    var up = ok ? safeText(res.uptime || '-') : '-';
+                    var ping = ok ? safeText(res.ext_ping || '-') : '-';
+
+                    var el = document.createElement('div');
+                    el.className = 'card-item';
+                    el.innerHTML = '' +
+                        '<div class="card-head"><b>' + (ok ? '✅ ' : '❌ ') + dispName + '</b>' + (ok ? '<span class="pill green">' + t('lbl_online_pill') + '</span>' : '<span class="pill red">' + t('lbl_offline_pill') + '</span>') + '</div>' +
+                        '<div class="card-sub">WAN: <b>' + wanName + '</b></div>' +
+                        '<div class="kv">' +
+                        '<div><div class="k">' + txt_rx + '</div><div class="v">' + wanRx + '</div></div>' +
+                        '<div><div class="k">' + txt_tx + '</div><div class="v">' + wanTx + '</div></div>' +
+                        '<div><div class="k">' + txt_cpu + '</div><div class="v">' + cpu + '</div></div>' +
+                        '<div><div class="k">' + txt_ping + '</div><div class="v">' + ping + '</div></div>' +
+                        '</div>' +
+                        '<div class="card-sub" style="margin-top:10px">' + txt_uptime + ': <b>' + up + '</b></div>';
+                    frag.appendChild(el);
+                });
+                if (box) box.appendChild(frag);
+            } else {
+                var byId = byIdMap(topo);
+                var listOdp = odps.slice();
+                if (q) listOdp = listOdp.filter(o => safeText(o.name || o.id).toLowerCase().includes(q));
+
+                var frag = document.createDocumentFragment();
+                listOdp.forEach(o => {
+                    var parent = byId[o.parent] || null;
+                    var parentName = parent ? (parent.name || parent.id) : (o.parent || '-');
+                    if (parent && parent.id && mk[parent.id] && !mk[parent.id].error && mk[parent.id].identity) parentName = mk[parent.id].identity;
+                    var type = safeText(o.odp_type || 'odp');
+
+                    var cap = 0;
+                    // ... (existing logic for cap/used omitted for brevity, assuming it's standard)
+                    // Re-implementing simplified logic to ensure correctness
+                    var pc = o.port_config || {};
+                    if (type.toLowerCase() === 'jb') cap = parseInt(pc.jb_core || 0, 10) || 0;
+                    else if (type.toLowerCase() === 'real_olt') cap = parseInt(pc.pon_count || 0, 10) || 0;
+                    else if (type.toLowerCase() === 'olt') cap = parseInt(pc.olt_count || 0, 10) || 0;
+                    else cap = (parseInt(pc.lan || 0, 10) || 0) + (parseInt(pc.fo_a || 0, 10) || 0) + (parseInt(pc.fo_b || 0, 10) || 0);
+
+                    // OPTIMIZED USAGE COUNT (O(1))
+                    var used = usageMap[o.id] || 0;
+                    if (o.input_port && o.input_port !== '') used += 1;
+
+                    var pct = cap > 0 ? Math.max(0, Math.min(100, Math.round((Math.min(used, cap) / cap) * 100))) : 0;
+
+                    var el = document.createElement('div');
+                    el.className = 'card-item';
+                    el.innerHTML = '' +
+                        '<div class="card-head"><b>📦 ' + safeText(o.name || o.id) + '</b><span class="pill">' + type.toUpperCase() + '</span></div>' +
+                        '<div class="card-sub">' + txt_parent + ': <b>' + safeText(parentName) + '</b></div>' +
+                        '<div class="kv">' +
+                        '<div><div class="k">' + txt_used + '</div><div class="v">' + used + '</div></div>' +
+                        '<div><div class="k">' + txt_cap + '</div><div class="v">' + cap + '</div></div>' +
+                        '<div><div class="k">' + txt_perc + '</div><div class="v">' + pct + '%</div></div>' +
+                        '<div><div class="k">' + txt_rem + '</div><div class="v">' + Math.max(0, cap - used) + '</div></div>' +
+                        '</div>' +
+                        '<div class="bar" style="margin-top:10px"><div style="width:' + pct + '%"></div></div>';
+                    frag.appendChild(el);
+                });
+                if (box) box.appendChild(frag);
+            }
+            console.timeEnd("renderInfra");
+        }
+
+        function setInventoryTab(t) {
+            APP.invTab = t;
+            document.getElementById('tabInvInstalled').classList.toggle('active', t === 'installed');
+            document.getElementById('tabInvStock').classList.toggle('active', t === 'stock');
+            document.getElementById('invInstalledPane').classList.toggle('hidden', t !== 'installed');
+            document.getElementById('invStockPane').classList.toggle('hidden', t !== 'stock');
+            renderInventoryTable();
+        }
+
+        function renderInventoryTable(force) {
+            if (!APP.settings) return;
+            var tbody = document.getElementById('inventoryTbody');
+            var stockTbody = document.getElementById('stockTbody');
+            if (!tbody || !stockTbody) return;
+
+            var autoKeys = ['MIKROTIK', 'OLT', 'ODP', 'ODP PORT', 'TIANG', 'CLIENT HTB/SWITCH', 'CLIENT OLT', 'ROUTER/ONT', 'KABEL'];
+
+            // Deduplicate and Prepare list
+            var finalInv = [];
+            var seen = new Set();
+            var origInv = APP.settings.inventory || [];
+
+            // 1. Process Auto Keys first (Normalization match)
+            autoKeys.forEach(k => {
+                var kNorm = k.replace(/\s+/g, '').toUpperCase();
+                var manualMatch = origInv.find(x => x && x.is_auto === false && (x.name || '').replace(/\s+/g, '').toUpperCase() === kNorm);
+
+                if (manualMatch) {
+                    finalInv.push(manualMatch);
+                } else {
+                    finalInv.push({ name: k, qty: AUTO_COUNTS[k] || 0, is_auto: true });
+                }
+                seen.add(kNorm);
+            });
+
+            // 2. Add remaining manual items
+            origInv.forEach(x => {
+                var nNorm = (x.name || '').replace(/\s+/g, '').toUpperCase();
+                if (!seen.has(nNorm) && !x.hidden) {
+                    finalInv.push(x);
+                    seen.add(nNorm);
+                }
+            });
+
+            // Sort
+            var sI = APP.invSort;
+            finalInv.sort((a, b) => {
+                var valA = a[sI.key], valB = b[sI.key];
+                if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = valB.toLowerCase(); }
+                if (valA < valB) return sI.dir === 'asc' ? -1 : 1;
+                if (valA > valB) return sI.dir === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            tbody.innerHTML = '';
+            finalInv.forEach((item) => {
+                var itemNorm = (item.name || '').replace(/\s+/g, '').toUpperCase();
+                var isAutoKey = autoKeys.some(k => k.replace(/\s+/g, '').toUpperCase() === itemNorm);
+                var isOverridden = isAutoKey && item.is_auto === false;
+
+                var tr = document.createElement('tr');
+                var actionHtml = '';
+
+                if (isOverridden) {
+                    actionHtml = `
+                        <button class="btn-xs" style="background:#3b82f6; color:white; border:none;" 
+                            title="${t('btn_reset_auto')}" onclick="resetInvItemByName('${safeText(item.name)}')">
+                            <i class="fas fa-undo-alt"></i>
+                        </button>`;
+                } else if (isAutoKey) {
+                    actionHtml = `<span class="muted">-</span>`;
+                } else {
+                    actionHtml = `<button class="btn-xs btn-danger" onclick="removeInvItemByName('${safeText(item.name)}')">
+                            <i class="fas fa-trash"></i>
+                        </button>`;
+                }
+
+                tr.innerHTML = '<td>' + safeText(item.name) + (item.is_auto ? ` <span class="pill" style="font-size:9px; padding:2px 6px; background:rgba(59,130,246,0.2); color:#38bdf8;">${t('lbl_auto')}</span>` : '') + '</td>' +
+                    '<td><input type="number" class="input-xs" value="' + (item.qty || 0) + '" onchange="updateInvQtyByName(\'' + safeText(item.name) + '\', this.value)"></td>' +
+                    '<td style="text-align:center; white-space:nowrap;">' + actionHtml + '</td>';
+                tbody.appendChild(tr);
+            });
+
+            // Stock / Warehouse
+            if (!APP.settings.inventory_stock) APP.settings.inventory_stock = [];
+            var stock = JSON.parse(JSON.stringify(APP.settings.inventory_stock));
+
+
+            var sS = APP.stockSort;
+            stock.sort((a, b) => {
+                var valA = a[sS.key], valB = b[sS.key];
+                if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = valB.toLowerCase(); }
+                if (valA < valB) return sS.dir === 'asc' ? -1 : 1;
+                if (valA > valB) return sS.dir === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            stockTbody.innerHTML = '';
+            stock.forEach((item, idx) => {
+                var tr = document.createElement('tr');
+                tr.innerHTML = '<td>' + safeText(item.name) + '</td>' +
+                    '<td><input type="number" class="input-xs" value="' + (item.qty || 0) + '" onchange="updateStockQtyByName(\'' + safeText(item.name) + '\', this.value)"></td>' +
+                    '<td style="text-align:center;"><button class="btn-xs btn-danger" onclick="removeStockItemByName(\'' + safeText(item.name) + '\')"><i class="fas fa-trash"></i></button></td>';
+                stockTbody.appendChild(tr);
+            });
+            updateInvSortIcons();
+        }
+
+        function setInvSort(key) {
+            if (APP.invSort.key === key) APP.invSort.dir = APP.invSort.dir === 'asc' ? 'desc' : 'asc';
+            else { APP.invSort.key = key; APP.invSort.dir = 'asc'; }
+            renderInventoryTable();
+        }
+        function setStockSort(key) {
+            if (APP.stockSort.key === key) APP.stockSort.dir = APP.stockSort.dir === 'asc' ? 'desc' : 'asc';
+            else { APP.stockSort.key = key; APP.stockSort.dir = 'asc'; }
+            renderInventoryTable();
+        }
+
+        function updateInvSortIcons() {
+            ['inv', 'stock'].forEach(type => {
+                ['name', 'qty'].forEach(key => {
+                    var el = document.getElementById(`sort-${type}-${key}`);
+                    if (!el) return;
+                    var sort = (type === 'inv') ? APP.invSort : APP.stockSort;
+                    el.className = 'fas sort-icon';
+                    if (sort.key === key) {
+                        el.classList.add('active');
+                        el.classList.add(sort.dir === 'asc' ? 'fa-sort-up' : 'fa-sort-down');
+                    } else {
+                        el.classList.add('fa-sort');
+                    }
+                });
+            });
+        }
+
+        function updateInvQtyByName(name, val) {
+            if (!APP.settings.inventory) APP.settings.inventory = [];
+            var nNorm = name.replace(/\s+/g, '').toUpperCase();
+            var idx = APP.settings.inventory.findIndex(x => (x.name || '').replace(/\s+/g, '').toUpperCase() === nNorm);
+
+            if (idx !== -1) {
+                APP.settings.inventory[idx].qty = parseFloat(val) || 0;
+                APP.settings.inventory[idx].is_auto = false;
+            } else {
+                APP.settings.inventory.push({ name: name, qty: parseFloat(val) || 0, is_auto: false });
+            }
+            saveInventory(true);
+        }
+        function updateStockQtyByName(name, val) {
+            var idx = APP.settings.inventory_stock.findIndex(x => x.name === name);
+            if (idx !== -1) {
+                APP.settings.inventory_stock[idx].qty = parseFloat(val) || 0;
+                saveStock(true);
+            }
+        }
+
+        function removeInvItemByName(name) {
+            if (confirm(t('conf_del_item'))) {
+                if (!APP.settings.inventory) APP.settings.inventory = [];
+                var nNorm = name.replace(/\s+/g, '').toUpperCase();
+                var idx = APP.settings.inventory.findIndex(x => (x.name || '').replace(/\s+/g, '').toUpperCase() === nNorm);
+                var autoKeys = ['MIKROTIK', 'OLT', 'ODP', 'ODP PORT', 'TIANG', 'CLIENT HTB/SWITCH', 'CLIENT OLT', 'ROUTER/ONT', 'KABEL'];
+                var isAuto = autoKeys.some(k => k.replace(/\s+/g, '').toUpperCase() === nNorm);
+
+                if (idx !== -1) {
+                    if (isAuto) {
+                        APP.settings.inventory[idx].hidden = true;
+                        APP.settings.inventory[idx].is_auto = false;
+                    } else {
+                        APP.settings.inventory.splice(idx, 1);
+                    }
+                } else if (isAuto) {
+                    APP.settings.inventory.push({ name: name, qty: 0, hidden: true, is_auto: false });
+                }
+                renderInventoryTable();
+                saveInventory(true);
+            }
+        }
+
+        function resetInvItemByName(name) {
+            var nNorm = name.replace(/\s+/g, '').toUpperCase();
+            var idx = APP.settings.inventory.findIndex(x => (x.name || '').replace(/\s+/g, '').toUpperCase() === nNorm);
+            if (idx !== -1) {
+                APP.settings.inventory.splice(idx, 1);
+                renderInventoryTable();
+                saveInventory(true);
+            }
+        }
+        function removeStockItemByName(name) {
+            if (confirm(t('conf_del_stock'))) {
+                var idx = APP.settings.inventory_stock.findIndex(x => x.name === name);
+                if (idx !== -1) {
+                    APP.settings.inventory_stock.splice(idx, 1);
+                    renderInventoryTable();
+                    saveStock(true);
+                }
+            }
+        }
+
+        function addInventoryItem() {
+            if (!APP.settings) { alert(t('msg_set_not_loaded')); return; }
+            var nameEl = document.getElementById('invNewName');
+            var qtyEl = document.getElementById('invNewQty');
+            var name = nameEl.value.trim();
+            var qty = parseInt(qtyEl.value) || 1;
+            if (!name) return;
+
+            if (!APP.settings.inventory) APP.settings.inventory = [];
+            APP.settings.inventory.push({ name: name, qty: qty });
+            nameEl.value = '';
+            qtyEl.value = '1';
+            renderInventoryTable();
+            saveInventory(true);
+        }
+
+        function addStockItem() {
+            var name = document.getElementById('stockNewName').value.trim();
+            var qty = parseInt(document.getElementById('stockNewQty').value) || 1;
+            if (!name) return;
+            if (!APP.settings.inventory_stock) APP.settings.inventory_stock = [];
+            APP.settings.inventory_stock.push({ name: name, qty: qty });
+            document.getElementById('stockNewName').value = '';
+            renderInventoryTable();
+            saveStock(true);
+        }
+
+        function saveInventory(silent) {
+            var payload = { inventory: APP.settings.inventory };
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                body: JSON.stringify(payload)
+            }).then(r => r.json()).then(d => {
+                if (d.status !== 'ok' && !silent) alert(t('alert_save_failed') + ': ' + (d.msg || 'Unknown error'));
+                else if (!silent) alert(t('msg_saved_ok'));
+            }).catch(e => {
+                console.error(e);
+                if (!silent) alert(t('msg_error') || 'Gagal menyimpan');
+            });
+        }
+
+        function saveStock(silent) {
+            var payload = { inventory_stock: APP.settings.inventory_stock };
+            fetch('/api/settings', {
+                method: 'POST',
+                headers: Object.assign({ 'Content-Type': 'application/json' }, getAuthHeaders()),
+                body: JSON.stringify(payload)
+            }).then(r => r.json()).then(d => {
+                if (d.status !== 'ok' && !silent) alert(t('alert_save_failed') + ': ' + (d.msg || 'Error'));
+                else if (!silent) alert(t('msg_saved_ok'));
+            }).catch(e => {
+                console.error(e);
+                if (!silent) alert(t('msg_error') || 'Gagal menyimpan');
+            });
+        }
+
+        function syncSettings() {
+            fetch('/api/settings', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(s => {
+                    if (s) {
+                        if (s.web_title) {
+                            localStorage.setItem('nms_web_title', s.web_title);
+                            document.querySelectorAll('.brand-text, #brandText, .mobile-brand').forEach(e => {
+                                e.innerText = s.web_title;
+                                e.removeAttribute('data-lang');
+                            });
+                            document.title = (t('sb_infra') || "NETWORK").toUpperCase() + " - " + s.web_title.toUpperCase();
+                        }
+                        if (s.is_licensed) {
+                            localStorage.setItem('nms_is_licensed', 'true');
+                            var b = document.getElementById('licBadge');
+                            if (b) {
+                                b.innerHTML = '<i class="fas fa-check-circle me-1"></i> LICENSED (PRO)';
+                                b.style.background = 'rgba(16, 185, 129, 0.1)';
+                                b.style.color = '#10b981';
+                                b.style.borderColor = 'rgba(16, 185, 129, 0.2)';
+                                b.href = '/license';
+                                b.style.cursor = 'pointer';
+                            }
+                        } else {
+                            localStorage.removeItem('nms_is_licensed');
+                        }
+                    }
+                }).catch(() => { });
+        }
+
+        function loadData() {
+            fetch('/api/data', { headers: getAuthHeaders() })
+                .then(r => {
+                    if (r.status === 401) { document.getElementById('login-overlay').style.display = 'flex'; return null; }
+                    return r.json();
+                })
+                .then(d => {
+                    if (!d) return;
+                    APP.topology = d.topology;
+                    APP.settings = d.settings;
+                    APP.mikrotik = d.mikrotik_data || {};
+
+                    updateAutoCounts(APP.topology);
+
+                    if (APP.page === 'infra') renderInfra();
+                    else renderInventoryTable(); // Default render
+
+                    // Hide Loader
+                    var loader = document.getElementById('page-loader');
+                    if (loader) loader.classList.add('hidden-loader');
+                }).catch(e => {
+                    console.error("loadData error:", e);
+                    var loader = document.getElementById('page-loader');
+                    if (loader) loader.classList.add('hidden-loader');
+                });
+        }
+
+        function doLogin() {
+            var p = document.getElementById('passInput').value;
+            fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: p })
+            }).then(r => r.json()).then(d => {
+                if (d.status === 'ok') {
+                    localStorage.setItem('nms_auth_session', p);
+                    location.reload();
+                } else {
+                    document.getElementById('loginMsg').style.display = 'block';
+                }
+            }).catch(e => alert(t('msg_conn_fail') || 'Connection Failed'));
+        }
+
+        function doLogout() {
+            if (!confirm(t('conf_logout'))) return;
+            localStorage.removeItem('nms_auth_session');
+            location.reload();
+        }
+
+
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyLanguage();
+            syncSettings();
+            var pass = localStorage.getItem('nms_auth_session');
+            if (pass) {
+                document.getElementById('login-overlay').style.display = 'none';
+                loadData();
+                setInterval(loadData, 10000);
+            } else {
+                document.getElementById('login-overlay').style.display = 'flex';
+            }
+
+            var params = new URLSearchParams(window.location.search);
+            var tab = params.get('tab') || 'inventory';
+            setPageTab(tab);
+        });
+    </script>
+</body>
+
+</html>
