@@ -1,66 +1,11 @@
 #!/bin/bash
 
-# Script Instalasi Monitoring WiFi Service
-# Peycell NMS Monitoring Service Installer
-
-set -e  # Exit on error
-
-echo "=========================================="
-echo "  NMS Monitoring Service Installer"
-echo "=========================================="
-echo ""
-
-# Warna untuk output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
-
-# Fungsi untuk print status
-print_status() {
-    echo -e "${YELLOW}[INFO]${NC} $1"
-}
-
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
-
-# 1. Update system
-print_status "Updating package list..."
+echo "Update package..."
 apt update
-print_success "Package list updated"
 
-# 2. Cek apakah direktori monitoring-wifi exists
-if [ ! -d "/root/monitoring-wifi" ]; then
-    print_error "Direktori /root/monitoring-wifi tidak ditemukan!"
-    echo "Pastikan aplikasi monitoring sudah diinstall di /root/monitoring-wifi"
-    exit 1
-fi
+echo "Membuat service monitoring-wifi..."
 
-# 3. Cek apakah virtual environment exists
-if [ ! -d "/root/monitoring-wifi/venv" ]; then
-    print_error "Virtual environment tidak ditemukan di /root/monitoring-wifi/venv"
-    echo "Pastikan virtual environment sudah dibuat"
-    exit 1
-fi
-
-# 4. Cek apakah gunicorn terinstall
-if [ ! -f "/root/monitoring-wifi/venv/bin/gunicorn" ]; then
-    print_error "Gunicorn tidak ditemukan di virtual environment"
-    echo "Install gunicorn terlebih dahulu dengan: pip install gunicorn"
-    exit 1
-fi
-
-# 5. Buat service file
-print_status "Creating systemd service file..."
-
-SERVICE_FILE="/etc/systemd/system/monitoring-wifi.service"
-
-cat > "$SERVICE_FILE" << 'EOF'
+cat <<EOF > /etc/systemd/system/monitoring-wifi.service
 [Unit]
 Description=Peycell NMS Monitoring Service
 After=network.target
@@ -69,9 +14,7 @@ After=network.target
 User=root
 WorkingDirectory=/root/monitoring-wifi
 Environment=PATH=/root/monitoring-wifi/venv/bin
-
 ExecStart=/root/monitoring-wifi/venv/bin/gunicorn --workers 1 --threads 4 --bind 0.0.0.0:5002 --timeout 120 app:app
-
 Restart=always
 RestartSec=10
 
@@ -79,51 +22,17 @@ RestartSec=10
 WantedBy=multi-user.target
 EOF
 
-print_success "Service file created at $SERVICE_FILE"
-
-# 6. Reload systemd daemon
-print_status "Reloading systemd daemon..."
+echo "Reload systemd..."
 systemctl daemon-reload
-print_success "Systemd daemon reloaded"
 
-# 7. Enable service (start on boot)
-print_status "Enabling service to start on boot..."
+echo "Enable service..."
 systemctl enable monitoring-wifi
-print_success "Service enabled"
 
-# 8. Start service
-print_status "Starting monitoring-wifi service..."
+echo "Start service..."
 systemctl start monitoring-wifi
-sleep 2
 
-# 9. Check status
-print_status "Checking service status..."
-echo "----------------------------------------"
-systemctl status monitoring-wifi --no-pager
-echo "----------------------------------------"
+echo "Restart service..."
+systemctl restart monitoring-wifi
 
-# 10. Verifikasi service running
-if systemctl is-active --quiet monitoring-wifi; then
-    print_success "Service monitoring-wifi berhasil diinstall dan running!"
-    echo ""
-    echo "Informasi Service:"
-    echo "  - Nama Service: monitoring-wifi"
-    echo "  - Port: 5002"
-    echo "  - Working Directory: /root/monitoring-wifi"
-    echo "  - Log: journalctl -u monitoring-wifi -f"
-    echo ""
-    echo "Perintah yang tersedia:"
-    echo "  - systemctl start monitoring-wifi    # Start service"
-    echo "  - systemctl stop monitoring-wifi     # Stop service"
-    echo "  - systemctl restart monitoring-wifi  # Restart service"
-    echo "  - systemctl status monitoring-wifi   # Cek status"
-    echo "  - journalctl -u monitoring-wifi -f   # Lihat log realtime"
-else
-    print_error "Service gagal start. Cek log dengan: journalctl -u monitoring-wifi -n 50"
-    exit 1
-fi
-
-echo ""
-echo "=========================================="
-echo "  Instalasi Selesai!"
-echo "=========================================="
+echo "Status service..."
+systemctl status monitoring-wifi
