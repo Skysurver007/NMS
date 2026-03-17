@@ -28,6 +28,8 @@ fi
 echo -e "${YELLOW}Membuat file service baru...${NC}"
 
 cat > "$SERVICE_FILE" << 'EOF'
+
+
 [Unit]
 Description=Peycell NMS Monitoring Service
 After=network.target
@@ -35,7 +37,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=/root/monitoring-wifi
-Environment=PATH=/root/monitoring-wifi/venv/bin
+Environment=PATH=/root/monitoring-wifi/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 ExecStart=/root/monitoring-wifi/venv/bin/gunicorn --workers 1 --threads 4 --bind 0.0.0.0:5002 --timeout 120 app:app
 
@@ -44,6 +46,7 @@ RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
+
 EOF
 
 echo -e "${GREEN}File service berhasil dibuat${NC}"
