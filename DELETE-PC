@@ -31,7 +31,7 @@ cat > "$SERVICE_FILE" << 'EOF'
 
 
 [Unit]
-Description=Peycell NMS Monitoring Service
+Description=RizkiNet NMS Monitoring Service
 After=network.target
 
 [Service]
