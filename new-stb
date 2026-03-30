@@ -1,0 +1,40 @@
+#!/bin/bash
+
+echo "Update package..."
+apt update
+
+echo "Membuat service monitoring-wifi..."
+
+cat <<EOF > /etc/systemd/system/monitoring.service
+[Unit]
+Description=RizkiNet NMS Monitoring Service
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/root/monitoring
+Environment=PATH=/root/monitoring/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+ExecStart=/root/monitoring/venv/bin/gunicorn --workers 1 --threads 4 --bind 0.0.0.0:5001 --timeout 120 app:app
+
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo "Reload systemd..."
+systemctl daemon-reload
+
+echo "Enable service..."
+systemctl enable monitoring
+
+echo "Start service..."
+systemctl start monitoring
+
+echo "Restart service..."
+systemctl restart monitoring
+
+echo "Status service..."
+systemctl status monitoring
